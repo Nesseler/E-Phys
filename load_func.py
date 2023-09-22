@@ -17,7 +17,9 @@ import numpy as np
 
 #def load_mat2df(file_path):
 
-test = sc.io.loadmat('test_data/AMY-20230905-E004-cc_IF_06.mat')
+#test = sc.io.loadmat('test_data/AMY-20230905-E004-cc_IF_06.mat')
+test = sc.io.loadmat('C:/Users/nesseler/Desktop/local E-Phys/AMY-20230905-E004-cc_IF_06.mat')
+
 
 # %%
 
@@ -43,109 +45,171 @@ plt.plot(test4)
 
 plt.show()
 
+# %%
+
+# build dataframe
+
+potential_df = pd.DataFrame()
+current_df = pd.DataFrame()
+time_in_ms_df = pd.DataFrame()
+
+for i in range(44):
+    current_df[i] = pd.DataFrame(np.transpose(test['Trace_2_6_' + str(i+1) + '_1'])[2])
+    potential_df[i] = pd.DataFrame(np.transpose(test['Trace_2_6_' + str(i+1) + '_1'])[1])
+    time_in_ms_df[i] = pd.DataFrame(np.transpose(test['Trace_2_6_' + str(i+1) + '_1'])[0])
+
+    
+
+
+
+# %%
+
+
+
+step20 = np.transpose(test['Trace_2_6_35_1'])[1]
+
+def step_measurements_subplots(mem_pot):
+
+    #convert V to mV
+    mem_pot = mem_pot * 10**3
+        
+    #250ms pre & post pulse at 20 kHz Sampling Rate
+    #indices are 0-5000, 5001-25000, 25001-30000
+    
+    #sampling rate in Hz
+    SR = 20000
+    
+    #pre, post, and pulse duration in s
+    pre_post_dur = 0.250
+    pulse_dur = 1
+    
+    pre_idx = np.arange(0, int(pre_post_dur * SR))
+    pulse_idx = np.arange(pre_idx[-1]+1, int((pre_post_dur + pulse_dur) * SR))
+    post_idx = np.arange(pulse_idx[-1]+1, int((pre_post_dur + pulse_dur + pre_post_dur) * SR))
+    
+    ylimits = [-100, +20]
+    
+    
+    pulse_mean = np.mean(mem_pot[pulse_idx])
+    pulse_median = np.median(mem_pot[pulse_idx])
+    
+    pulse_std = np.std(mem_pot[pulse_idx])
+    
+    n_hist, bins_hist = np.histogram(mem_pot[pulse_idx], 
+                                     bins = np.arange(-100, +20, 5))
+    
+    
+    threshold = -20
+    
+    
+    threshold_figure, axs = plt.subplots(1,3, sharey = 'row', 
+                                         gridspec_kw={'width_ratios': [0.8, 0.1, 0.1]},
+                                         layout = 'constrained')
+    
+    threshold_figure.set_constrained_layout_pads(wspace=0.0, w_pad=0.0)
+    
+    axs[0].plot(mem_pot,
+                  label = 'cc_IF',
+                  linewidth = 0.5)
+    axs[0].set_ylim(ylimits)
+    axs[0].set_xlim([0, post_idx[-1]])
+    axs[0].fill_between(x = pulse_idx, 
+                          y1 = ylimits[0],
+                          y2 = ylimits[1],
+                          color = 'grey',
+                          alpha = 0.2,
+                          label = 'Analysed time frame')
+    axs[0].set_xlabel('Time [ms]')
+    axs[0].set_ylabel('Voltage [mV]')
+    axs[0].hlines(threshold,
+                    xmin = 0,
+                    xmax = post_idx[-1],
+                    color = 'magenta',
+                    label = 'threshold')
+    
+    axs[1].barh(bins_hist[:-1], 
+                  n_hist, 
+                  height = 10, 
+                  align = 'edge',
+                  label = 'All points histogram')
+    
+    hist_max_points = int(pulse_dur * SR)
+    
+    axs[1].tick_params(axis = 'y', size = 0)
+    axs[1].set_xlim([0, hist_max_points])
+    axs[1].set_xticklabels([])
+    
+    
+    
+    axs[2].set_xlim([0, hist_max_points])
+    axs[2].plot(pulse_idx,
+                [pulse_mean]*(len(pulse_idx)),
+                color = 'red')
+    
+    axs[2].fill_between(x = pulse_idx, 
+                        y1 = [pulse_mean-pulse_std*2]*(len(pulse_idx)),
+                        y2 = [pulse_mean+pulse_std*2]*(len(pulse_idx)),
+                        color = 'grey',
+                        alpha = 0.5,
+                        label = '2 std around median')
+    
+    axs[2].fill_between(x = pulse_idx, 
+                        y1 = [pulse_mean-pulse_std]*(len(pulse_idx)),
+                        y2 = [pulse_mean+pulse_std]*(len(pulse_idx)),
+                        color = 'grey',
+                        alpha = 0.7,
+                        label = 'Std around median')
+    
+    #axs[2].tick_params(axis = 'y', size = 0)
+    axs[2].set_xticklabels([])
+    axs[2].set_xlim([0, post_idx[-1]])
+    
+    #threshold_figure.legend(loc = 'outside')
+    
+    plt.rcParams['axes.grid'] = True
+    
+    plt.show()
+
+step_measurements_subplots(potential_df[19])
+
 
 # %%
 
 for i in range(44):
-    test2 = np.transpose(test['Trace_2_6_' + str(i+1) + '_1'])
 
-    plt.plot(test2[1])
+    step_measurements_subplots(potential_df[i])
     
-    plt.pause(0.05)
+    plt.pause(0.1)
     
     print(i)
+
+
+    
     
 # %%  
 
-step20 = np.transpose(test['Trace_2_6_45_1'])[1]
+pulse_df = pd.DataFrame()
 
-#convert V to mV
-step20 = step20 * 10**3
+mean_ls = []
 
-step20std = np.mean(step20)
+for i in range(44):
+    #sampling rate in Hz
+    SR = 20000
+    
+    #pre, post, and pulse duration in s
+    pre_post_dur = 0.250
+    pulse_dur = 1
+    
+    pre_idx = np.arange(0, int(pre_post_dur * SR))
+    pulse_idx = np.arange(pre_idx[-1]+1, int((pre_post_dur + pulse_dur) * SR))
+    post_idx = np.arange(pulse_idx[-1]+1, int((pre_post_dur + pulse_dur + pre_post_dur) * SR))
+    
+    ylimits = [-100, +20]
+    
+    mean_ls.append(np.mean(potential_df[i][pulse_idx]))
 
-print(len(step20)/(20 * 10**3))
-
-
-
-
-#250ms pre & post pulse at 20 kHz Sampling Rate
-#indices are 0-5000, 5001-25000, 25001-30000
-
-#sampling rate in Hz
-SR = 20000
-
-#pre, post, and pulse duration in s
-pre_post_dur = 0.250
-pulse_dur = 1
-
-pre_idx = np.arange(0, int(pre_post_dur * SR))
-pulse_idx = np.arange(pre_idx[-1]+1, int((pre_post_dur + pulse_dur) * SR))
-post_idx = np.arange(pulse_idx[-1]+1, int((pre_post_dur + pulse_dur + pre_post_dur) * SR))
-
-ylimits = [-100, +20]
-
-
-pulse_mean = np.mean(step20[pulse_idx])
-pulse_median = np.median(step20[pulse_idx])
-
-pulse_std = np.std(step20[pulse_idx])
-
-
-threshold_figure, axs = plt.subplots(2,2, sharey = 'row', tight_layout = True)
-
-axs[0,0].plot(step20,
-              label = 'cc_IF')
-axs[0,0].set_ylim(ylimits)
-axs[0,0].set_xlim([0, post_idx[-1]])
-axs[0,0].fill_between(x = pulse_idx, 
-                      y1 = ylimits[0],
-                      y2 = ylimits[1],
-                      color = 'grey',
-                      alpha = 0.5,
-                      label = 'Analysed time frame')
-axs[0,0].set_xlabel('Time [ms]')
-axs[0,0].set_ylabel('Voltage [mV]')
-
-n_hist, bins_hist = np.histogram(step20[pulse_idx], 
-                                 bins = np.arange(-100, +20, 10))
-
-axs[0,1].barh(bins_hist[:-1], 
-              n_hist, 
-              height = 10, 
-              align = 'edge',
-              label = 'All points histogram')
-
-hist_max_points = int(pulse_dur * SR)
-
-axs[0,1].set_xlim([0, hist_max_points])
-axs[0,1].plot([0, hist_max_points],
-              [pulse_mean]*2,
-              color = 'red')
-axs[0,1].plot([0, hist_max_points],
-              [pulse_median]*2,
-              color = 'magenta')
-
-axs[0,1].fill_between(x = [0, hist_max_points], 
-                      y1 = [pulse_median-pulse_std*2]*2,
-                      y2 = [pulse_median+pulse_std*2]*2,
-                      color = 'grey',
-                      alpha = 0.5,
-                      label = '2 std around median')
-
-axs[0,1].fill_between(x = [0, hist_max_points], 
-                      y1 = [pulse_median-pulse_std]*2,
-                      y2 = [pulse_median+pulse_std]*2,
-                      color = 'grey',
-                      alpha = 0.7,
-                      label = 'Std around median')
-
-
-#threshold_figure.legend(loc = 'outside')
-
-plt.show()
 
     
-    
-    
-    
+pulse_df['mean'] = pd.DataFrame(mean_ls)
+
+pulse_df['mean'].plot()
