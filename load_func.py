@@ -53,8 +53,8 @@ potential_df = pd.DataFrame()
 current_df = pd.DataFrame()
 time_in_ms_df = pd.DataFrame()
 
-for i in range(44):
-    current_df[i] = pd.DataFrame(np.transpose(test['Trace_2_6_' + str(i+1) + '_1'])[2])
+for i in range(45):
+    current_df[i] = pd.DataFrame(np.transpose(test['Trace_2_6_' + str(i+1) + '_2'])[1])
     potential_df[i] = pd.DataFrame(np.transpose(test['Trace_2_6_' + str(i+1) + '_1'])[1])
     time_in_ms_df[i] = pd.DataFrame(np.transpose(test['Trace_2_6_' + str(i+1) + '_1'])[0])
 
@@ -89,6 +89,8 @@ def step_measurements_subplots(mem_pot):
     
     ylimits = [-100, +20]
     
+    bin_width = 5
+    
     
     pulse_mean = np.mean(mem_pot[pulse_idx])
     pulse_median = np.median(mem_pot[pulse_idx])
@@ -96,7 +98,7 @@ def step_measurements_subplots(mem_pot):
     pulse_std = np.std(mem_pot[pulse_idx])
     
     n_hist, bins_hist = np.histogram(mem_pot[pulse_idx], 
-                                     bins = np.arange(-100, +20, 5))
+                                     bins = np.arange(-100, +20, bin_width))
     
     
     threshold = -20
@@ -129,7 +131,7 @@ def step_measurements_subplots(mem_pot):
     
     axs[1].barh(bins_hist[:-1], 
                   n_hist, 
-                  height = 10, 
+                  height = bin_width, 
                   align = 'edge',
                   label = 'All points histogram')
     
@@ -213,3 +215,107 @@ for i in range(44):
 pulse_df['mean'] = pd.DataFrame(mean_ls)
 
 pulse_df['mean'].plot()
+
+
+
+
+# %%
+
+#ls_
+
+#for i in range(44):
+
+spike_test = potential_df[44] * 1e3
+
+#spike_test = 
+
+dv = np.diff(spike_test)
+dt = np.diff(np.arange(0,30000))
+
+dvdt = dv / dt
+
+
+
+print(np.where((np.max(dvdt) == dvdt)))
+
+spike_times = sc.signal.find_peaks(spike_test, prominence = 20)
+
+dvdt_peak = sc.signal.find_peaks(dvdt, prominence = 6)
+
+spike_figure, axs = plt.subplots(1,1, layout = 'constrained')
+
+
+
+axs.plot(spike_test)
+
+
+x_values = spike_times[0]
+
+
+xdvdt_values = dvdt_peak[0]
+
+#axs.plot(np.arange(0,29999), dvdt)
+
+
+axs.scatter(x_values, spike_test.iloc[spike_times[0]], color = "red", marker = "x")
+#axs.scatter(xdvdt_values, dvdt[dvdt_peak[0]], color = "red", marker = "x")
+
+
+limits = [4900, 5400]
+
+axs.set_xlim(limits)
+
+
+
+phaseplane, ppaxs = plt.subplots(1,1, layout = 'constrained')
+
+ppaxs.plot(spike_test[limits[0]:limits[1]], dvdt[limits[0]:limits[1]])
+
+
+
+
+
+# %%
+
+peak_times = []
+inj_cur = []
+n_peaks = []
+
+SR = 20 * 1e3
+
+for i in range(45):
+    mV = potential_df[i] * 1e3
+    
+    ipeaks = sc.signal.find_peaks(mV[pulse_idx], prominence = 20)[0] / (SR / 1e3)
+    
+    peak_times.append(ipeaks)
+
+    inj_cur.append((np.mean(current_df[i].iloc[pulse_idx]) - np.mean(current_df[i].iloc[pre_idx]))*1e12)
+
+    n_peaks.append(len(ipeaks))
+
+
+
+
+
+
+
+IF_fig, IF_axs = plt.subplots(1,2, sharey='row',
+                              gridspec_kw={'width_ratios': [0.8, 0.2]},
+                              layout = 'constrained')
+
+
+IF_axs[0].eventplot(peak_times, orientation = 'horizontal', lineoffsets=inj_cur, linelengths=5, color = "k")
+IF_axs[0].set_xlim([0, 1000])
+IF_axs[0].set_xlabel('Time [ms]')
+
+IF_axs[1].plot(n_peaks, inj_cur, color='k')
+IF_axs[1].set_xlabel('AP. freq [Hz]')
+IF_axs[1].set_xlim([0, 75])
+
+IF_axs[0].set_ylim([-20, 200])
+IF_fig.supylabel('Injected current [pA]')
+
+
+plt.show()
+
