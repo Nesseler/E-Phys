@@ -298,19 +298,19 @@ for i in range(45):
     if len(ipeaks) > 1: 
         mean_ISI.append(np.mean(np.diff(ipeaks)))
     else:
-        mean_ISI.append(len(pulse_idx) / (SR / 1e3))
+        mean_ISI.append(np.nan)
 
 
 
 
-IF_fig, IF_axs = plt.subplots(1,4, sharey='row',
-                              gridspec_kw={'width_ratios': [0.7, 0.2, 0.05, 0.05]},
+IF_fig, IF_axs = plt.subplots(1,3, sharey='row',
+                              gridspec_kw={'width_ratios': [0.7, 0.2, 0.1]},
                               layout = 'constrained')
 
 
 IF_axs[0].eventplot(peak_times, orientation = 'horizontal', lineoffsets=inj_cur, linelengths=5, color = "k")
 IF_axs[0].set_xlim([0, 1000])
-IF_axs[0].set_xlabel('Time [ms]')
+IF_axs[0].set_xlabel('Time\n[ms]')
 
 
 IF_axs[1].plot(n_peaks, inj_cur, color='k')
@@ -320,19 +320,7 @@ IF_axs[1].set_xlim([0, 75])
 
 IF_axs[2].plot(mean_ISI, inj_cur, color='r')
 IF_axs[2].set_xlabel('Mean ISI\n[ms]')
-IF_axs[2].set_xlim([0, 75])
-
-IF_axs[3].plot(mean_ISI, inj_cur, color='r')
-IF_axs[3].set_xlim([925, 1000])
-IF_axs[3].set_xticks([1000])
-
-
-# hide the spines between ax and ax2
-IF_axs[2].spines.right.set_visible(False)
-IF_axs[3].spines.left.set_visible(False)
-#IF_axs[2].yaxis.tick_right()
-IF_axs[3].tick_params(size = 0, labelleft=False)  # don't put tick labels at the top
-#IF_axs[3].yaxis.tick_left()
+IF_axs[2].set_xlim([0, 100])
 
 
 IF_axs[0].set_ylim([-20, 200])
