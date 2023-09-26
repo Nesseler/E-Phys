@@ -280,6 +280,7 @@ ppaxs.plot(spike_test[limits[0]:limits[1]], dvdt[limits[0]:limits[1]])
 peak_times = []
 inj_cur = []
 n_peaks = []
+mean_ISI = []
 
 SR = 20 * 1e3
 
@@ -294,14 +295,16 @@ for i in range(45):
 
     n_peaks.append(len(ipeaks))
 
+    if len(ipeaks) > 1: 
+        mean_ISI.append(np.mean(np.diff(ipeaks)))
+    else:
+        mean_ISI.append(len(pulse_idx) / (SR / 1e3))
 
 
 
 
-
-
-IF_fig, IF_axs = plt.subplots(1,2, sharey='row',
-                              gridspec_kw={'width_ratios': [0.8, 0.2]},
+IF_fig, IF_axs = plt.subplots(1,4, sharey='row',
+                              gridspec_kw={'width_ratios': [0.7, 0.2, 0.05, 0.05]},
                               layout = 'constrained')
 
 
@@ -309,9 +312,28 @@ IF_axs[0].eventplot(peak_times, orientation = 'horizontal', lineoffsets=inj_cur,
 IF_axs[0].set_xlim([0, 1000])
 IF_axs[0].set_xlabel('Time [ms]')
 
+
 IF_axs[1].plot(n_peaks, inj_cur, color='k')
-IF_axs[1].set_xlabel('AP. freq [Hz]')
+IF_axs[1].set_xlabel('AP. freq\n[Hz]')
 IF_axs[1].set_xlim([0, 75])
+
+
+IF_axs[2].plot(mean_ISI, inj_cur, color='r')
+IF_axs[2].set_xlabel('Mean ISI\n[ms]')
+IF_axs[2].set_xlim([0, 75])
+
+IF_axs[3].plot(mean_ISI, inj_cur, color='r')
+IF_axs[3].set_xlim([925, 1000])
+IF_axs[3].set_xticks([1000])
+
+
+# hide the spines between ax and ax2
+IF_axs[2].spines.right.set_visible(False)
+IF_axs[3].spines.left.set_visible(False)
+#IF_axs[2].yaxis.tick_right()
+IF_axs[3].tick_params(size = 0, labelleft=False)  # don't put tick labels at the top
+#IF_axs[3].yaxis.tick_left()
+
 
 IF_axs[0].set_ylim([-20, 200])
 IF_fig.supylabel('Injected current [pA]')
