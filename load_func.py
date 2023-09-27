@@ -17,8 +17,8 @@ import numpy as np
 
 #def load_mat2df(file_path):
 
-#test = sc.io.loadmat('test_data/AMY-20230905-E004-cc_IF_06.mat')
-test = sc.io.loadmat('C:/Users/nesseler/Desktop/local E-Phys/AMY-20230905-E004-cc_IF_06.mat')
+test = sc.io.loadmat('/Users/moritznesseler/test_data/AMY-20230905-E004-cc_IF_06.mat')
+#test = sc.io.loadmat('C:/Users/nesseler/Desktop/local E-Phys/AMY-20230905-E004-cc_IF_06.mat')
 
 
 # %%
@@ -328,4 +328,54 @@ IF_fig.supylabel('Injected current [pA]')
 
 
 plt.show()
+
+
+# %%
+
+test_step_idx = 0
+
+first_step = potential_df[test_step_idx] * 1e3 
+
+
+x_data = np.arange(2000+1)
+
+curve_idx = x_data + 5000
+
+curve = first_step[curve_idx]
+
+
+
+
+
+plt.plot(x_data, curve)
+
+#plt.xlim([4900, 7000])
+
+
+def exp_func(x, a, b, c):
+    return a * np.exp(-b * x) + c
+
+
+popt, pcov = sc.optimize.curve_fit(exp_func, x_data, curve, p0=[10, 0.005, -90]) #, bounds=(0, [3., 1., 0.5]))
+
+popt_guess = [10, 0.005, -90]
+
+fit = []
+
+for i in range(len(x_data)):
+    fit.append(exp_func(x_data[i], *popt_guess))
+
+plt.plot(x_data, fit, 'g--')
+plt.plot(x_data, exp_func(x_data, *popt), 'r--')
+
+
+
+
+
+#R_input = ∆U/∆I
+#∆U = a = popt[0], ∆I = 20 (for first step)
+
+R_input = ( -popt[0] / inj_cur[test_step_idx] ) * 1e3 #in MOhm
+
+print(R_input)
 
