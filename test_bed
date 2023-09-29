@@ -12,13 +12,14 @@ import pandas as pd
 import scipy as sc
 import matplotlib.pyplot as plt
 import numpy as np
+from useful_functions import calc_time_series, butter_filter, bessel_filter
 
 # %%
 
 #def load_mat2df(file_path):
 
-test = sc.io.loadmat('/Users/moritznesseler/test_data/AMY-20230905-E004-cc_IF_06.mat')
-#test = sc.io.loadmat('C:/Users/nesseler/Desktop/local E-Phys/AMY-20230905-E004-cc_IF_06.mat')
+#test = sc.io.loadmat('/Users/moritznesseler/test_data/AMY-20230905-E004-cc_IF_06.mat')
+test = sc.io.loadmat('C:/Users/nesseler/Desktop/local E-Phys/AMY-20230905-E004-cc_IF_06.mat')
 
 
 # %%
@@ -219,63 +220,9 @@ pulse_df['mean'].plot()
 
 
 
-# %%
-
-#ls_
-
-#for i in range(44):
-
-spike_test = potential_df[44] * 1e3
-
-#spike_test = 
-
-dv = np.diff(spike_test)
-dt = np.diff(np.arange(0,30000))
-
-dvdt = dv / dt
-
-
-
-print(np.where((np.max(dvdt) == dvdt)))
-
-spike_times = sc.signal.find_peaks(spike_test, prominence = 20)
-
-dvdt_peak = sc.signal.find_peaks(dvdt, prominence = 6)
-
-spike_figure, axs = plt.subplots(1,1, layout = 'constrained')
-
-
-
-axs.plot(spike_test)
-
-
-x_values = spike_times[0]
-
-
-xdvdt_values = dvdt_peak[0]
-
-#axs.plot(np.arange(0,29999), dvdt)
-
-
-axs.scatter(x_values, spike_test.iloc[spike_times[0]], color = "red", marker = "x")
-#axs.scatter(xdvdt_values, dvdt[dvdt_peak[0]], color = "red", marker = "x")
-
-
-limits = [4900, 5400]
-
-axs.set_xlim(limits)
-
-
-
-phaseplane, ppaxs = plt.subplots(1,1, layout = 'constrained')
-
-ppaxs.plot(spike_test[limits[0]:limits[1]], dvdt[limits[0]:limits[1]])
-
-
-
-
 
 # %%
+
 
 peak_times = []
 inj_cur = []
@@ -332,9 +279,11 @@ plt.show()
 
 # %%
 
-test_step_idx = 0
+test_step_idx = 1
 
 first_step = potential_df[test_step_idx] * 1e3 
+
+first_step = butter_filter(first_step, 5, 1e3, 20e3)
 
 
 x_data = np.arange(2000+1)
@@ -378,4 +327,21 @@ plt.plot(x_data, exp_func(x_data, *popt), 'r--')
 R_input = ( -popt[0] / inj_cur[test_step_idx] ) * 1e3 #in MOhm
 
 print(R_input)
+
+
+# %%
+
+## ToDO ##
+
+# plot IF function
+    # include this function in the raster plot figure
+    # 2 functions:
+        # calculates IF and returns injected current and spike times
+        # one function plots the IF
+# finish R input / tau mem
+
+
+
+
+
 
