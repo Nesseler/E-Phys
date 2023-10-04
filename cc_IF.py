@@ -143,10 +143,9 @@ norm = mtl.colors.Normalize(vmin=0, vmax=filter_orders)
 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
   
-plt.colorbar(sm, ticks=np.linspace(0, filter_orders, 2), label = "Butterworth filter order")
 
-cbar = phaseplane.colorbar(cax, ticks=[-1, 0, 1])
-cbar.ax.set_yticklabels(['< -1', '0', '> 1'])
+cbar = phaseplane.colorbar(sm, ticks=np.linspace(0.4, filter_orders-0.4, 5+1), label = "Butterworth filter order")
+cbar.ax.set_yticklabels(np.linspace(0, filter_orders, 5+1,dtype=np.int16))
 
 
 
