@@ -28,7 +28,7 @@ for i in range(45):
 
 # %%
 
-def phase_plane_plot(data, axis, plot_dict, sampling_rate=20e3):
+def phase_plane_plot(data, axis=None, plot_dict={'c':'k'}, sampling_rate=20e3):
     """
     Calculate and generate phase plane plot for single action potential
     Time is dealt in ms
@@ -48,10 +48,11 @@ def phase_plane_plot(data, axis, plot_dict, sampling_rate=20e3):
     dv = np.diff(v)
     dt = np.diff(t)
     dvdt = dv / dt
-        
-    axis.plot(v[1:], dvdt, **plot_dict)
-    axis.set_ylabel('Rate of membrane potential change\n[mV/ms]')
-    axis.set_xlabel('Membrane potential [mV]')
+    
+    if axis != None:
+        axis.plot(v[1:], dvdt, **plot_dict)
+        axis.set_ylabel('Rate of membrane potential change\n[mV/ms]')
+        axis.set_xlabel('Membrane potential [mV]')
 
     return v, dvdt
 
@@ -148,21 +149,118 @@ cbar = phaseplane.colorbar(sm, ticks=np.linspace(0.4, filter_orders-0.4, 5+1), l
 cbar.ax.set_yticklabels(np.linspace(0, filter_orders, 5+1,dtype=np.int16))
 
 
+# TODO
+## new figure with insets at threshold, peak & repolarisation
+
+
+
+# %%
+
+test_step = potential_df[21] * 1e3
+test_AP = test_step[5000:5401]
+t = calc_time_series(test_AP)
+v, dvdt = phase_plane_plot(test_AP)
+
+
+
+phaseplane, ppaxs = plt.subplots(1,2, layout = 'constrained')
+
+
+
+    
+
+
+#plot_voltage_v_time(test_AP, ppaxs, {'c':'k', 'label':'unfiltered'})
+
+
+plot_w_colorcode(t, test_AP, t)
+
+
+ppaxs[0].set_ylim([-100, 20])
+ppaxs[0].set_xlim(t.min(), t.max())
+
+
+#plot_w_colorcode(test_AP[1:], dvdt, t[1:], phaseplane, ppaxs[1])
+
+#phase_plane_plot(test_AP, ppaxs[1], {'c':'k', 'label':'unfiltered'})
+
+
+#ppaxs[1].plot(v[1:], dvdt)
+ppaxs[1].set_ylim([-50, 250])
+
+ppaxs[1].set_xlim([-100, 20])
+
+ppaxs[1].set_ylabel('Rate of membrane potential change\n[mV/ms]')
+ppaxs[1].set_xlabel('Membrane potential [mV]')
+
+
+
+# %%
+
+plt.style.use('default')
+
+def get_colorcode(x, y, data_fc, norm=None, cmap='seismic', plot_dict={'c':'k'}):
+    points = np.array([x, y]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+    return_bool = False
+
+    if norm is None:
+        # Create a continuous norm to map from data points to colors
+        norm = plt.Normalize(data_fc.min(), data_fc.max())
+        return_bool = True
+        
+        
+    lc = mtl.collections.LineCollection(segments, cmap=cmap, norm=norm)
+    # Set the values used for colormapping
+    lc.set_array(data_fc)
+    
+    return (norm, lc) if return_bool else lc
 
 
 
 
+test_step = potential_df[14] * 1e3
+test_AP = test_step
+test_AP_filtered = butter_filter(test_AP, order=1, cutoff=1e3, sampling_rate=20e3)
+test_AP_filtered = test_AP_filtered[5150:5401]
+t = calc_time_series(test_AP_filtered)
+v, dvdt = phase_plane_plot(test_AP_filtered)
 
 
 
+phaseplane, ppaxs = plt.subplots(1,2, layout = 'constrained')
+
+t = t
+v = test_AP_filtered
+dvdt = dvdt
+data_fc = t           #data for colorcode
+cmap = 'viridis_r'
+
+norm = mtl.colors.CenteredNorm(0, dvdt.max())
+
+lc = get_colorcode(t, v, dvdt, norm = norm)
+
+line = ppaxs[0].add_collection(lc)
+phaseplane.colorbar(line, ax=ppaxs[1])
+    
+
+
+lc = get_colorcode(v[1:], dvdt, dvdt, norm = norm)
+
+line = ppaxs[1].add_collection(lc)
 
 
 
+ppaxs[0].set_ylim([-100, 20])
+ppaxs[0].set_xlim(t.min(), t.max())
+ppaxs[0].grid(False)
 
+ppaxs[1].set_ylim([-100, 250])
+ppaxs[1].set_xlim([-100, 20])
+ppaxs[1].set_ylabel('Rate of membrane potential change\n[mV/ms]')
+ppaxs[1].set_xlabel('Membrane potential [mV]')
 
-
-
-
-
+ppaxs[1].grid(False)
 
 
