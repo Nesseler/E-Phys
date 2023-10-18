@@ -173,7 +173,7 @@ def step_measurements_subplots(mem_pot):
     
     plt.show()
 
-step_measurements_subplots(potential_df[19])
+step_measurements_subplots(potential_df[30])
 
 
 # %%

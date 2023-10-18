@@ -233,7 +233,7 @@ plot_vt_n_dvdtv_colorcoded(v, cmap = 'viridis')
 # %%
 
 
-test_step = potential_df[14] * 1e3
+test_step = potential_df[11] * 1e3
 
 test_AP = test_step
 
@@ -241,10 +241,10 @@ test_AP_filtered = butter_filter(test_AP, order=3, cutoff=1e3, sampling_rate=20e
 
 
 
-v = test_AP_filtered[5100:5601]
+v = test_AP_filtered
 t = calc_time_series(v, 20e3, 'ms')
 dvdt = calc_dvdt(v, t)
-d2vdt = calc_dvdt(dvdt, t[1:])
+d2vdt = calc_dvdt(dvdt, t[:-1])
 
 
 v_derivatives, dv_axs = plt.subplots(3,1, layout = 'constrained', sharex=True)
@@ -285,7 +285,7 @@ v_derivatives.colorbar(line, ax=dv_axs[2])
 #dv_axs[2].set_xlim([5, 13])
 
 std = np.std(v)
-ipeaks = sc.signal.find_peaks(v, height = -80, prominence = 20)
+ipeaks = sc.signal.find_peaks(v, prominence = 20)
 
 
 SR = 20e3
@@ -301,7 +301,7 @@ dvdtpeaks = sc.signal.find_peaks(dvdt, threshold = 50)
 #thresholding of the dvdt
 #https://stackoverflow.com/questions/62745970/identify-when-time-series-passes-through-threshold-both-in-graph-and-table
 
-threshold = 50
+threshold = 25
 
 dv_axs[1].hlines(threshold, t.min(), t.max(), 'r', ':')
 
@@ -430,8 +430,182 @@ print('AP rise time', t_rise, 'ms')
         # times of APs
         # ISIs
         # idx of APs
-        # adaptation factor (amplitude, FWHM)
+        # adaptation factor (amplitude, FWHM, ISI)
+            #adaptation index: ratio of first to last ISI
         # 
+
+
+
+# %%
+
+def get_AP_parameters(v, idx_peaks, SR=20e3, dvdt_threshold=25, t_pre=2, t_post=5):
+    """
+    Function calculates all parameters associated with an action potential (AP).
+    Parameters:
+        v : One-dimensional array with voltage in mV.
+        peak_idx : One-dimensional array of peak indices.
+        sampling_rate : Sampling rate in Hz. Default is 20 kHz.
+        dvdt_threshold : Threshold in first derivative to calculate threshold
+            crossing of the AP (in ms/mV). Default is 25 ms/mV.
+        t_pre : Time before peak to investigate in ms. Default is 2 ms.
+        t_post : Time after peak to investigate in ms. Default is 5 ms.
+    Returns:
+        AP_parameters: Pandas Dataframe of all parameters for the provided peaks.
+            v_peaks    
+            t_peaks
+            v_threshold
+            t_threshold
+            idx_threshold
+            v_amplitude
+            t_toPeak
+            v_AHP
+            t_AHP
+            idx_AHP
+            v_AHP_amplitude
+            t_to_AHP
+            FWHM        
+    """
+    
+    t = calc_time_series(v, SR, 'ms')
+    
+    dvdt = calc_dvdt(v, t)
+    
+    d2vdt = calc_dvdt(dvdt, t[:-1])
+    
+    t_peaks = np.divide(idx_peaks, (SR/1e3))
+    v_peaks = v[idx_peaks]
+    
+    ### AP THRESHOLD & AMPLITUDE
+    # thresholding of the dvdt
+    # https://stackoverflow.com/questions/62745970/identify-when-time-series-passes-through-threshold-both-in-graph-and-table
+    # creates array like v with ones and zeros for below and above threshold
+    dvdt_above_th = np.where(dvdt >= dvdt_threshold, 1, 0)
+    
+    # caculates the different from element to element so that only the changes remain
+    # with the sign indicating the directionality
+    dvdt_change = np.diff(dvdt_above_th)
+    
+    # AP threshold parameters
+    idx_threshold = np.where(dvdt_change == 1)[0] + 1 #+1 for backwards derivative
+    v_threshold = v[idx_threshold]
+    t_threshold = np.divide(idx_threshold, (SR / 1e3))
+    
+    # AP amplitude
+    v_amplitude = v_peaks-v_threshold
+    
+    # AP time to peak
+    t_toPeak = np.subtract(t_peaks, t_threshold)
+    
+    
+    ### AP AFTERHYPERPOLRISATION (AHP)
+    v_AHP = np.zeros_like(idx_peaks, dtype=float)
+    t_AHP = np.zeros_like(idx_peaks, dtype=float)
+    idx_AHP  = np.zeros_like(idx_peaks, dtype=float)
+    v_AHP_amplitude = np.zeros_like(idx_peaks, dtype=float)
+    t_to_AHP = np.zeros_like(idx_peaks, dtype=float)
+    
+    for idx, i_peak in enumerate(idx_peaks):
+        #limit v array to time post one peak, since looking for local min
+        i_post = int(i_peak + (t_post * SR/1e3))
+    
+        v_post = v[i_peak:i_post]
+        
+        #voltage minimum
+        v_AHP[idx] = np.min(v_post)
+    
+        #index
+        idx_AHP[idx] = np.argmin(v_post) + i_peak
+        
+        #time
+        t_AHP[idx] = idx_AHP[idx] / (SR/1e3)
+    
+        #AHP amplitude
+        v_AHP_amplitude[idx] = v_AHP[idx] - v_threshold[idx]
+    
+        #time to afterhyperpolarisation
+        t_to_AHP = t_AHP[idx] - t_peaks[idx]
+    
+    
+    ### AP FULL WIDTH AT HALF MAXIMUM (FWHM)
+    FWHM = np.zeros_like(idx_peaks, dtype=float)
+    
+    HM = v_amplitude / 2
+    v_HM = v_threshold + HM
+    
+    for idx, i_peak in enumerate(idx_peaks):
+        #limit timeframe to look for the FWHM
+        pre_idx = int(i_peak - (t_pre * (SR/1e3)))
+        post_idx = int(i_peak + (t_post * (SR/1e3)))
+        v_AP = v[pre_idx:post_idx+1]
+    
+        #use thresholding to find data points above half maximum
+        v_AP_above_HM = np.where(v_AP >= v_HM[idx], 1, 0)
+        v_change = np.diff(v_AP_above_HM)
+    
+        idx_change = np.where(v_change != 0)[0]
+    
+        # v_change = v_AP[idx_change]
+        # t_change = np.divide(idx_change, (SR/1e3))
+        
+        FWHM[idx] = np.diff(idx_change) / (SR/1e3)
+    
+    
+    ### AP RISE TIME
+    t_rise = np.zeros_like(idx_peaks, dtype=float)
+    
+    # rise time is calculated between 20 % and 80 % of the voltage amplitude.
+    v_20perc = v_threshold + (v_amplitude * 0.2)
+    v_80perc = v_threshold + (v_amplitude * 0.8)
+    
+    for idx, i_peak in enumerate(idx_peaks):
+        #limit v array to time before peak
+        pre_idx = int(i_peak - (t_pre * (SR/1e3)))
+        v_pre = v[pre_idx:i_peak+1]
+        
+        
+        v_rise = np.where((v_pre > v_20perc[idx]) & (v_pre < v_80perc[idx]))[0]
+        
+        t_rise[idx] = len(v_rise) / (SR / 1e3)
+        
+    
+    APs_dataframe = pd.DataFrame({'v_peaks' : v_peaks,
+                                 't_peaks' : t_peaks,
+                                 'v_threshold' : v_threshold,
+                                 't_threshold' : t_threshold,
+                                 'idx_threshold' : idx_threshold,
+                                 'v_amplitude' : v_amplitude,
+                                 't_toPeak' : t_toPeak,
+                                 'v_AHP' : v_AHP,
+                                 't_AHP' : t_AHP,
+                                 'idx_AHP' : idx_AHP,
+                                 'v_AHP_amplitude' : v_AHP_amplitude,
+                                 't_to_AHP' : t_to_AHP,
+                                 't_rise' : t_rise,
+                                 'FWHM' : FWHM})
+
+    return APs_dataframe
+    
+    
+    
+  
+test_step = potential_df[11] * 1e3
+test_AP = test_step
+test_AP_filtered = butter_filter(test_AP, order=3, cutoff=1e3, sampling_rate=20e3)
+
+v = test_AP_filtered
+idx_peaks, peak_dict = sc.signal.find_peaks(v, prominence = 20)
+
+
+APs_parameters = get_AP_parameters(v, idx_peaks)
+
+plt.scatter(x=np.arange(len(idx_peaks)), y=APs_parameters['FWHM'])
+
+
+
+
+## functions
+    # plot against index
+    # swarmplot funtion
 
 
 
