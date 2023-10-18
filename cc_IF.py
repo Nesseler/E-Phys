@@ -444,7 +444,7 @@ def get_AP_parameters(v, idx_peaks, SR=20e3, dvdt_threshold=25, t_pre=2, t_post=
     Parameters:
         v : One-dimensional array with voltage in mV.
         peak_idx : One-dimensional array of peak indices.
-        sampling_rate : Sampling rate in Hz. Default is 20 kHz.
+        SR : Sampling rate in Hz. Default is 20 kHz.
         dvdt_threshold : Threshold in first derivative to calculate threshold
             crossing of the AP (in ms/mV). Default is 25 ms/mV.
         t_pre : Time before peak to investigate in ms. Default is 2 ms.
@@ -600,12 +600,111 @@ APs_parameters = get_AP_parameters(v, idx_peaks)
 
 plt.scatter(x=np.arange(len(idx_peaks)), y=APs_parameters['FWHM'])
 
+import seaborn as sbn
+
+def plot_AP_parameter_v_index(AP_parameter, e_range=None, label=''):
+    fig_AP, AP_axs = plt.subplots(1,1, layout = 'constrained')
+    
+    #sbn.violinplot(ax=AP_axs, data=AP_parameter)
+    sbn.swarmplot(ax=AP_axs, data=AP_parameter)
+    
+    if e_range is not None:
+        AP_axs.set_ylim(e_range)
+        
+    AP_axs.set_ylabel(label)
+    
+
+plot_AP_parameter_v_index(APs_parameters['v_amplitude'])#, [0,1], 'AP rise time [ms]')
+    
+    
+    
+    
+    
+    
+# %%
+
+def get_step_parameters(v, i, SR=20e3):
+    """
+    Function calculates all parameters associated with a step of an IF measurement.
+    Parameters:
+        v : One-dimensional array with voltage in mV.
+        i : Current applied at that step in pA.
+        SR : Sampling rate in Hz. Default is 20 kHz.
+    Returns:
+        step_parameters: Dictionary of all parameters for the provided step.
+            n_peaks
+            t_peaks
+            idx_peaks
+            ISI
+            instant_freqs
+            ISI_adapt
+            v_amplitude_adapt
+    """
+
+    # Spike train
+        # number of APs
+        # times of APs
+        # ISIs
+        # idx of APs
+        # Adaptation
+        
+        #factor (amplitude, FWHM, ISI)
+            #adaptation index: ratio of first to last ISI
+        # 
+    print('test')
+
+test_step = potential_df[26] * 1e3
+
+test_step_filtered = butter_filter(test_step, order=3, cutoff=1e3, sampling_rate=20e3)
 
 
 
-## functions
-    # plot against index
-    # swarmplot funtion
+v = test_step_filtered
+i = (np.mean(current_df[i].iloc[15]) - np.mean(current_df[i].iloc[15]))*1e12
+
+t = calc_time_series(v, 20e3, 'ms')
+
+plt.plot(t, v)
+
+###PEAK IDX
+idx_peaks, peak_dict = sc.signal.find_peaks(v, prominence = 40)
+
+AP_df = get_AP_parameters(v, idx_peaks, dvdt_threshold=25)
+
+plt.eventplot(AP_df['t_peaks'], lineoffsets=20, linelengths=5, color = "k")
+
+### NUMBER OF PEAKS
+n_peaks = len(idx_peaks)
+
+### TIMES OF APs
+t_peaks = AP_df['t_peaks'].to_numpy()
+
+### ISIs
+if len(idx_peaks) > 1: 
+    ISIs = np.diff(idx_peaks) / (SR/1e3)
+    instant_freqs = np.diff(idx_peaks) / (SR)
+else:
+    ISIs = np.nan
+
+
+###ADAPTATION
+
+# Adaptation factor ISI
+ISI_adapt = ISIs[-1] / ISIs[0]
+
+# Adaptation factor spike amplitude
+v_amplitude = AP_df['v_amplitude'].to_numpy()
+
+v_adapt = v_amplitude[-1] / v_amplitude[0]
+
+
+
+
+
+
+
+
+
 
 
 

@@ -342,6 +342,32 @@ print(R_input)
 
 
 
+# %%
+
+
+#import patchview
+
+import matplotlib.pylab as plt
+testFile = r"C:\Users\nesseler\Desktop\local E-Phys\AMY-20230905.dat"
+
+## import HekaHelpers which is a wrapper of main file: HEKA_Reader_MAIN
+from patchview.HekaIO.HekaHelpers import HekaBundleInfo
+
+## read Heka .dat file into a object
+# test file is the full path for your Heka .dat file
+bundleTester = HekaBundleInfo(testFile)
+
+## Get sample rate
+traceIndex = [1,5,0,0] ## [Group, Series, Sweep, Trace]
+#SR = bundleTester.getSeriesSamplingRate(traceIndex)
+
+## Get stimuli information
+#time, stim, stimInfo = bundleTester.getStim(traceIndex)
+
+## Get data from a single sweep and single channel
+data = bundleTester.getSeriesData(traceIndex)
+
+
 
 
 
