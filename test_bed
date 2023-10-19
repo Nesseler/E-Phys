@@ -255,12 +255,12 @@ IF_fig, IF_axs = plt.subplots(1,3, sharey='row',
                               layout = 'constrained')
 
 
-IF_axs[0].eventplot(peak_times, orientation = 'horizontal', lineoffsets=inj_cur, linelengths=5, color = "k")
+IF_axs[0].eventplot(peak_times, orientation = 'horizontal', lineoffsets=inj_cur, linelengths=5, color = "w")
 IF_axs[0].set_xlim([0, 1000])
 IF_axs[0].set_xlabel('Time\n[ms]')
 
 
-IF_axs[1].plot(n_peaks, inj_cur, color='k')
+IF_axs[1].plot(n_peaks, inj_cur, color='w')
 IF_axs[1].set_xlabel('AP. freq\n[Hz]')
 IF_axs[1].set_xlim([0, 75])
 
@@ -348,7 +348,7 @@ print(R_input)
 #import patchview
 
 import matplotlib.pylab as plt
-testFile = r"C:\Users\nesseler\Desktop\local E-Phys\AMY-20230905.dat"
+testFile = r"C:\Users\nesseler\Desktop\local E-Phys\CtC-AMY-ctrl-008-2.dat"
 
 ## import HekaHelpers which is a wrapper of main file: HEKA_Reader_MAIN
 from patchview.HekaIO.HekaHelpers import HekaBundleInfo
@@ -358,7 +358,7 @@ from patchview.HekaIO.HekaHelpers import HekaBundleInfo
 bundleTester = HekaBundleInfo(testFile)
 
 ## Get sample rate
-traceIndex = [1,5,0,0] ## [Group, Series, Sweep, Trace]
+traceIndex = [0,4,0,0] ## [Group, Series, Sweep, Trace]
 #SR = bundleTester.getSeriesSamplingRate(traceIndex)
 
 ## Get stimuli information
@@ -366,6 +366,10 @@ traceIndex = [1,5,0,0] ## [Group, Series, Sweep, Trace]
 
 ## Get data from a single sweep and single channel
 data = bundleTester.getSeriesData(traceIndex)
+
+
+
+plt.plot(data[:,0,0])
 
 
 
