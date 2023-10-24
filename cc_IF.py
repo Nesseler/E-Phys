@@ -1417,7 +1417,7 @@ testFile = r"C:\Users\nesseler\Desktop\local E-Phys\CtC-AMY-ctrl-008-2.dat"
 bundleTester = HekaBundleInfo(testFile)
 
 
-cell_ID = 0
+cell_ID = 1
 ## Get sample rate
 traceIndex = [cell_ID,5,0,0] ## [Group, Series, Sweep, Trace]
 #SR = bundleTester.getSeriesSamplingRate(traceIndex)
@@ -1607,5 +1607,122 @@ save_figures(IF_fig,
             figure_name = 'step IF overview' + str(cell_ID), 
             save_dir = 'C:/Users/nesseler/Desktop/DC_figs', 
             darkmode_bool = darkmode_bool)
+
+
+
+# %%
+
+
+testFile = r"C:\Users\nesseler\Desktop\local E-Phys\CtC-AMY-ctrl-008-2.dat"
+
+## import HekaHelpers which is a wrapper of main file: HEKA_Reader_MAIN
+from patchview.HekaIO.HekaHelpers import HekaBundleInfo
+
+## read Heka .dat file into a object
+# test file is the full path for your Heka .dat file
+bundleTester = HekaBundleInfo(testFile)
+
+## Get sample rate
+traceIndex = [2,6,0,0] ## [Group, Series, Sweep, Trace]
+SR = bundleTester.getSeriesSamplingRate(traceIndex)
+
+## Get stimuli information
+#time, stim, stimInfo = bundleTester.getStim(traceIndex)
+
+## Get data from a single sweep and single channel
+data = bundleTester.getSeriesData(traceIndex)
+
+SR = int(round(bundleTester.getSeriesSamplingRate(traceIndex)))
+
+
+
+i1 = data[:,1,:] * 1e12
+
+n_points = int(np.shape(i1)[0] * np.shape(i1)[1])
+
+i1_f = i1.reshape([n_points], order='F')
+
+v1 = data[:,0,:] * 1e3
+v1_f = v1.reshape([n_points], order='F')
+
+
+idx_peaks, dict_peak = sc.signal.find_peaks(v1_f, prominence = 40, distance = 1 * (SR/1e3))
+
+t_peaks = idx_peaks / (SR/1e3) # in ms
+
+
+APtrain_fig, APtrain_axs = plt.subplots(4,1,
+                                        gridspec_kw={'height_ratios': [0.1, 0.4, 0.1, 0.4]},
+                                        layout = 'constrained',
+                                        figsize=(328.67*mm, 165.5*mm))
+
+
+t_full = calc_time_series(v1_f, sampling_rate=SR, scale='s')
+
+inset_length = 10 # in ms
+inset_start = 42505 # in ms
+
+v_range = [-100, 20] #mV
+i_range = [-20, 100] #pA
+
+inset_idc = np.arange(inset_start * (SR/1e3), (inset_start+inset_length) * (SR/1e3), dtype=int)
+
+v_sub = v1_f[inset_idc]
+i_sub = i1_f[inset_idc]
+t_full_ms = calc_time_series(v1_f, sampling_rate=SR, scale='ms')
+t_sub = t_full_ms[inset_idc]
+
+
+APtrain_axs[0].plot(t_full, i1_f)
+
+print(len(t_peaks), 'of 100 stims')
+
+APtrain_axs[0].set_ylim(i_range)
+APtrain_axs[0].set_xlim([0, t_full[-1]])
+
+plot_voltage_v_time(v1_f, APtrain_axs[1], 
+                    {'c':prime_color},
+                    v_range = v_range,
+                    sampling_rate = SR, 
+                    scale='s')
+
+APtrain_axs[1].eventplot(t_peaks/1e3,
+                         orientation = 'horizontal', 
+                         lineoffsets=0, 
+                         linelengths=10, 
+                         color = color2)
+
+inset_marker = mtl.patches.Rectangle(xy = (inset_start / 1e3, v_range[0]*0.9), 
+                                     width=inset_length / 1e3, 
+                                     height=(np.abs(v_range[0]-v_range[1]))*0.8,
+                                     facecolor = 'none',
+                                     edgecolor='r')
+
+APtrain_axs[1].add_patch(inset_marker)
+
+APtrain_axs[2].plot(t_sub, i_sub)
+APtrain_axs[2].set_ylim(i_range)
+APtrain_axs[2].set_xlim([inset_start,(inset_start+inset_length)])
+#APtrain_axs[0].set_xlim([0, t_full[-1]])
+
+APtrain_axs[3].plot(t_sub, v_sub, c=prime_color)
+
+APtrain_axs[3].set_xlabel('Time [ms]')
+APtrain_axs[3].set_xlim([t_sub[0], t_sub[-1]])
+
+APtrain_axs[3].set_ylim([-100,20])
+APtrain_axs[3].set_ylabel('Membrane potential [mV]')
+
+APtrain_axs[3]._shared_axes['x'].join(APtrain_axs[3], APtrain_axs[2])
+
+APtrain_axs[3].eventplot(t_peaks,
+                         orientation = 'horizontal', 
+                         lineoffsets=0, 
+                         linelengths=10, 
+                         color = color2)
+
+
+
+
 
 
