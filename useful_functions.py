@@ -50,6 +50,16 @@ def calc_time_series(data, sampling_rate = 20e3, scale = 'ms'):
     
     return t
 
+
+def calc_dvdt(v,t):
+    #calculate the first derivate dv/dt
+    dv = np.diff(v)
+    dt = np.diff(t)
+    dvdt = dv / dt
+    
+    return dvdt
+
+
 #saving the figure
 def save_figures(figure, figure_name, save_dir, darkmode_bool):
     
@@ -62,3 +72,67 @@ def save_figures(figure, figure_name, save_dir, darkmode_bool):
     
     figure.savefig(os.path.join(save_dir, os.path.normpath(figure_name + ".png")), format = 'png')
     figure.savefig(os.path.join(save_dir, os.path.normpath(figure_name + ".svg")), format = 'svg')
+    
+def get_sampling_rate(bundleTester, traceIndex):
+    
+    #from patchview.HekaIO.HekaHelpers import HekaBundleInfo
+    
+    SR = bundleTester.getSeriesSamplingRate(traceIndex)
+    
+    SR = int(round(SR))
+        
+    return SR
+
+
+from patchview.HekaIO.HekaHelpers import HekaBundleInfo
+
+def get_data(file_path, traceIndex, scale = 'ms'):
+    '''
+    Function gets path to HEKA file and traceIndex and returns current, voltage,
+    time, and sampling rate.
+    Parameters:
+        file_path : full path for your Heka .dat file
+        traceIndex : Index in HEKA tree structure [2,6,0,0] 
+                     [Group, Series, Sweep, Trace]
+        scale : {'ms', 's'} Time scale in which the time series is being 
+                calculated. 'ms' Milliseconds is default.    
+    Returns:
+        i_full : current
+        v_full : voltage
+        t_ms : time series in milliseconds
+        SR : sampling rate
+    '''
+    
+    # read Heka .dat file into a object
+    bundleTester = HekaBundleInfo(file_path)
+    
+    # get sampling rate
+    SR = get_sampling_rate(bundleTester, traceIndex)
+
+    # Get data from a series
+    data = bundleTester.getSeriesData(traceIndex)
+
+    # get current from series data
+    i = data[:,1,:] * 1e12
+
+    # calc number of points
+    n_points = int(np.shape(i)[0] * np.shape(i)[1])
+
+    #reshape data to have all points in one column
+    i_full = i.reshape([n_points], order='F')
+
+    # get voltage from series data
+    v = data[:,0,:] * 1e3
+    v_full = v.reshape([n_points], order='F')
+
+    # get t
+    t_ms = calc_time_series(i, sampling_rate=SR, scale=scale)
+    
+    return i_full, v_full, t_ms, SR
+
+    
+    
+    
+    
+    
+    
