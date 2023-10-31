@@ -13,6 +13,7 @@ from useful_functions import calc_time_series, calc_dvdt, butter_filter, save_fi
 import os.path
 import scipy as sc
 import seaborn as sbn
+import warnings 
 
 
 from plotting_functions import get_figure_size, get_colors
@@ -70,8 +71,17 @@ for cell_idx, cell_ID in enumerate(all_cell_IDs):
     # get data with file path & trace index
     i, v, t, SR = get_data(data_file_path_str, traceIndex, scale='s')
     
+    # edge case when file exceeds the 30 sec recording (E-069)
+    if len(v) > (30 * SR):
+        warnings.warn(cell_ID + ' exceeds 30 sec and will be cut down.')
+        i = i[0:(30*SR)]
+        v = v[0:(30*SR)]
+        t = t[0:(30*SR)]
+        
+    # filter all data with 1kHz cutoff
     v_filtered = butter_filter(v, order=3, cutoff=1e3, sampling_rate=SR)
-    
+
+    # populate the dataframes & lists
     i_df[cell_idx] = i
     v_df[cell_idx] = v
     v_filtered_df[cell_idx] = v_filtered
@@ -119,7 +129,7 @@ fig_rest.supxlabel('Time [s]')
     # darkmode
     # save figure
     
-save_figures(fig_rest, 'resting_subplots', '/Users/moritznesseler/Desktop/local E-Phys', darkmode_bool)
+save_figures(fig_rest, 'resting_subplots', figure_dir, darkmode_bool)
 
 
 # %% EVENTPLOT
@@ -192,8 +202,8 @@ for cell_idx, cell_ID in enumerate(all_cell_IDs):
     # introduce NaN value at spike times for more accurate v_rest calculation
     
     # time before and after peak to exclude (in ms)
-    t_pre = 2
-    t_post = 5
+    t_pre = 5
+    t_post = 40
     t_total = t_pre + t_post
     
     for i, idx_peak in enumerate(idc_peaks):
@@ -216,11 +226,20 @@ for cell_idx, cell_ID in enumerate(all_cell_IDs):
     
     v_rest.append(np.nanmean(v_cell))
 
-# axs_rest[-1][-1].set_xlim([22.63, 22.64])
-# axs_rest[-1][-1].set_ylim([-100, 40])
+# create dataframe for browsable data
+v_rest_df = pd.DataFrame({'v_rest' : v_rest},
+                         index = all_cell_IDs)
 
-# fig_rest.supylabel('Membrane potential [mV]')
-# fig_rest.supxlabel('Time [s]')
+# save dataframe as csv file
+v_rest_path = os.path.join(figure_dir, 'v_rest.csv')
+
+v_rest_df.to_csv(v_rest_path, header = ['v_rest'])
+
+
+# %% V_REST mean & std
+
+v_rest_mean = np.mean(v_rest_df['v_rest'])
+v_rest_std = np.std(v_rest_df['v_rest'])
 
 # %% V_REST FIGURE
 
@@ -228,9 +247,29 @@ fig_v_rest, axs_v_rest = plt.subplots(1,1)
 
 
 # axs_v_rest.scatter([1]*len(v_rest), v_rest)
+# axs_v_rest.violinplot(v_rest_df['v_rest'],
+#                       positions = [0])#,
+#                       # facecolor = 'None',
+#                       # edgecolor = 'w')
+
+sbn.violinplot(x=['v_rest']*19,
+               y=v_rest_df['v_rest'], ax=axs_v_rest,
+               fill = False,
+               color='w')
 
 
-sbn.swarmplot(v_rest, ax=axs_v_rest)
+sbn.swarmplot(x=['v_rest']*19,
+              y=v_rest_df['v_rest'], ax=axs_v_rest)
+
+axs_v_rest.errorbar(x = 0, 
+                    y = v_rest_mean,
+                    yerr = v_rest_std,
+                    marker = '_',
+                    markersize = 20,
+                    color = 'r',
+                    capsize = 5,
+                    capthick = 2,
+                    ecolor = 'r')
 
 axs_v_rest.set_ylim([-100, -40])
 
