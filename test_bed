@@ -19,7 +19,7 @@ from useful_functions import calc_time_series, butter_filter, bessel_filter
 #def load_mat2df(file_path):
 
 #test = sc.io.loadmat('/Users/moritznesseler/test_data/AMY-20230905-E004-cc_IF_06.mat')
-test = sc.io.loadmat('C:/Users/nesseler/Desktop/local E-Phys/AMY-20230905-E004-cc_IF_06.mat')
+test = sc.io.loadmat('C:/Users/nesseler/local E-Phys/AMY-20230905-E004-cc_IF_06.mat')
 
 
 # %%

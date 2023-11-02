@@ -19,138 +19,10 @@ import warnings
 
 from plotting_functions import get_figure_size, get_colors
 
+from cc_IF_functions import get_IF_data
+
 
 # %%
-
-## n/3 by 3 subplots with each a 30 sec resting activity plot
-
-
-from patchview.HekaIO.HekaHelpers import HekaBundleInfo
-
-lookup_table = pd.read_csv('/Users/moritznesseler/local E-Phys/cc_IF.csv', 
-                           delimiter=';',
-                           index_col='cell_ID')
-
-
-data_folder = '/Users/moritznesseler/local E-Phys'
-
-figure_dir = '/Users/moritznesseler/local E-Phys'
-
-darkmode_bool = True
-
-# convert indices of dataframe to list to loop through
-all_cell_IDs = lookup_table.index.to_list()
-
-for cell_idx, cell_ID in enumerate(all_cell_IDs):
-    print(cell_ID)
-    
-    
-    
-    group_idx = int(lookup_table.at[cell_ID, 'group_idx'])
-    series_idx = int(lookup_table.at[cell_ID, 'series_idx'])
-
-    # construct traceIndex with indices
-    traceIndex = [group_idx, series_idx, 0, 0]
-
-    current_file = lookup_table.at[cell_ID, 'file']
-    
-    data_file_path = os.path.join(data_folder, current_file + '.dat')
-
-    data_file_path_str = fr"{data_file_path}"
-
-
-
-    bundleTester = HekaBundleInfo(data_file_path_str)
-
-    ## Get data from a single sweep and single channel
-    data = bundleTester.getSeriesData(traceIndex)
-
-    SR = bundleTester.getSeriesSamplingRate(traceIndex)
-
-    v = data[:,0,:] * 1e3
-    i = data[:,1,:] * 1e12
-    t = calc_time_series(v, SR, scale='ms')
-    
-    fig_IF, axs_IF = plt.subplots(2, 1, 
-                                  layout = 'constrained',
-                                  figsize=get_figure_size(),
-                                  gridspec_kw={'height_ratios': [2,8]},
-                                  sharex='col')
-
-
-    n_steps = np.shape(v)[1]
-    step_idx = np.arange(0,n_steps)
-
-    # axs_IF[1][0].plot(t, v, c = prime_color)
-
-
-    vs = np.transpose(v)
-    i_s = np.transpose(i)
-
-    segs = [np.column_stack([t, vi]) for vi in vs]
-
-
-    # line_segments = mtl.collections.LineCollection(segs, array=step_idx, cmap="plasma", linewidth=0.5)
-
-    # axs_IF[1][0].add_collection(line_segments)
-    #cbar = fig_IF.colorbar(line_segments)
-
-
-
-
-    norm = mtl.colors.Normalize(vmin=0, vmax=n_steps)
-    cmap = mtl.cm.ScalarMappable(norm=norm, cmap="plasma")
-    cmap.set_array(step_idx)
-
-
-    fig_IF.colorbar(cmap, label = 'Number of steps', ax=axs_IF[1])
-
-
-    n_peaks = []
-
-    #example_steps = [0, 10, 25, 60]
-
-    example_steps = step_idx
-
-    for i, vi in enumerate(vs):
-        
-        if i in example_steps:
-            axs_IF[1].plot(t, vi, c=cmap.to_rgba(i + 1))
-            axs_IF[0].plot(t, i_s[i], c=cmap.to_rgba(i + 1))
-        
-        v_pulse = vi[(250*50):(1250*50)]
-        i_pulse = i_s[i][(250*50):(1250*50)]
-        
-        idx_peaks, dict_peak = sc.signal.find_peaks(v_pulse, prominence = 20, width = 50)
-        
-        n_peaks.append(len(idx_peaks))
-        
-        #axs_IF[1].plot(n_peaks, step_idx[:i+1])
-        
-
-    axs_IF[0].set_ylim([-100,300])
-
-    axs_IF[0].set_yticks(np.arange(-50,251,50))
-    axs_IF[0].set_ylabel('Inj. current\n[pA]')
-
-
-
-    axs_IF[1].set_ylim([-150,50])
-    axs_IF[1].set_ylabel('Membrane potential\n[mV]')
-
-    axs_IF[1].set_xlabel('Time [ms]')
-
-    axs_IF[1].set_xlim([0,1500])
-    axs_IF[1].set_xticks(np.arange(0,1501,250))
-    
-    plt.pause(0.4)
-    
-    plt.show()
-    
-
-
-
-
 
 # TODO
     # function for input current
@@ -170,8 +42,229 @@ for cell_idx, cell_ID in enumerate(all_cell_IDs):
     
     
     
+lookup_table = pd.read_csv('/Users/moritznesseler/local E-Phys/cc_IF.csv', 
+                           delimiter=';',
+                           index_col='cell_ID')
+
+
+data_folder = '/Users/moritznesseler/local E-Phys'
+
+figure_dir = '/Users/moritznesseler/local E-Phys'
+
+darkmode_bool = True
+
+
+### parameters of step_IF
+
+pre_post_dur = 0.250 #s
+pulse_dur = 1 #s
+i_stepdelta = 5 #pA
+i_start = -50 #pA
+
+
+### SPIKES
+
+# set parameters to find peaks
+min_peak_prominence = 20 #(mV)
+min_peak_distance = 1 #ms
+
+
+### INPUT RESISTANCE AND MEMBRANE TIME CONSTANT ###
+# time window for exponential fit: 200 ms pre & post stim begin
+time_interval = 0.150 #s
+
+# define function of exponential fit
+def exp_func(x, a, b, c):
+    return a * np.exp(-b * x) + c
+
+# set a guess for exponential fit
+popt_guess = [10, 0.005, -85]
+
+# convert indices of dataframe to list to loop through
+all_cell_IDs = lookup_table.index.to_list()
+
+cell_idx = 0
+cell_ID = all_cell_IDs[cell_idx]
+
+# for cell_idx, cell_ID in enumerate(all_cell_IDs):
+    
+# get indices of current cell with the dataframe containing all indices    
+group_idx = int(lookup_table.at[cell_ID, 'group_idx'])
+series_idx = int(lookup_table.at[cell_ID, 'series_idx'])
+
+# construct traceIndex with indices
+traceIndex = [group_idx, series_idx, 0, 0]
+
+# call on data file with indices from dataframe above
+current_file = lookup_table.at[cell_ID, 'file']
+
+data_file_path = os.path.join(data_folder, current_file + '.dat')
+
+data_file_path_str = fr"{data_file_path}"
+
+# get IF data form file
+i, v, t, SR, n_steps = get_IF_data(data_file_path_str, traceIndex, 'ms')
+
+# calculate pre, pulse, and post indices
+pre_idx = np.arange(0, int(pre_post_dur * SR))
+pulse_idx = np.arange(pre_idx[-1]+1, int((pre_post_dur + pulse_dur) * SR))
+post_idx = np.arange(pulse_idx[-1]+1, int((pre_post_dur + pulse_dur + pre_post_dur) * SR))
+
+# calc current steps from holding potential
+i_hold = np.mean(i[:,:int(0.25*SR)])
+i_hold_r = 5 * round(i_hold/5)
+
+#subtract holding potential from start current
+i_start_wo_hold = i_start - i_hold_r
+i_stop = i_start + (i_stepdelta * n_steps[0])
+
+i_inputs = np.arange(start = i_start_wo_hold, 
+                     stop = i_stop,
+                     step = i_stepdelta)
+
+### SPIKES ###
+
+# initialize lists
+r_inputs = []
+tau_mems = []
+t_spikes = []
+n_spikes = []
+f_spikes = []
+
+# indices for limiting data for exponential fit
+start_idx = int((pre_post_dur - time_interval) * SR)
+step_start_idx = int(pre_post_dur * SR)
+stop_idx = int((pre_post_dur + time_interval) * SR)
+
+# number of first steps to use for calculation of R_input and tau_mem
+n_steps_for_R = 3
+
+# loop through all steps
+    # get spike indices
+    # get spike times
+    # get number of spikes
+    # get spike frequency
+    # get R_input
+    # get tau_mem
+
+
+for step_idx in np.arange(n_steps[0]):
+    
+    # filter voltage (to vf)
+    vf = butter_filter(v[step_idx], 
+                      order = 3,
+                      cutoff = 1e3,
+                      sampling_rate = SR)
+    
+    # find peaks as spikes
+    idx_peaks, dict_peak = sc.signal.find_peaks(vf, 
+                                                prominence = min_peak_prominence, 
+                                                distance = min_peak_distance * (SR/1e3))
+    
+    # get times of spikes
+    t_peaks = np.divide(idx_peaks, (SR/1e3))
+    t_spikes.append(t_peaks)
+    
+    # get number of spikes
+    n_peaks = len(idx_peaks)
+    n_spikes.append(n_peaks)
+    
+    # get frequency over the 
+    if n_peaks > 0:
+        f_peaks = n_peaks / pulse_dur
+    else:
+        f_peaks = 0   
+    f_spikes.append(f_peaks)
+        
+    ### opt: PLOT ###
+    plt.plot(vf)
+    plt.eventplot(idx_peaks, color = 'r')
+    plt.pause(0.4)
+    plt.show()
     
     
+    # loop through steps
+    if step_idx < n_steps_for_R:
     
+        # define data pre and post stim begin
+        v_pre = vf[start_idx:step_start_idx]
+        v_post = vf[step_start_idx:stop_idx]
     
+        # calc x for v_post
+        x_post = np.arange(len(v_post))
     
+        # exponential fit
+        popt, pcov = sc.optimize.curve_fit(exp_func, x_post, v_post, p0=popt_guess)
+    
+        ### R_INPUT ###
+        #R_input = ∆U/∆I
+        #∆U = a = popt[0], ∆I = 20 (for first step)
+        v_pre_mean = np.mean(v_pre)
+        delta_v = (popt[2] - np.mean(v_pre))
+    
+        #delta I
+        delta_i = i_inputs[step_idx]
+    
+        # calc r_input for current step
+        r_input = ( delta_v / delta_i ) * 1e3 #in MOhm
+    
+        # append to list
+        r_inputs.append(r_input)
+    
+        ### MEMBRANE TIME CONSTANT
+        # tau_mem
+        # time it takes the potential to reach 1 - (1/e) (~63%) of the max voltage
+    
+        # calc 1 - 1/e
+        tau_perc_value = 1-(1/np.exp(1))
+        
+        # calc max voltage delta
+        delta_v_63 = delta_v * tau_perc_value
+        
+        # calc 63 % of max voltage
+        v_tau = v_pre_mean+delta_v_63
+        
+        # calc time (indices first) it takes to reach v_tau
+        idx_63 = - (np.log((v_tau - popt[2]) / (popt[0]))) / (popt[1])
+        tau_mem = idx_63 / (SR / 1e3) 
+        
+        # append to list
+        tau_mems.append(tau_mem)
+    
+        ### PLOT ###
+        # fig1_R_input, ax1_R_input = plt.subplots(1,1)
+        # ax1_R_input.plot(v_post)
+        # plt.plot(x_post, exp_func(x_post, *popt), 'r--')
+        # ax1_R_input.hlines(v_tau, 0, idx_63, colors='k', linestyle='--')
+        # ax1_R_input.vlines(idx_63, v_pre_mean, v_tau, colors='k', linestyle='--')
+        # ax1_R_input.set_ylim([-110, -80])
+        # plt.pause(0.5)
+        # plt.show()
+
+# %%    
+
+# get maximal spiking frequency
+f_max = np.max(f_spikes)
+
+# calc r_input and tau_mem as mean of first 3 steps
+R_input = np.mean(r_inputs)
+Tau_mem = np.mean(tau_mems)
+
+# get first index in number of spikes where there more than 0 spikes
+rheobase_idx = next(idx for idx, n_spike in enumerate(n_spikes) if n_spike > 0)
+
+# get rheobase relative to holding
+rheobase_rel = i_inputs[rheobase_idx]
+
+# add holding current
+rheobase = rheobase_rel + i_hold_r
+
+
+
+### SINGLE VALUES PER IF ###
+    # R_input, tau_mem, rheobase, f_max
+    
+
+###
+
+
