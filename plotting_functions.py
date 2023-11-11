@@ -14,24 +14,25 @@ def get_colors(darkmode_bool=False):
 
     if darkmode_bool:
         plt.style.use('dark_background')
-        prime_color = 'w'
-        color1 = 'lightblue'
+        primecolor = 'w'
+        color1 = 'cyan'
         color2 = 'magenta'
-        color3 = 'red'
+        color3 = [0, 1, 0]
         cmap = mtl.colors.LinearSegmentedColormap.from_list("", ["blue","white","magenta"])
-        plt.rcParams['axes.grid'] = False
-        plot_dict = {'color':prime_color, 'linewidth' : 0.5}
+        #plt.rcParams['axes.grid'] = False
+        plt.grid(False)
+        plot_dict = {'color':primecolor, 'linewidth' : 0.5}
     elif darkmode_bool == False:
         plt.style.use('default')
-        prime_color = 'k'
+        primecolor = 'k'
         color1 = 'blue'
         color2 = 'purple'
         color3 = 'red'
         cmap = mtl.colors.LinearSegmentedColormap.from_list("", ["blue","grey","red"])
         plt.rcParams['axes.grid'] = True
-        plot_dict = {'color':prime_color, 'linewidth' : 0.5}
+        plot_dict = {'color':primecolor, 'linewidth' : 0.5}
         
-    colors_dict = {'prime_color': prime_color,
+    colors_dict = {'primecolor': primecolor,
                    'color1': color1,
                    'color2': color2,
                    'color3': color3,
