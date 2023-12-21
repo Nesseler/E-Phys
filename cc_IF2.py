@@ -40,19 +40,21 @@ from cc_IF_functions import get_IF_data
     
     # IF curve
     
+import directories_win
     
     
-    
-lookup_table = pd.read_csv('/Users/moritznesseler/local E-Phys/cc_IF.csv', 
-                           delimiter=';',
-                           index_col='cell_ID')
+table = pd.read_excel('//Fileserver/AG Spehr/File transfer/Moritz_transfer/InVitro_Database.xlsx',
+                      sheet_name="PGFs",
+                      index_col='cell_ID')
+
+lookup_table = table.query('cc_IF.notnull()')
+
+data_folder = directories_win.raw_data_dir
+
+figure_dir = directories_win.figure_dir
 
 
-data_folder = '/Users/moritznesseler/local E-Phys'
-
-figure_dir = '/Users/moritznesseler/local E-Phys/figures'
-
-darkmode_bool = True
+darkmode_bool = False
 
 # %%
 
@@ -108,8 +110,8 @@ possible_i_inputs = np.arange(start = i_start,
 for cell_idx, cell_ID in enumerate(all_cell_IDs):
     
     # get indices of current cell with the dataframe containing all indices    
-    group_idx = int(lookup_table.at[cell_ID, 'group_idx'])
-    series_idx = int(lookup_table.at[cell_ID, 'series_idx'])
+    group_idx = int(lookup_table.at[cell_ID, 'group'])-1
+    series_idx = int(lookup_table.at[cell_ID, 'cc_IF'])-1
     
     # construct traceIndex with indices
     traceIndex = [group_idx, series_idx, 0, 0]
@@ -324,7 +326,7 @@ for cell_idx, cell_ID in enumerate(all_cell_IDs):
     f_spikes_df.insert(cell_idx, cell_ID, pd.Series(f_spikes, index = possible_i_inputs))
 
 
-    print(f'{cell_idx+1} of {len(all_cell_IDs)}')
+    print(f'{cell_idx+1} of {len(all_cell_IDs)}: {cell_ID}')
 
 
 IF_values = IF_values.transpose()

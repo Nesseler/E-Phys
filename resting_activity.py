@@ -26,16 +26,28 @@ from plotting_functions import get_figure_size, get_colors
 
 
 
-lookup_table = pd.read_csv('/Users/moritznesseler/local E-Phys/cc_rest.csv', 
-                           delimiter=';',
-                           index_col='cell_ID')
+# lookup_table = pd.read_csv('/Users/moritznesseler/local E-Phys/cc_rest.csv', 
+#                            delimiter=';',
+#                            index_col='cell_ID')
+# data_folder = '/Users/moritznesseler/local E-Phys'
+# figure_dir = '/Users/moritznesseler/local E-Phys/figures'
 
 
-data_folder = '/Users/moritznesseler/local E-Phys'
+## excel file loading routine for group & series indices
 
-figure_dir = '/Users/moritznesseler/local E-Phys/figures'
 
-darkmode_bool = True
+table = pd.read_excel('//Fileserver/AG Spehr/File transfer/Moritz_transfer/InVitro_Database.xlsx',
+                      sheet_name="PGFs",
+                      index_col='cell_ID')
+
+lookup_table = table.query('cc_rest.notnull()')
+
+data_folder = 'C:/Users/nesseler/Desktop/local E-Phys'
+
+figure_dir = 'C:/Users/nesseler/Desktop/local E-Phys/figures'
+
+
+darkmode_bool = False
 
 # %%
 
@@ -54,8 +66,8 @@ all_cell_IDs = lookup_table.index.to_list()
 for cell_idx, cell_ID in enumerate(all_cell_IDs):
     
     # get indices of current cell with the dataframe containing all indices    
-    group_idx = int(lookup_table.at[cell_ID, 'group_idx'])
-    series_idx = int(lookup_table.at[cell_ID, 'series_idx'])
+    group_idx = int(lookup_table.at[cell_ID, 'group'])-1
+    series_idx = int(lookup_table.at[cell_ID, 'cc_rest'])-1
 
     # construct traceIndex with indices
     traceIndex = [group_idx, series_idx, 0, 0]
@@ -73,7 +85,7 @@ for cell_idx, cell_ID in enumerate(all_cell_IDs):
     
     # edge case when file exceeds the 30 sec recording (E-069)
     if len(v) > (30 * SR):
-        warnings.warn(cell_ID + ' exceeds 30 sec and will be cut down.')
+        warnings.warn(str(cell_ID) + ' exceeds 30 sec and will be cut down.')
         i = i[0:(30*SR)]
         v = v[0:(30*SR)]
         t = t[0:(30*SR)]
@@ -138,7 +150,7 @@ axs_rest[-1][-1].set_xticks(np.arange(0, 30+1, 10))
 axs_rest[-1][-1].set_xticks(np.arange(0, 30+1, 5), minor = True)
 
 axs_rest[-1][-1].set_ylim([-100, 50])
-axs_rest[-1][-1].set_yticks([-100, 0])
+axs_rest[-1][-1].set_yticks([])
 axs_rest[-1][-1].set_yticks(np.arange(-100, 50 + 1, 25), minor = True)
 
 
@@ -156,6 +168,8 @@ save_figures(fig_rest, 'resting_subplots', figure_dir, darkmode_bool)
 
 
 # %% EVENTPLOT
+
+
 
 ## eventplot with all cells
 
@@ -181,29 +195,34 @@ for cell_idx, cell_ID in enumerate(all_cell_IDs):
 n_spikes_df = pd.DataFrame({'n_spikes' : n_peaks},
                             index = all_cell_IDs)
 
+# %%
 
 fig_rest_event, ax_rest_event = plt.subplots(1,1)
                                             #figsize = get_figure_size())
 
 tick_size = 0.9
 
+spiketimes_ls.sort(key=len)
+
 for cell_idx, cell_ID in enumerate(all_cell_IDs):
     
     ax_rest_event.eventplot(spiketimes_ls[cell_idx],
                             orientation = 'horizontal', 
                             lineoffsets=cell_idx, 
-                            linelengths=0.9, 
+                            linelengths=tick_size, 
+                            linewidths = 0.75,
                             color = colors_dict['color2'])
 
 
 ax_rest_event.set_xlim([0, 30])
 fig_rest_event.supxlabel('Time [s]')
 
-
 ax_rest_event.set_ylim([0-(tick_size/2), n_cells+(tick_size/2)])
-ax_rest_event.set_yticks(np.arange(0,n_cells+1,3))
+ax_rest_event.set_yticks(np.arange(0,n_cells+1,10))
 ax_rest_event.set_yticks(np.arange(0,n_cells+1), minor=True)
 fig_rest_event.supylabel('Cells [#]')
+
+plt.grid(False)
 
 save_figures(fig_rest_event, 'Resting_eventplot', figure_dir, darkmode_bool)
 
@@ -332,7 +351,7 @@ axs_v_rest[0].set_xticks(np.arange(0, 30+1, 1), minor = True)
 #                fill = False,
 #                color='w')
 
-sbn.swarmplot(x=[0]*19,
+sbn.swarmplot(x=[0]*len(v_rest_df),
               y=v_rest_df['v_rest'], 
               ax=axs_v_rest[1],
               color = colors_dict['primecolor'], 
@@ -393,13 +412,14 @@ for cell_idx, cell_ID in enumerate(all_cell_IDs):
     axs_v_rest[0].eventplot(spiketimes_ls[cell_idx],
                             orientation = 'horizontal', 
                             lineoffsets=cell_idx, 
+                            linewidth = 1,
                             linelengths=0.9, 
                             color = colors_dict['color2'])
 
 
-axs_v_rest[0].set_ylim([0-(tick_size/2), n_cells+(tick_size/2)])
-axs_v_rest[0].set_yticks(np.arange(0,n_cells+1,3))
-axs_v_rest[0].set_yticks(np.arange(0,n_cells+1,1), minor=True)
+axs_v_rest[0].set_ylim([0-(tick_size/2), n_cells-1+(tick_size/2)])
+axs_v_rest[0].set_yticks(np.arange(0,n_cells,5))
+axs_v_rest[0].set_yticks(np.arange(0,n_cells,1), minor=True)
 axs_v_rest[0].set_ylabel('Cells [#]')
 
 axs_v_rest[0].set_xlim([0, 30])
@@ -408,25 +428,27 @@ axs_v_rest[0].set_xticks(np.arange(0, 30+1, 10))
 axs_v_rest[0].set_xticks(np.arange(0, 30+1, 1), minor = True)
 
 
-sbn.swarmplot(x=[0]*19,
+sbn.swarmplot(x=[0]*len(v_rest_df),
               y=v_rest_df['v_rest'], 
               ax=axs_v_rest[1],
               color = colors_dict['primecolor'], 
               size = 7)
 
 
-sbn.swarmplot(x=[1]*len(n_spikes_df.query('n_spikes > 0').index),
-              y=v_rest_df['v_rest'].loc[n_spikes_df.query('n_spikes > 0').index], 
+spiking_indices = n_spikes_df.query('n_spikes > 0').index
+silent_indices = n_spikes_df.query('n_spikes == 0').index
+
+sbn.swarmplot(x=[1]*len(spiking_indices),
+              y=v_rest_df['v_rest'].loc[spiking_indices], 
               ax=axs_v_rest[1],
               color = colors_dict['color2'], 
               size = 7)
 
-sbn.swarmplot(x=[2]*len(n_spikes_df.query('n_spikes == 0').index),
-              y=v_rest_df['v_rest'].loc[n_spikes_df.query('n_spikes == 0').index], 
+sbn.swarmplot(x=[2]*len(silent_indices),
+              y=v_rest_df['v_rest'].loc[silent_indices], 
               ax=axs_v_rest[1],
               color = colors_dict['color1'], 
               size = 7)
-
 
 
 axs_v_rest[1].set_ylabel('Resting membrane potential [mV]')
@@ -442,14 +464,6 @@ axs_v_rest[1].set_xticks([0, 1, 2], ['all', 'active', 'non\nactive'],
 [ax.grid(False) for ax in axs_v_rest]
 
 save_figures(fig_v_rest, 'Resting_n_eventplot_nspikes', figure_dir, darkmode_bool)
-
-
-
-
-
-
-
-
 
 
 
