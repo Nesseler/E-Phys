@@ -10,10 +10,10 @@ Parameters files
 
 
 # cc_APs
-cc_APs_t_post_stim = 5 # in ms
+cc_APs_t_post_stim = 10 # in ms
 
 
 # set parameters to find peaks
-min_peak_prominence = 20 #(mV)
+min_peak_prominence = 50 #(mV)
 min_peak_distance = 1 #ms
 

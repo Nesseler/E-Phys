@@ -46,3 +46,8 @@ def get_figure_size():
     mm = 1/25.4
     figsize=(328.67*mm, 165.5*mm)
     return figsize
+
+
+def remove_x_ticks_between(axes, n_layers):
+    for i in range(1,n_layers):
+        axes[i].tick_params(axis = 'y', size = 0)
