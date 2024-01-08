@@ -59,19 +59,6 @@ def calc_dvdt(v,t):
     
     return dvdt
 
-
-#saving the figure
-def save_figures(figure, figure_name, save_dir, darkmode_bool):
-    
-    import os.path
-    
-    if darkmode_bool == True:
-        figure_name += " dark"
-    else:
-        figure_name += " light"
-    
-    figure.savefig(os.path.join(save_dir, os.path.normpath(figure_name + ".png")), format = 'png')
-    figure.savefig(os.path.join(save_dir, os.path.normpath(figure_name + ".svg")), format = 'svg')
     
 def get_sampling_rate(bundleTester, traceIndex):
     

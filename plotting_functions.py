@@ -20,7 +20,7 @@ def get_colors(darkmode_bool=False):
         color3 = [0, 1, 0]
         cmap = mtl.colors.LinearSegmentedColormap.from_list("", ["blue","white","magenta"])
         #plt.rcParams['axes.grid'] = False
-        plt.grid(False)
+        # plt.grid(False)
         plot_dict = {'color':primecolor, 'linewidth' : 0.5}
     elif darkmode_bool == False:
         plt.style.use('default')
@@ -51,3 +51,16 @@ def get_figure_size():
 def remove_x_ticks_between(axes, n_layers):
     for i in range(1,n_layers):
         axes[i].tick_params(axis = 'y', size = 0)
+        
+#saving the figure
+def save_figures(figure, figure_name, save_dir, darkmode_bool):
+    
+    import os.path
+    
+    if darkmode_bool == True:
+        figure_name += " dark"
+    else:
+        figure_name += " light"
+    
+    figure.savefig(os.path.join(save_dir, os.path.normpath(figure_name + ".png")), format = 'png')
+    figure.savefig(os.path.join(save_dir, os.path.normpath(figure_name + ".svg")), format = 'svg')

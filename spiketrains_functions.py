@@ -40,6 +40,9 @@ def get_AP_parameters(v, idx_peaks, SR=20e3, dvdt_threshold=20, t_pre=2, t_post=
             FWHM        
     """
     
+   
+        
+    
     if idx_peaks > 0:
         t = calc_time_series(v, SR, 'ms')
         
@@ -49,6 +52,10 @@ def get_AP_parameters(v, idx_peaks, SR=20e3, dvdt_threshold=20, t_pre=2, t_post=
         
         t_peaks = np.divide(idx_peaks, (SR/1e3))
         v_peaks = v[idx_peaks]
+        
+        
+
+        
         
         ### AP THRESHOLD & AMPLITUDE
         # thresholding of the dvdt
@@ -117,9 +124,15 @@ def get_AP_parameters(v, idx_peaks, SR=20e3, dvdt_threshold=20, t_pre=2, t_post=
         HM = v_amplitude / 2
         v_HM = v_threshold + HM
         
+        
         for idx, i_peak in enumerate(idx_peaks):
             #limit timeframe to look for the FWHM
             pre_idx = int(i_peak - (t_pre * (SR/1e3)))
+            
+            # fail-save: pre_idx below 0 when pre timeframe exceeds the step
+            if pre_idx < 0:
+                pre_idx = 0
+            
             post_idx = int(i_peak + (t_post * (SR/1e3)))
             v_AP = v[pre_idx:post_idx+1]
         
@@ -131,7 +144,14 @@ def get_AP_parameters(v, idx_peaks, SR=20e3, dvdt_threshold=20, t_pre=2, t_post=
         
             # v_change = v_AP[idx_change]
             t_change = np.add(np.divide(idx_change, (SR/1e3)), (i_peak/(SR/1e3)-t_pre)) 
-            
+
+            ### opt: PLOT ###            
+            # plt.plot(v)
+            # plt.eventplot(idx_peaks, color = 'r', lineoffsets=30, linelengths=5)
+            # plt.ylim([-100, 50])
+            # plt.hlines(v_HM, 0, 1000)
+            # plt.show() 
+                
             FWHM[idx] = np.diff(idx_change) / (SR/1e3)
             t1_HM[idx] = t_change[0]
             t2_HM[idx] = t_change[1]
@@ -153,8 +173,9 @@ def get_AP_parameters(v, idx_peaks, SR=20e3, dvdt_threshold=20, t_pre=2, t_post=
             v_rise = np.where((v_pre > v_20perc[idx]) & (v_pre < v_80perc[idx]))[0]
             
             t_rise[idx] = len(v_rise) / (SR / 1e3)
-            
-            
+        
+
+        
         dataframe_dict = {'v_peaks' : v_peaks,
                           't_peaks' : t_peaks,
                           'v_threshold' : v_threshold,
