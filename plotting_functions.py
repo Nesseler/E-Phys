@@ -46,9 +46,9 @@ def get_colors(darkmode_bool=False):
     return colors_dict
 
 
-def get_figure_size():
+def get_figure_size(width = 328.67, height = 165.5):
     mm = 1/25.4
-    figsize=(328.67*mm, 165.5*mm)
+    figsize=(width*mm, height*mm)
     return figsize
 
 
@@ -102,3 +102,27 @@ def save_figures(figure, figure_name, save_dir, darkmode_bool):
     
     figure.savefig(os.path.join(save_dir, os.path.normpath(figure_name + ".png")), format = 'png')
     figure.savefig(os.path.join(save_dir, os.path.normpath(figure_name + ".svg")), format = 'svg')
+    
+    
+def set_font_sizes(small_font_size = 14, large_font_size = 16):
+    '''
+    Function sets font sizes of select text elements in figure to provided sizes.
+    Parameters:
+        small_font_size : Small font size for regular text. Default is 14.
+        large_font_size : Large font size for titles and headings. Default is 16.
+    '''
+    
+    plt.rc('font', size = small_font_size)
+    plt.rc('axes', titlesize = small_font_size, 
+                   labelsize = small_font_size,
+                   linewidth = 0.5)
+    plt.rc('xtick', labelsize = small_font_size)
+    plt.rc('ytick', labelsize = small_font_size)
+    plt.rc('lines', linewidth = 2)
+    
+    
+    
+    
+    
+    
+    

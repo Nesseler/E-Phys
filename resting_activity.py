@@ -9,14 +9,14 @@ Created on Thu Oct 26 14:02:40 2023
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from useful_functions import calc_time_series, calc_dvdt, butter_filter, save_figures, get_sampling_rate, get_data
+from useful_functions import calc_time_series, calc_dvdt, butter_filter, get_sampling_rate, get_data
 import os.path
 import scipy as sc
 import seaborn as sbn
 import warnings 
 
 
-from plotting_functions import get_figure_size, get_colors
+from plotting_functions import get_figure_size, get_colors, save_figures, set_font_sizes
 
 
 # %%
@@ -47,7 +47,7 @@ data_folder = 'C:/Users/nesseler/Desktop/local E-Phys'
 figure_dir = 'C:/Users/nesseler/Desktop/local E-Phys/figures'
 
 
-darkmode_bool = False
+darkmode_bool = True
 
 # %%
 
@@ -385,6 +385,16 @@ save_figures(fig_v_rest, 'Resting_n_eventplot', figure_dir, darkmode_bool)
 
 
 
+# %% create dict with all, active and non-active cells
+
+# concatenate v_rest and n_spikes dataframes
+activity_df = pd.concat([v_rest_df, n_spikes_df], axis = 1)
+
+# add activity column for categorical plots´with silent as default value
+activity_df['activity'] = 'silent'
+
+# change activity value of spiking cells with n_spike > 0 to 'spiking'
+activity_df.loc[activity_df['n_spikes'] > 0, 'activity'] = 'spiking'
 
 # %% EVENTPLOT + V_REST FIGURE + N_spike
 
@@ -393,17 +403,7 @@ fig_v_rest, axs_v_rest = plt.subplots(1,2,
                                       figsize = get_figure_size(),
                                       layout = 'tight')
 
-small_font_size = 14
-large_font_size = 16
-
-plt.rc('font', size = small_font_size)
-plt.rc('axes', titlesize = large_font_size, 
-               labelsize = large_font_size,
-               linewidth = 0.5)
-plt.rc('xtick', labelsize = large_font_size)
-plt.rc('ytick', labelsize = large_font_size)
-plt.rc('lines', linewidth = 1.5)
-
+set_font_sizes()
 
 tick_size = 0.9
 
@@ -412,14 +412,16 @@ for cell_idx, cell_ID in enumerate(all_cell_IDs):
     axs_v_rest[0].eventplot(spiketimes_ls[cell_idx],
                             orientation = 'horizontal', 
                             lineoffsets=cell_idx, 
-                            linewidth = 1,
+                            linewidth = 1.5,
                             linelengths=0.9, 
                             color = colors_dict['color2'])
 
 
 axs_v_rest[0].set_ylim([0-(tick_size/2), n_cells-1+(tick_size/2)])
-axs_v_rest[0].set_yticks(np.arange(0,n_cells,5))
-axs_v_rest[0].set_yticks(np.arange(0,n_cells,1), minor=True)
+axs_v_rest[0].set_yticks(ticks = np.arange(5 - 1, n_cells+1, 5), 
+                         labels = np.arange(5, n_cells + 1, 5))
+axs_v_rest[0].set_yticks(ticks = np.arange(0, n_cells, 1), 
+                         minor = True)
 axs_v_rest[0].set_ylabel('Cells [#]')
 
 axs_v_rest[0].set_xlim([0, 30])
@@ -427,44 +429,39 @@ axs_v_rest[0].set_xlabel('Time [s]')
 axs_v_rest[0].set_xticks(np.arange(0, 30+1, 10))
 axs_v_rest[0].set_xticks(np.arange(0, 30+1, 1), minor = True)
 
+# creating specific color pallet for seaborn plotting functions
+color_pal = {'silent' : colors_dict['color1'], 'spiking' : colors_dict['color2']}
 
-sbn.swarmplot(x=[0]*len(v_rest_df),
-              y=v_rest_df['v_rest'], 
-              ax=axs_v_rest[1],
-              color = colors_dict['primecolor'], 
-              size = 7)
+violins = sbn.violinplot(data = activity_df, 
+                         x = "activity", 
+                         y = "v_rest", 
+                         inner = 'quart', 
+                         ax = axs_v_rest[1], 
+                         palette = color_pal,
+                         linewidth = 1.5)
 
+swarms = sbn.swarmplot(data = activity_df, 
+                       x = "activity", 
+                       y = "v_rest", 
+                       size = 7, 
+                       ax = axs_v_rest[1], 
+                       color = colors_dict['primecolor'])
 
-spiking_indices = n_spikes_df.query('n_spikes > 0').index
-silent_indices = n_spikes_df.query('n_spikes == 0').index
+for l in violins.lines:
+    l.set_color(colors_dict['primecolor'])
 
-sbn.swarmplot(x=[1]*len(spiking_indices),
-              y=v_rest_df['v_rest'].loc[spiking_indices], 
-              ax=axs_v_rest[1],
-              color = colors_dict['color2'], 
-              size = 7)
-
-sbn.swarmplot(x=[2]*len(silent_indices),
-              y=v_rest_df['v_rest'].loc[silent_indices], 
-              ax=axs_v_rest[1],
-              color = colors_dict['color1'], 
-              size = 7)
-
+[violin.set_edgecolor(colors_dict['primecolor']) for violin in violins.collections]
 
 axs_v_rest[1].set_ylabel('Resting membrane potential [mV]')
 axs_v_rest[1].set_ylim([-100, -40])
 axs_v_rest[1].set_yticks(np.arange(-100, -40+1, 10))
 axs_v_rest[1].set_yticks(np.arange(-100, -40+1, 5), minor = True)
 
-axs_v_rest[1].set_xlim([-1, 3])
 axs_v_rest[1].set_xlabel('')
-axs_v_rest[1].set_xticks([0, 1, 2], ['all', 'active', 'non\nactive'],
-                         rotation = 90)
 
 [ax.grid(False) for ax in axs_v_rest]
 
 save_figures(fig_v_rest, 'Resting_n_eventplot_nspikes', figure_dir, darkmode_bool)
-
 
 
 
