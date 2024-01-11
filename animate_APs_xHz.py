@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Thu Jan 11 11:41:09 2024
+
+@author: nesseler
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Wed Jan 10 19:03:13 2024
 
 @author: nesseler
@@ -37,7 +44,7 @@ table = pd.read_excel(directories.table_dir + 'InVitro_Database.xlsx',
                       index_col='cell_ID')
 
 
-frequencies = ['1Hz', '30Hz', '75Hz']
+frequencies = ['10Hz']
 
 # loop to create string to include all frequencies in query
 query_str = ''
@@ -59,9 +66,12 @@ lookup_table = table.query(query_str)
 # test cell E-092
 cell_ID = 'E-092'
 
+frequency_int = 1
+
+frequency = str(frequency_int) + 'Hz'
     
 # PGF to load
-PGF = 'cc_th1AP'
+PGF = f'cc_APs_{frequency}'
 PGF_parameters = cc_APs_parameters[frequency]
 
 # lookup_table = table.query(f'{PGF}.notnull()')
@@ -120,17 +130,19 @@ idx_peaks, dict_peak = sc.signal.find_peaks(vf,
 
 i_hold = 0 # pA
 
+i_stim = 100 # pA
+
 i_start = cc_th1Ap_parameters['i_start']
 i_delta = cc_th1Ap_parameters['i_delta']
 
-i_steps= np.arange(i_start, i_start + (i_delta * n_steps), i_delta)
+i_steps= [i_stim] * n_steps
 
 i = [None] * n_steps
 
 for idx, i_stim in enumerate(i_steps):
-    i_pre = np.full(int((SR_ms * cc_th1Ap_parameters['t_pre'])), i_hold)
-    i_stim = np.full(int((SR_ms * cc_th1Ap_parameters['t_stim'])), i_stim)
-    i_post = np.full(int((SR_ms * cc_th1Ap_parameters['t_post'])-1), i_hold)
+    i_pre = np.full(int((SR_ms * PGF_parameters['t_pre'])), i_hold)
+    i_stim = np.full(int((SR_ms * PGF_parameters['t_stim'])), i_stim)
+    i_post = np.full(int((SR_ms * PGF_parameters['t_post'])-1), i_hold)
     
     i_step = np.concatenate((i_pre, i_stim, i_post))
     i[idx] = i_step
@@ -144,13 +156,13 @@ v = [None] * n_steps
 t = [None] * n_steps
 peaks = [None] * n_steps
 
-step_dur = cc_th1Ap_parameters['t_pre'] + cc_th1Ap_parameters['t_stim'] + cc_th1Ap_parameters['t_post']
+step_dur = PGF_parameters['t_pre'] + PGF_parameters['t_stim'] + PGF_parameters['t_post']
 step_points = step_dur * SR_ms
 
 for idx in np.arange(0, n_steps, 1):
     start_idx = int(step_points * idx)
     stop_idx = int(start_idx + step_points - 1)
-    
+
     v[idx] = vf[start_idx:stop_idx]
     t[idx] = t_ms[start_idx:stop_idx]
     peaks[idx] = [(idx_peak / SR_ms) - (step_dur * idx) for idx_peak in idx_peaks if idx_peak > start_idx and idx_peak < stop_idx]
@@ -215,7 +227,7 @@ i_u_th = i_steps[idx_u_th]
 
 # Initialise figure
 fig_ani, ax_ani = plt.subplots(2, 1, 
-                               figsize = get_figure_size(width=246.502),
+                               figsize = get_figure_size(width=244.002), #77.167, height=51.167),
                                sharex = 'col',
                                gridspec_kw={'height_ratios': [1,4]})
 
@@ -238,11 +250,11 @@ line_i, = ax_ani[0].plot([],[], lw = 2, color = color_dict['color2'])
 events, = ax_ani[1].eventplot([], color = 'r', lineoffsets=50, linelengths=10, linewidth = 3)
 
 ## initialise text for threshold label
-text = ax_ani[0].text(x = 375,
-                      y = 100,
-                      s = '', 
-                      fontsize = 14,
-                      verticalalignment='center')
+# text = ax_ani[0].text(x = 375,
+#                       y = 100,
+#                       s = '', 
+#                       fontsize = 14,
+#                       verticalalignment='center')
 
 # axis settings
 ax_ani[0].set_ylabel('Current [pA]')
@@ -254,7 +266,7 @@ ax_ani[0].set_yticks(np.arange(-50, 200+1, 10), minor = True)
 v_range = [-100, 75]
 
 ax_ani[1].set_xlabel('Time [ms]')
-ax_ani[1].set_xlim([0, 500])
+ax_ani[1].set_xlim([0, step_dur])
 
 ax_ani[1].set_ylabel('Voltage [mV]')
 ax_ani[1].set_ylim(v_range)
@@ -287,10 +299,10 @@ def animate(frame):
     # end_frame_s = end_frame / SR
     events.set_positions(peaks[frame])
     
-    if frame >= idx_u_th:
-        text.set_text(f'Threshold between\n{i_u_th - 10} pA and {i_u_th} pA!')
-    else:
-        text.set_text('')
+    # if frame >= idx_u_th:
+    #     text.set_text(f'Threshold between\n{i_u_th - 10} pA and {i_u_th} pA!')
+    # else:
+    #     text.set_text('')
     
     return line_v, #events
 
@@ -313,7 +325,8 @@ plt.show()
 # %% animation settings
 
 # Animation parameters
-duration_s = 10  # Select the length of the video here
+duration_s = 100 / frequency_int  # Select the length of the video here
+# duration_s = 10
  
 anim_fps = frames/duration_s
  
@@ -329,7 +342,7 @@ writer = animation.FFMpegWriter(fps=anim_fps, bitrate=3000,
                                 codec="h264",  extra_args=extra_args)
  
 # Save path
-anim.save('C:/Users/nesseler/Desktop/local E-Phys/figures/1APth_video.mp4', writer = writer)
+anim.save(f'C:/Users/nesseler/Desktop/local E-Phys/figures/{frequency}_APs_video_realt.mp4', writer = writer)
 
 # anim.save('C:/Users/nesseler/Desktop/local E-Phys/figures/video.mp4', writer=writer)
  
@@ -343,7 +356,7 @@ print('Video_fps:', anim_fps)
 
 writergif = animation.PillowWriter(fps=anim_fps, bitrate=2000)
  
-anim.save('C:/Users/nesseler/Desktop/local E-Phys/figures/1APth_video.gif', writer=writergif)
+anim.save(f'C:/Users/nesseler/Desktop/local E-Phys/figures/{frequency}_APs_video_realt.gif', writer=writergif)
 
 print('Done!')
 

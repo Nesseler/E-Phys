@@ -319,7 +319,7 @@ for frequency in frequencies:
     axs_steps[-1][-1].set_xticks([])
     
     axs_steps[-1][-1].set_ylim([-100, 50])
-    axs_steps[-1][-1].set_yticks([-100, -50, 0, 50])
+    axs_steps[-1][-1].set_yticks([-100, 50])
     
     axs_steps[-1][-1].set_xticklabels([])
     axs_steps[-1][-1].set_yticklabels([])

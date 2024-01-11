@@ -13,7 +13,7 @@ import os
 import parameters
 from PGFs import cc_APs_parameters
 import directories_win as directories
-from plotting_functions import save_figures, get_colors, get_colorcode
+from plotting_functions import save_figures, get_colors, get_colorcode, get_figure_size, set_font_sizes
 import seaborn as sbn
 
 
@@ -83,14 +83,17 @@ for cell_ID in n_APs_df.columns:
 
 # %%
 
-dm_bool = False
+dm_bool = True
 
 colors_dict = get_colors(dm_bool)
+
+set_font_sizes()
 
 
 fig_n_APs, axs_n_APs = plt.subplots(1, 2,
                                     layout = 'constrained',
                                     dpi = 600,
+                                    figsize = get_figure_size(),
                                     gridspec_kw={'width_ratios': [8,2]})
 
 # fig_n_APs.set_constrained_layout_pads(wspace=0.05, w_pad=0.0,
@@ -142,7 +145,7 @@ violin = sbn.violinplot(x = [1.]*len(mean_fIndex.index),
                         y = mean_fIndex['fIndex'],
                         width = 1.3,
                         inner = 'quart',
-                        linewidth = 1,
+                        linewidth = 1.5,
                         color = colors_dict['seccolor'],
                         ax = axs_n_APs[1])
 
@@ -159,7 +162,7 @@ sbn.swarmplot(x = [1.]*len(mean_fIndex.index),
               cmap = cmap_str, 
               norm = norm,
               ax = axs_n_APs[1], 
-              size = 6)
+              size = 8)
 
 
 

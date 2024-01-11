@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['test_bed', 'resting_activity.py', 'cc_IF2.py', 'directories_win.py', 'cc_APs.py', 'parameters.py', 'PGFs.py', 'plotting_functions.py', 'cc_IF.py', 'spiketrains_functions.py', 'cc_APs_onecell.py']
+recent_files = ['directories_win.py', 'cc_APs.py', 'PGFs.py', 'spiketrains_functions.py', 'cc_APs_onecell.py', 'cc_APs_allcells.py', 'plot_nAPs.py', 'plotting_functions.py', 'useful_functions.py', 'cc_APs_onecell_for_plotting.py', 'cc_IF2.py', 'plot_3freqstims.py', 'cc_IF.py', 'animate_freqs.py', 'resting_activity.py', 'animate_APs_th.py', 'parameters.py']
 
 [main]
 version = 0.2.0

@@ -43,7 +43,7 @@ def get_AP_parameters(v, idx_peaks, SR=20e3, dvdt_threshold=20, t_pre=2, t_post=
    
         
     
-    if idx_peaks > 0:
+    if len(idx_peaks) > 0:
         t = calc_time_series(v, SR, 'ms')
         
         dvdt = calc_dvdt(v, t)

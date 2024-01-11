@@ -119,7 +119,25 @@ def set_font_sizes(small_font_size = 14, large_font_size = 16):
     plt.rc('xtick', labelsize = small_font_size)
     plt.rc('ytick', labelsize = small_font_size)
     plt.rc('lines', linewidth = 2)
-    
+
+
+def return_segments(x, ys):
+    '''
+    Function returns segments from single x array and multiple y array to use
+    with matplotlib.collections.LineCollection.
+    Parameters:
+        x : Single array of common x-coordinates.
+        ys : 2D array / list of y-coordinates to be plotted on common x-coordinates.
+    Returns:
+        segs : Segmented lines ready to use with 'LineCollection(segs)'
+    '''
+    n_ys = len(ys)
+    n_x = len(x)
+    segs = np.zeros((n_ys, n_x, 2))
+    segs[:, :, 1] = ys
+    segs[:, :, 0] = x
+    return segs
+
     
     
     
