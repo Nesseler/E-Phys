@@ -84,7 +84,7 @@ for frequency in frequencies:
     # FWHM_df = import_AP_measurement_all_cells(frequencies, 'FWHM')
     # ampl_df = import_AP_measurement_all_freqs(frequencies, 'v_amplitude')
     
-
+    
     
     FWHM_melt = pd.melt(FWHM_df, var_name='cell_ID', value_name='FWHM') 
     ampl_melt = pd.melt(ampl_df, var_name='cell_ID', value_name='v_amplitude')
@@ -93,7 +93,7 @@ for frequency in frequencies:
     ampl_freq[frequency] = ampl_melt['v_amplitude']
 
 
-
+    
 
 
  # %%
