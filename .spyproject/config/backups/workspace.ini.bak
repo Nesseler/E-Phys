@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['plot_2APparams_one_cell.py', 'plot_nAPs.py', 'plot_APs_xHz_phaseplane_ov.py', 'plot_2APparams_one_freq.py', 'plot_2APparams_multi_freq.py', 'plot_2APparams_multi_freq_cat.py', 'resting_activity.py']
+recent_files = ['plot_2APparams_multi_freq_cat.py', 'plot_mean_APs_parameter.py', 'directories_win.py', 'resting_activity.py']
 
 [main]
 version = 0.2.0

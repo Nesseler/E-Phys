@@ -20,6 +20,10 @@ raw_data_dir = 'C:/Users/nesseler/Desktop/local E-Phys'
 # directory for analysed values  
 quant_data_dir = 'C:/Users/nesseler/Desktop/local E-Phys/qdata/'
 
+# directory for analysed values that describe one cell
+cell_descrip_dir = 'C:/Users/nesseler/Desktop/local E-Phys/qdata/cell_descriptors'
+cell_descrip_file = 'C:/Users/nesseler/Desktop/local E-Phys/qdata/cell_descriptors/cell_descrips.xlsx'
+
 # directory for figures to be saved
 figure_dir = 'C:/Users/nesseler/Desktop/local E-Phys/figures'
 

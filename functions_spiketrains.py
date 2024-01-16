@@ -6,7 +6,7 @@ Created on Fri Dec 22 14:31:40 2023
 """
 
 import numpy as np
-from useful_functions import calc_time_series, calc_dvdt
+from functions_useful import calc_time_series, calc_dvdt
 import pandas as pd
 import matplotlib as mtl
 import matplotlib.pyplot as plt

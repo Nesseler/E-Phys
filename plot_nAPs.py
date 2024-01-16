@@ -17,6 +17,9 @@ from plotting_functions import save_figures, get_colors, get_colorcode, get_figu
 import seaborn as sbn
 
 
+from directories_win import cell_descrip_dir
+
+
 
 # %% 
 
@@ -65,9 +68,9 @@ for cell_ID in cell_IDs:
 
 
 # write excel file
-n_APs_df_path = os.path.join(directories.quant_data_dir, 'APs', 'n_APs.xlsx')
+n_APs_df_path = os.path.join(cell_descrip_dir, 'n_APs.xlsx')
 
-n_APs_df.to_excel(n_APs_df_path)
+n_APs_df.to_excel(n_APs_df_path, index_label='frequency')
 
 
 # %%
