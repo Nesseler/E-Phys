@@ -17,6 +17,8 @@ cc_APs_parameters = {
                      '75Hz' : {'t_pre' : 2.5 , 't_stim' : 10., 't_post' : 2.5 }
                      }
 
+cc_APs_n_stims = 100
+
 cc_th1Ap_parameters = {'t_pre' : 240.,
                        't_stim': 10.,
                        't_post': 250.,

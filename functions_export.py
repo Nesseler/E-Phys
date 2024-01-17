@@ -41,7 +41,7 @@ def set_df_to_cell_descrips(add_df, add_header_ext = ''):
     if add_header_ext != '':
         # rename header elements when add_header_ext is parsed
         rename_dict = {col_str: str(col_str) + '-' + add_header_ext for i, col_str in enumerate(add_df.columns)}
-        add_df.rename(columns = rename_dict, inplace = True)       
+        add_df = add_df.rename(columns = rename_dict)       
         
     # test if data is already contained in dataframe
     if all(x in cells_df.columns.to_list() for x in add_df.columns.to_list()):
