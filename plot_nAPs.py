@@ -63,7 +63,7 @@ for cell_ID in cell_IDs:
     n_APs_df[cell_ID] = n_APs
 
 nAPs_path = os.path.join(cell_descrip_dir, 'nAPs.xlsx')
-n_APs_df.to_excel(nAPs_path, index_label='cell_ID')
+n_APs_df.to_excel(nAPs_path, index_label='frequencies')
 
 
 # %%

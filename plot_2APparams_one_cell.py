@@ -8,19 +8,14 @@ Created on Thu Jan 11 20:36:45 2024
 import matplotlib.pyplot as plt
 import matplotlib as mtl
 import numpy as np
-import directories_win as directories
-from PGFs import cc_APs_parameters, cc_th1Ap_parameters
 import pandas as pd
-from useful_functions import calc_time_series, butter_filter, calc_dvdt
 import os
-from cc_IF_functions import get_IF_data
-from plotting_functions import get_colors, save_figures, get_figure_size, set_font_sizes, return_segments
-import scipy as sc
-import parameters
 
-from matplotlib.collections import LineCollection
+# custom directories & parameters
+import directories_win as directories
+from PGFs import cc_APs_parameters
 
-from spiketrains_functions import get_colorcode
+from functions_plotting import get_colors, save_figures, get_figure_size, set_font_sizes
 
 
 # %%
@@ -65,7 +60,7 @@ def import_AP_measurement_all_freqs(frequencies, parameter):
 
     return measurement_df
 
-FWHM_df = import_AP_measurement_all_freqs(frequencies, 'FWHM')
+FWHM_df = import_AP_measurement_all_freqs(frequencies, 't_peaks')
 ampl_df = import_AP_measurement_all_freqs(frequencies, 'v_amplitude')
 
 
@@ -126,10 +121,10 @@ for idx, frequency in enumerate(frequencies):
 
 
 # FWHM y axis 
-axs_APps[0].set_ylim([1.0, 2.5])
-axs_APps[0].set_ylabel('FWHM [ms]')
+# axs_APps[0].set_ylim([1.0, 2.5])
+# axs_APps[0].set_ylabel('FWHM [ms]')
 
-axs_APps[0].set_yticks(ticks = np.linspace(1,2.5, 4))
+# axs_APps[0].set_yticks(ticks = np.linspace(1,2.5, 4))
 
 
 # ampli y axis 
@@ -154,6 +149,6 @@ axs_APps[1].set_xticks(ticks = np.arange(0, 99 + 1, 1),
 plt.show()
 
 
-save_figures(fig_APps, f'FWHM_ampli_one_cell_{cell_ID}', directories.figure_dir, darkmode_bool)
+# save_figures(fig_APps, f'FWHM_ampli_one_cell_{cell_ID}', directories.figure_dir, darkmode_bool)
 
 

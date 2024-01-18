@@ -8,19 +8,14 @@ Created on Thu Jan 11 21:44:19 2024
 import matplotlib.pyplot as plt
 import matplotlib as mtl
 import numpy as np
-import directories_win as directories
-from PGFs import cc_APs_parameters, cc_th1Ap_parameters
 import pandas as pd
-from useful_functions import calc_time_series, butter_filter, calc_dvdt
 import os
-from cc_IF_functions import get_IF_data
-from plotting_functions import get_colors, save_figures, get_figure_size, set_font_sizes, return_segments
-import scipy as sc
-import parameters
 
-from matplotlib.collections import LineCollection
+# custom directories & parameters
+import directories_win as directories
+from PGFs import cc_APs_parameters
 
-from spiketrains_functions import get_colorcode
+from functions_plotting import get_colors, save_figures, get_figure_size, set_font_sizes
 
 
 # %%

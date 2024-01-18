@@ -5,23 +5,18 @@ Created on Mon Jan 15 16:59:43 2024
 @author: nesseler
 """
 
+import numpy as np
+import pandas as pd
+import os
 import matplotlib.pyplot as plt
 import matplotlib as mtl
-import numpy as np
-import directories_win as directories
-from PGFs import cc_APs_parameters, cc_th1Ap_parameters
-import pandas as pd
-from useful_functions import calc_time_series, butter_filter, calc_dvdt
-import os
-from cc_IF_functions import get_IF_data
-from plotting_functions import get_colors, save_figures, get_figure_size, set_font_sizes, return_segments
-import scipy as sc
-import parameters
-
-from matplotlib.collections import LineCollection
-
-from spiketrains_functions import get_colorcode
 import seaborn as sbn
+
+# custom directories & parameters
+import directories_win as directories
+from PGFs import cc_APs_parameters
+from functions_plotting import get_colors, save_figures, get_figure_size, set_font_sizes
+
 
 
 # %%
@@ -58,7 +53,8 @@ def import_AP_measurement_one_cell(cell_data_path, frequency, parameter, cell_ID
 
 # %%
 
-parameter = 'FWHM'
+parameter = 'v_amplitude'
+measure = 'std'
 
 mean_df = pd.DataFrame()
 
@@ -78,7 +74,7 @@ for cell_ID in cell_IDs:
                                                 parameter = parameter,
                                                 cell_ID = cell_ID)
         
-        mean_p_freqs.append(cur_df[frequency][:].mean())
+        mean_p_freqs.append(cur_df[frequency][:].std())
     
     # create dataframe with index to add to the mean_df
     mean_p_freqs_df = pd.DataFrame({cell_ID : mean_p_freqs}, 
@@ -193,8 +189,11 @@ for l in violins1.lines:
     l.set_color(colors_dict['primecolor'])
 
 [violin.set_edgecolor(colors_dict['primecolor']) for violin in violins1.collections]
-        
 
+
+axs_APcats.set_ylabel(f'{measure} {parameter}')
+        
+# axs_APcats.set_ylim([0,5])
 
 axs_APcats.grid(False)
 
@@ -202,7 +201,7 @@ plt.show()
 
 
 
-save_figures(fig_APcats, f'mean_{parameter}_cell_all_freq_cats', directories.figure_dir, darkmode_bool)
+save_figures(fig_APcats, f'{measure}_{parameter}_cell_all_freq_cats', directories.figure_dir, darkmode_bool)
 
 
 
