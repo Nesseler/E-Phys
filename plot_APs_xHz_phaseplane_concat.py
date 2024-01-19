@@ -8,19 +8,19 @@ Created on Thu Jan 11 19:01:11 2024
 import matplotlib.pyplot as plt
 import matplotlib as mtl
 import numpy as np
-import directories_win as directories
-from PGFs import cc_APs_parameters, cc_th1Ap_parameters
 import pandas as pd
-from useful_functions import calc_time_series, butter_filter, calc_dvdt
 import os
-from cc_IF_functions import get_IF_data
-from plotting_functions import get_colors, save_figures, get_figure_size, set_font_sizes, return_segments
 import scipy as sc
+
+# custom directories & parameters
+import directories_win as directories
 import parameters
+from PGFs import cc_APs_parameters, cc_th1Ap_parameters
 
-from matplotlib.collections import LineCollection
-
-from spiketrains_functions import get_colorcode
+from functions_ccIF import get_IF_data
+from functions_useful import calc_time_series, butter_filter, calc_dvdt
+from functions_plotting import get_colors, save_figures, get_figure_size, set_font_sizes
+from functions_spiketrains import get_colorcode
 
 # %%
 
@@ -31,7 +31,7 @@ lookup_table = pd.read_excel(directories.table_dir + 'InVitro_Database.xlsx',
 # test cell E-092
 cell_ID = 'E-092'
 
-frequency_int = 1
+frequency_int = 75
 
 frequency = str(frequency_int) + 'Hz'
     
