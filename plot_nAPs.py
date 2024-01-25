@@ -13,7 +13,7 @@ import seaborn as sbn
 
 from PGFs import cc_APs_parameters
 
-from functions_plotting import save_figures, get_colors, get_figure_size, set_font_sizes
+from functions.functions_plotting import save_figures, get_colors, get_figure_size, set_font_sizes
 from directories_win import cell_descrip_dir, quant_data_dir, figure_dir
 from functions_export import set_df_to_cell_descrips
 

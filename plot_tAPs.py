@@ -73,102 +73,102 @@ rfreq_df = pd.read_excel(os.path.join(cell_descrip_dir, 'resul_freq.xlsx'), inde
 # %% get data
 
 # start with one cell
-cell_ID = 'E-092'
+cell_ID = 'E-117'
 
 
 mean_ISIs_df = pd.DataFrame(index = frequencies)
 
-for cell_ID in cell_IDs:
-    t_APs = import_AP_measurement_all_freqs(frequencies, 't_peaks', cell_ID)
+# for cell_ID in cell_IDs:
+t_APs = import_AP_measurement_all_freqs(frequencies, 't_peaks', cell_ID)
+
+
+
+# %% create dataframe with times that
+
+# create list with interstimulus interval per stimulation frequency
+ISIs = [sum(cc_APs_parameters[f].values()) for f in frequencies]
+total_dur = [ISI * cc_APs_n_stims for ISI in ISIs]
+
+# create dataframe with all stimuation time of every frequency
+t_stims_df = pd.DataFrame()
+
+for idx_freq, freq in enumerate(frequencies):
     
+    t_pre = cc_APs_parameters[freq]['t_pre']
     
+    t_stims = [t_pre + ISIs[idx_freq] * i for i in np.arange(cc_APs_n_stims)]
+
+    t_stims_df[freq] = t_stims
+
+# add both dataframes and create spike times in continues timeseries
+t_APs_cont = t_APs.add(t_stims_df)
+
+
+
+# %% verification plot
+
+darkmode_bool = True
+
+colors_dict = get_colors(darkmode_bool)
+
+set_font_sizes()
+
+ax_keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
+
+fig_event, axs_event = plt.subplot_mosaic('AGHI;BGHI;CGHI;DGHI;EGHI;FGHI', 
+                                          layout = 'constrained',
+                                          figsize = get_figure_size(),
+                                          gridspec_kw = {'width_ratios': [6,2,2,2]})
+
+
+for idx_freq, freq in enumerate(frequencies):
+    axs_event[ax_keys[idx_freq]].eventplot(t_APs_cont[freq].dropna(), colors = colors_dict['primecolor'])
+    axs_event[ax_keys[idx_freq]].set_xlim([0, total_dur[idx_freq]])
+    axs_event[ax_keys[idx_freq]].set_xticks(np.linspace(0, total_dur[idx_freq], 6))
+    axs_event[ax_keys[idx_freq]].set_ylabel(freq)
     
-    # %% create dataframe with times that
-    
-    # create list with interstimulus interval per stimulation frequency
-    ISIs = [sum(cc_APs_parameters[f].values()) for f in frequencies]
-    total_dur = [ISI * cc_APs_n_stims for ISI in ISIs]
-    
-    # create dataframe with all stimuation time of every frequency
-    t_stims_df = pd.DataFrame()
-    
-    for idx_freq, freq in enumerate(frequencies):
-        
-        t_pre = cc_APs_parameters[freq]['t_pre']
-        
-        t_stims = [t_pre + ISIs[idx_freq] * i for i in np.arange(cc_APs_n_stims)]
-    
-        t_stims_df[freq] = t_stims
-    
-    # add both dataframes and create spike times in continues timeseries
-    t_APs_cont = t_APs.add(t_stims_df)
-    
-    
-    
-    # %% verification plot
-    
-    darkmode_bool = True
-    
-    colors_dict = get_colors(darkmode_bool)
-    
-    set_font_sizes()
-    
-    ax_keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
-    
-    fig_event, axs_event = plt.subplot_mosaic('AGHI;BGHI;CGHI;DGHI;EGHI;FGHI', 
-                                              layout = 'constrained',
-                                              figsize = get_figure_size(),
-                                              gridspec_kw = {'width_ratios': [6,2,2,2]})
-    
-    
-    for idx_freq, freq in enumerate(frequencies):
-        axs_event[ax_keys[idx_freq]].eventplot(t_APs_cont[freq].dropna(), colors = colors_dict['primecolor'])
-        axs_event[ax_keys[idx_freq]].set_xlim([0, total_dur[idx_freq]])
-        axs_event[ax_keys[idx_freq]].set_xticks(np.linspace(0, total_dur[idx_freq], 6))
-        axs_event[ax_keys[idx_freq]].set_ylabel(freq)
-        
-        # eventplot for stimulations
-        axs_event[ax_keys[idx_freq]].eventplot(t_stims_df[freq] + 5, lineoffsets = 2.25, linelength = 0.75, colors = 'grey')
-    
-    fig_event.suptitle(cell_ID)
-    
-    [axs_event[ax_i].set_yticks([]) for ax_i in ax_keys[:6]]
-    
-    [axs_event[ax_i].spines[spine].set_visible(False) for ax_i in ax_keys[:6] for spine in ['left', 'top', 'right']]
-    
-    [axs_event[ax_i].grid(False) for ax_i in ax_keys[:]]
-    
-    fig_event.supxlabel('Time [ms]')
-    
-    
-    # number of APs
-    axs_event['G'].plot(nAPs_df[cell_ID], nAPs_df.index)
-    
-    axs_event['G'].set_xlim([0, 100])
-    axs_event['G'].set_xlabel('Number of APs\n[#]')
-    
-    # mean ISI
-    axs_event['H'].plot(mISIs_df[cell_ID], mISIs_df.index)
-    
-    axs_event['H'].set_xlim([0, 1000])
-    axs_event['H'].set_xlabel('Mean ISI\n[ms]')
-    
-    
-    # resulting frequency
-    axs_event['I'].plot(rfreq_df[cell_ID], rfreq_df.index)
-    
-    axs_event['I'].set_xlim([0, 75])
-    axs_event['I'].set_xlabel('Resulting freq.\n[Hz]')
-    
-    # save figure as verification plot
-    fig_path = os.path.join(vplot_dir, 'APs', cell_ID)
-    if not os.path.exists(fig_path):
-        os.mkdir(fig_path)
-    save_figures(fig_event, f'{cell_ID}_ccAPs', fig_path, darkmode_bool)
-    
-    plt.show()
-    
-    plt.pause(0.1)
+    # eventplot for stimulations
+    axs_event[ax_keys[idx_freq]].eventplot(t_stims_df[freq] + 5, lineoffsets = 2.25, linelength = 0.75, colors = 'grey')
+
+fig_event.suptitle(cell_ID)
+
+[axs_event[ax_i].set_yticks([]) for ax_i in ax_keys[:6]]
+
+[axs_event[ax_i].spines[spine].set_visible(False) for ax_i in ax_keys[:6] for spine in ['left', 'top', 'right']]
+
+[axs_event[ax_i].grid(False) for ax_i in ax_keys[:]]
+
+fig_event.supxlabel('Time [ms]')
+
+
+# number of APs
+axs_event['G'].plot(nAPs_df[cell_ID], nAPs_df.index)
+
+axs_event['G'].set_xlim([0, 100])
+axs_event['G'].set_xlabel('Number of APs\n[#]')
+
+# mean ISI
+axs_event['H'].plot(mISIs_df[cell_ID], mISIs_df.index)
+
+axs_event['H'].set_xlim([0, 1000])
+axs_event['H'].set_xlabel('Mean ISI\n[ms]')
+
+
+# resulting frequency
+axs_event['I'].plot(rfreq_df[cell_ID], rfreq_df.index)
+
+axs_event['I'].set_xlim([0, 75])
+axs_event['I'].set_xlabel('Resulting freq.\n[Hz]')
+
+# save figure as verification plot
+fig_path = os.path.join(vplot_dir, 'APs', cell_ID)
+if not os.path.exists(fig_path):
+    os.mkdir(fig_path)
+save_figures(fig_event, f'{cell_ID}_ccAPs', fig_path, darkmode_bool)
+
+plt.show()
+
+plt.pause(0.1)
 
 
 

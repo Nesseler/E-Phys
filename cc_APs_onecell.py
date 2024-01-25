@@ -7,19 +7,20 @@ Created on Fri Dec 22 17:43:27 2023
 
 
 # E-092: use for testing
-
-import directories_win as directories
 import pandas as pd
 import os
-from cc_IF_functions import get_IF_data
-import matplotlib.pyplot as plt
 import numpy as np
-from useful_functions import calc_time_series, butter_filter, calc_dvdt
+import scipy as sc
+
+import directories_win as directories
 import parameters
 from PGFs import cc_APs_parameters
-import scipy as sc
-from plotting_functions import get_colors, save_figures
-from spiketrains_functions import plot_vt_n_dvdtv_colorcoded, get_colorcode, plot_voltage_v_time, phase_plane_plot, get_AP_parameters
+
+from functions_ccIF import get_IF_data
+from functions_useful import calc_time_series, butter_filter
+from functions_spiketrains import get_AP_parameters
+# from functions_plotting import get_colors
+
 
 
 # %% 
@@ -30,8 +31,8 @@ from spiketrains_functions import plot_vt_n_dvdtv_colorcoded, get_colorcode, plo
 def export_all_freqs_and_AP_parameters(cell_ID, lookup_table):
     
     # plotting specifications    
-    darkmode_bool = False
-    colors_dict = get_colors(darkmode_bool)
+    # darkmode_bool = False
+    # colors_dict = get_colors(darkmode_bool)
 
     # table = pd.read_excel(directories.table_dir + 'InVitro_Database_copy.xlsx',
     #                       sheet_name="PGFs",

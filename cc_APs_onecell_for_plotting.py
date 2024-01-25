@@ -7,18 +7,21 @@ Created on Tue Jan  9 18:01:22 2024
 
 # E-092: use for testing
 
-import directories_win as directories
 import pandas as pd
 import os
-from cc_IF_functions import get_IF_data
-import matplotlib.pyplot as plt
 import numpy as np
-from useful_functions import calc_time_series, butter_filter, calc_dvdt
+import scipy as sc
+import matplotlib.pyplot as plt
+
+import directories_win as directories
 import parameters
 from PGFs import cc_APs_parameters
-import scipy as sc
-from plotting_functions import get_colors, save_figures, get_figure_size
-from spiketrains_functions import plot_vt_n_dvdtv_colorcoded, get_colorcode, plot_voltage_v_time, phase_plane_plot, get_AP_parameters
+
+from functions_ccIF import get_IF_data
+from functions_useful import calc_time_series, butter_filter
+from functions_spiketrains import get_AP_parameters
+from functions_plotting import get_colors, get_figure_size, save_figures
+
 
 # %%
 
@@ -47,7 +50,7 @@ lookup_table = table.query(query_str)
 # %% 
 
 # test cell E-092
-cell_ID = 'E-092'
+cell_ID = 'E-117'
 
 # def export_all_freqs_and_AP_parameters(cell_ID, lookup_table):
     
@@ -344,14 +347,14 @@ for frequency in frequencies:
 
 # %% export values to excel files
        
-    cell_path = os.path.join(directories.quant_data_dir, 'APs', cell_ID)
+    # cell_path = os.path.join(directories.quant_data_dir, 'APs', cell_ID)
     
-    if not os.path.exists(cell_path):
-        os.mkdir(cell_path)
+    # if not os.path.exists(cell_path):
+    #     os.mkdir(cell_path)
     
-    table_path = os.path.join(cell_path, f'{cell_ID}_{frequency}.xlsx')
+    # table_path = os.path.join(cell_path, f'{cell_ID}_{frequency}.xlsx')
 
-    AP_all_params.to_excel(table_path)
+    # AP_all_params.to_excel(table_path)
 
 
 

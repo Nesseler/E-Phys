@@ -11,12 +11,12 @@ import numpy as np
 import scipy as sc
 
 # custom directories & parameters
-from PGFs import cc_th1Ap_parameters
-from parameters import min_peak_prominence, min_peak_distance
+from parameters.PGFs import cc_th1Ap_parameters
+from parameters.parameters import min_peak_prominence, min_peak_distance
 
-from functions_ccIF import get_IF_data
-from functions_import import get_traceIndex_n_file
-from functions_useful import calc_time_series, butter_filter
+from functions.functions_ccIF import get_IF_data
+from functions.functions_import import get_traceIndex_n_file
+from functions.functions_useful import calc_time_series, butter_filter
 
 # %%
 
@@ -105,7 +105,7 @@ for idx in np.arange(0, n_steps, 1):
 
 
 
-plt.plot(v[5])
+plt.plot(v[7])
     
     
     
