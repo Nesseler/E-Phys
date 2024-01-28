@@ -9,7 +9,7 @@ import pandas as pd
 import os
 
 # custom directories & parameters
-from directories_win import cell_descrip_dir, cell_descrip_file
+from parameters.directories_win import cell_descrip_dir, cell_descrip_file
 
 
 # test variables

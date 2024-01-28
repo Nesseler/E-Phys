@@ -6,10 +6,11 @@ Created on Fri Dec 22 14:31:40 2023
 """
 
 import numpy as np
-from functions_useful import calc_time_series, calc_dvdt
 import pandas as pd
 import matplotlib as mtl
 import matplotlib.pyplot as plt
+
+from functions.functions_useful import calc_time_series, calc_dvdt
 
 
 def get_AP_parameters(v, idx_peaks, SR=20e3, dvdt_threshold=20, t_pre=2, t_post=5):

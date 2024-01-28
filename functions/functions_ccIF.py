@@ -35,7 +35,7 @@ def get_colorcode(x, y, data_fc, norm=None, cmap='seismic', plot_dict={'c':'k'})
 
 from patchview.HekaIO.HekaHelpers import HekaBundleInfo
 
-from functions_useful import get_sampling_rate, calc_time_series
+from functions.functions_useful import get_sampling_rate, calc_time_series
 
 def get_IF_data(file_path, traceIndex, scale):
     '''

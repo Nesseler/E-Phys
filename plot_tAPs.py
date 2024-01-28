@@ -14,12 +14,12 @@ import seaborn as sbn
 
 
 # custom directories & parameters
-from PGFs import cc_APs_parameters, cc_APs_n_stims
+from parameters.PGFs import cc_APs_parameters, cc_APs_n_stims
 
-from directories_win import cell_descrip_dir, quant_data_dir, figure_dir, vplot_dir
+from parameters.directories_win import cell_descrip_dir, quant_data_dir, figure_dir, vplot_dir
 
-from functions_plotting import get_colors, save_figures, set_font_sizes, get_figure_size
-from functions_export import set_df_to_cell_descrips
+from functions.functions_plotting import get_colors, save_figures, set_font_sizes, get_figure_size
+# from functions.functions_export import set_df_to_cell_descrips
 
 
 # %%
