@@ -17,3 +17,23 @@ cc_APs_t_post_stim = 10 # in ms
 min_peak_prominence = 50 #(mV)
 min_peak_distance = 1 #ms
 
+dvdt_threshold = 20
+
+
+AP_parameters = ['v_peaks',
+                 't_peaks',
+                  'v_threshold',
+                  't_threshold',
+                  'idx_threshold',
+                  'v_amplitude',
+                  't_toPeak',
+                  'v_AHP',
+                  't_AHP',
+                  'idx_AHP',
+                  'v_AHP_amplitude',
+                  't_to_AHP',
+                  't_rise',
+                  'FWHM',
+                  'v_HM',
+                  't1_HM',
+                  't2_HM']

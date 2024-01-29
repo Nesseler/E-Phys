@@ -6,18 +6,19 @@ Created on Tue Jan 16 19:46:34 2024
 """
 
 # correlation between n_spikes and v_rest
-
+import os
 import pandas as pd
-
 import matplotlib.pyplot as plt
 import seaborn as sbn
 
 # custom directories & parameters
-from directories_win import cell_descrip_file, figure_dir
-from functions_plotting import get_colors, set_font_sizes, get_figure_size, save_figures
+from parameters.directories_win import cell_descrip_dir, figure_dir
+
+# custom functions
+from functions.functions_plotting import get_colors, set_font_sizes, get_figure_size, save_figures
 
 
-cells_df = pd.read_excel(cell_descrip_file, index_col='cell_ID')
+cells_df = pd.read_excel(os.path.join(cell_descrip_dir, 'cc_rest-activity.xlsx'), index_col='cell_ID')
 
 
 # %% plotting only spiking

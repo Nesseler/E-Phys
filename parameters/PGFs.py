@@ -10,7 +10,7 @@ PGF descriptions
 import pandas as pd
 import numpy as np
 
-# cc_APs_xHz
+# %% cc_APs_xHz
 cc_APs_parameters = {
                      '1Hz' :  {'t_pre' : 495., 't_stim' : 10., 't_post' : 495.},
                      '5Hz' :  {'t_pre' : 95. , 't_stim' : 10., 't_post' : 95. },
@@ -39,9 +39,7 @@ for freq in cc_APs_parameters.keys():
     
     
 
-
-
-# cc_th1AP
+# %% cc_th1AP
 
 cc_th1Ap_parameters = {'t_pre' : 240.,
                        't_stim': 10.,

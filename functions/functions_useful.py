@@ -59,6 +59,20 @@ def calc_dvdt(v,t):
     
     return dvdt
 
+def calc_dvdt_padded(v,t):
+    #calculate the first derivate dv/dt
+    dv = np.diff(v)
+    dt = np.diff(t)
+    dvdt = dv / dt
+    
+    # pad with first value as nan
+    dvdt = np.pad(dvdt,
+                  pad_width = (1, 0),
+                  mode = 'constant',
+                  constant_values = (np.nan,))
+    
+    return dvdt
+
     
 def get_sampling_rate(bundleTester, traceIndex):
     

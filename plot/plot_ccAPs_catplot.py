@@ -13,82 +13,30 @@ import matplotlib as mtl
 import seaborn as sbn
 
 # custom directories & parameters
-import directories_win as directories
-from PGFs import cc_APs_parameters
-from functions_plotting import get_colors, save_figures, get_figure_size, set_font_sizes
+from parameters.directories_win import cell_descrip_dir, figure_dir
+
+# custom functions
+from functions.functions_plotting import get_colors, save_figures, get_figure_size, set_font_sizes
 
 
+# %% import 
 
-# %%
+# FWHM, tpeaks, vamplitude
+measure_str = 'mean_' + 'FWHM'
 
-frequencies = list(cc_APs_parameters.keys())
+mean_df = pd.read_excel(os.path.join(cell_descrip_dir, f'ccAPs-{measure_str}.xlsx'), index_col='frequencies')
 
+cell_IDs = list(mean_df.columns)
+
+frequencies = list(mean_df.index)
 freqs_int = [int(f_str.replace('Hz', '')) for f_str in frequencies]
 
-n_APs_df = pd.DataFrame()
 
-quant_dir = os.path.join(directories.quant_data_dir, 'APs')
+# %% transpose and melt Dataframe to be used with seaborn functions
 
-cell_IDs = [name for name in os.listdir(quant_dir) if os.path.isdir(os.path.join(quant_dir, name))]
-
-
-# %%
-
-def import_AP_measurement_one_cell(cell_data_path, frequency, parameter, cell_ID):
-
-    # get number of APs for each stim
-    measurement_df = pd.DataFrame()
-    
-    # create file path
-    file_path = os.path.join(cell_data_path, cell_ID, f'{cell_ID}_{frequency}.xlsx')
-    
-    # read excel file
-    AP_all_params = pd.read_excel(file_path, index_col = 'idx_step')
-    
-    # write to dictionary
-    measurement_df[frequency] = AP_all_params[parameter]
-
-    return measurement_df
-
-
-# %%
-
-parameter = 'v_amplitude'
-measure = 'std'
-
-mean_df = pd.DataFrame()
-
-# loop through cells and then frequencies to get mean value of desired parameter
-
-for cell_ID in cell_IDs: 
-    
-    mean_p_freqs = []
-    
-    for frequency in frequencies:
-     
-        freq_int = int(frequency.replace('Hz', ''))
-        freq_idx = frequencies.index(frequency)
-        
-        cur_df = import_AP_measurement_one_cell(cell_data_path = quant_dir,
-                                                frequency = frequency,
-                                                parameter = parameter,
-                                                cell_ID = cell_ID)
-        
-        mean_p_freqs.append(cur_df[frequency][:].std())
-    
-    # create dataframe with index to add to the mean_df
-    mean_p_freqs_df = pd.DataFrame({cell_ID : mean_p_freqs}, 
-                                    index = freqs_int)
-    
-    # mean_p_freqs_df = pd.DataFrame({cell_ID : mean_p_freqs,
-    #                                 'freqs_str' : frequencies}, 
-    #                                index = freqs_int)    
-    
-    mean_df[cell_ID] = mean_p_freqs_df
-        
 mean_df = mean_df.transpose()
+mean_df_melt = pd.melt(mean_df, var_name='frequency', value_name=measure_str, ignore_index= False)     
 
-mean_df_melt = pd.melt(mean_df, var_name='frequency', value_name=parameter, ignore_index= False)
 
 # %% color code
 
@@ -108,16 +56,6 @@ color_pal = {'1Hz'  : cmap.to_rgba(freqs_int[0]),
              '30Hz' : cmap.to_rgba(freqs_int[3]),
              '50Hz' : cmap.to_rgba(freqs_int[4]),
              '75Hz' : cmap.to_rgba(freqs_int[5])}
-
-# %% 
-
-mean_df = mean_df.transpose()
-mean_df['freq_str'] = frequencies
-
-mean_df_melt['colFromIndex'] = mean_df_melt.index
-mean_df_melt['freq_str'] = mean_df_melt['frequency'].apply(lambda x: str(x) + 'Hz')
-mean_df_melt = mean_df_melt.sort_values(by = ['colFromIndex', 'frequency'], ascending = [True, True])
-
 
 
 # %% plotting
@@ -143,8 +81,8 @@ fig_APcats.colorbar(cmap,
 
 
 violins1 = sbn.violinplot(data = mean_df_melt, 
-                          x = 'freq_str', 
-                          y = parameter, 
+                          x = 'frequency', 
+                          y = measure_str, 
                           inner = 'quart', 
                           ax = axs_APcats, 
                           linewidth = 1,
@@ -152,8 +90,8 @@ violins1 = sbn.violinplot(data = mean_df_melt,
                           width = 0.9)
 
 swarms = sbn.swarmplot(data = mean_df_melt, 
-                        x = 'freq_str', 
-                        y = parameter, 
+                        x = 'frequency', 
+                        y = measure_str, 
                         ax = axs_APcats,
                         size = 6,
                         color = colors_dict['primecolor'])
@@ -191,7 +129,7 @@ for l in violins1.lines:
 [violin.set_edgecolor(colors_dict['primecolor']) for violin in violins1.collections]
 
 
-axs_APcats.set_ylabel(f'{measure} {parameter}')
+axs_APcats.set_ylabel(f'{measure_str}')
         
 # axs_APcats.set_ylim([0,5])
 
@@ -201,7 +139,7 @@ plt.show()
 
 
 
-save_figures(fig_APcats, f'{measure}_{parameter}_cell_all_freq_cats', directories.figure_dir, darkmode_bool)
+save_figures(fig_APcats, f'{measure_str}_cell_all_freq_cats', figure_dir, darkmode_bool)
 
 
 

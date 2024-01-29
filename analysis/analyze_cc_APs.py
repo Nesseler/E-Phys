@@ -21,7 +21,7 @@ import scipy as sc
 # custom directories & parameters
 from parameters.directories_win import table_dir, raw_data_dir, vplot_dir, quant_data_dir, cell_descrip_dir
 from parameters.PGFs import cc_APs_parameters, cc_APs_t_stims_df, cc_APs_total_dur
-from parameters.parameters import cc_APs_t_post_stim, min_peak_prominence, min_peak_distance
+from parameters.parameters import cc_APs_t_post_stim, min_peak_prominence, min_peak_distance, dvdt_threshold
 
 # custom functions
 from functions.functions_ccIF import get_IF_data
@@ -78,10 +78,11 @@ mean_FWHM_df = pd.DataFrame(index = frequencies)
 mean_tpeaks_df = pd.DataFrame(index = frequencies)
 mean_vamplitude_df = pd.DataFrame(index = frequencies)
 
+
 # %% get all AP parameters for one cell
 
 # test cell E-092
-cell_ID = 'E-092'
+# cell_IDs = ['E-092', 'E-103']
 
 for cell_ID in cell_IDs:
 
@@ -228,7 +229,7 @@ for cell_ID in cell_IDs:
             
             AP_params = get_AP_parameters(vs, idx_peaks, 
                                           SR = SR,
-                                          dvdt_threshold = 20,
+                                          dvdt_threshold = dvdt_threshold,
                                           t_pre = 2,
                                           t_post = 10)
             
@@ -413,6 +414,12 @@ for cell_ID in cell_IDs:
     print(f'Finished: {cell_ID}')
 
 
+# %%
+
+mean_nAPs_df = pd.DataFrame({'mean_APs' : nAPs_df.mean(axis=0)})
+std_nAPs_df = pd.DataFrame({'std_APs' : nAPs_df.std(axis=0)})
+
+
 # %% write dataframes to cell description folder
 
 # save measurements to excel file
@@ -424,8 +431,10 @@ mean_FWHM_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_FWHM.xlsx'), in
 mean_tpeaks_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_tpeaks.xlsx'), index_label = 'frequencies')
 mean_vamplitude_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_vamplitude.xlsx'), index_label = 'frequencies')
 
+mean_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_nAPs.xlsx'), index_label = 'frequencies')
+std_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-std_nAPs.xlsx'), index_label = 'frequencies')
 
-    
+
     
     
     

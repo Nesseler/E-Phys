@@ -7,6 +7,7 @@ Created on Sun Jan 28 18:12:32 2024
 
 import os
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sbn
 
@@ -15,9 +16,12 @@ from parameters.directories_win import cell_descrip_dir, figure_dir
 from functions.functions_plotting import get_colors, save_figures, set_font_sizes, get_figure_size
 
 activity_df = pd.read_excel(os.path.join(cell_descrip_dir, 'cc_rest-activity.xlsx'), index_col = 'cell_ID')
+
+
+activity_df = activity_df.sort_values('n_spikes', ascending = True)
+
 cell_IDs = list(activity_df.index)
-
-
+n_cells = len(cell_IDs)
 
 # %% EVENTPLOT + V_REST FIGURE + N_spike
 
@@ -37,7 +41,17 @@ tick_size = 0.9
 
 for cell_idx, cell_ID in enumerate(cell_IDs):
     
-    axs_v_rest[0].eventplot(spiketimes_ls[cell_idx],
+    # read time points of spikes as string representation of a list
+    t_spikes = activity_df.at[cell_ID, 't_spikes'].strip('][').split(', ')
+    
+    # convert individual string elements to floats
+    # check for empty list not to be converted to float
+    if len(t_spikes) > 1:
+        t_spikes = [float(t) for t in t_spikes]
+    else:
+        t_spikes = []
+    
+    axs_v_rest[0].eventplot(t_spikes,
                             orientation = 'horizontal', 
                             lineoffsets=cell_idx, 
                             linewidth = 1.5,
