@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['analysis\\cc_APs.py', 'analysis\\cc_APs_onecell.py', 'analysis\\cc_APs_allcells.py', 'analysis\\analyze_cc_APs.py', 'analysis\\get_cc1thAP.py', 'functions\\functions_useful.py']
+recent_files = ['plot\\plot_ccAPs_catplot.py', 'analysis\\analyze_cc1thAP.py', 'plot\\plot_ccth1AP_cat.py']
 
 [main]
 version = 0.2.0

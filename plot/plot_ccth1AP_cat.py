@@ -22,7 +22,7 @@ fstAP_parameter_df = pd.read_excel(os.path.join(cell_descrip_dir, 'ccth1AP-fst_A
 fstAP_i_df = pd.read_excel(os.path.join(cell_descrip_dir, 'ccth1AP-fst_AP_i.xlsx'), index_col = 'cell_ID')
 
 
-todrop = ['v_peaks', 't_peaks', 't_threshold', 'idx_threshold', 'v_AHP', 't_AHP', 'idx_AHP', 'v_AHP_amplitude', 't_to_AHP', 'v_HM', 't1_HM', 't2_HM']
+todrop = ['v_peaks', 't_peaks', 't_threshold', 'idx_threshold', 'v_AHP', 't_AHP', 'idx_AHP', 'v_AHP_amplitude', 't_to_AHP', 'v_HM', 't1_HM', 't2_HM', 'SR_ms']
 
 fstAP_df = pd.concat([fstAP_parameter_df, fstAP_i_df], axis = 1)
 

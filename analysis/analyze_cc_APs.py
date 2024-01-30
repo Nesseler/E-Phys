@@ -32,7 +32,7 @@ from functions.functions_plotting import get_colors, save_figures, set_font_size
 
 # %% verification plots option
 
-vplots_bool = False
+vplots_bool = True
 
 # %% load InVitro database and all PGF indices to be loaded
 
@@ -384,7 +384,7 @@ for cell_ID in cell_IDs:
         
         
         # number of APs
-        axs_event['G'].plot(nAPs_df, nAPs_df.index)
+        axs_event['G'].plot(nAPs_df[cell_ID], nAPs_df.index)
         
         axs_event['G'].set_xlim([0, 100])
         axs_event['G'].set_xlabel('Number of APs\n[#]')

@@ -24,7 +24,7 @@ from functions.functions_plotting import get_colors, get_figure_size, save_figur
 
 # %%
 
-vplot_bool = True
+vplot_bool = False
 
 # %% get cell IDs
 
@@ -210,6 +210,8 @@ for cell_ID in cell_IDs:
     
     firstAP_parameters_df.loc[cell_ID] = AP_params.iloc[0]
     
+    firstAP_parameters_df.at[cell_ID, 'SR_ms'] = SR_ms
+    
     
     # %% build first AP dataframe
     
@@ -289,11 +291,11 @@ for cell_ID in cell_IDs:
 # %% save AP parameters
 
 
-fst_AP_dir = os.path.join(quant_data_dir, '1stAP')
-if not os.path.exists(fst_AP_dir):
-    os.mkdir(fst_AP_dir)
-
-firstAP_df.to_excel(os.path.join(fst_AP_dir, f'ccth1AP-1stAP-{cell_ID}.xlsx'), index_label = 'cell_ID')
+    fst_AP_dir = os.path.join(quant_data_dir, '1stAP')
+    if not os.path.exists(fst_AP_dir):
+        os.mkdir(fst_AP_dir)
+    
+    firstAP_df.to_excel(os.path.join(fst_AP_dir, f'ccth1AP-1stAP-{cell_ID}.xlsx'), index_label = 't')
 
 
 firstAP_parameters_df.to_excel(os.path.join(cell_descrip_dir, 'ccth1AP-fst_AP_parameters.xlsx'), index_label = 'cell_ID')
