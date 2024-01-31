@@ -37,3 +37,5 @@ AP_parameters = ['v_peaks',
                   'v_HM',
                   't1_HM',
                   't2_HM']
+
+min_spike_in_burst = 4
