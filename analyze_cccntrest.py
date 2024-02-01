@@ -61,6 +61,7 @@ v_concat = v.flatten()
 
 t_ms = calc_time_series(v_concat, SR)
 t_s = calc_time_series(v_concat, SR, scale = 's')
+t_total = len(t_s) / SR
 
 # plt.plot(v_concat[0:15000])
 # plt.show()
@@ -83,6 +84,7 @@ t_peaks_s = np.divide(idx_peaks, SR)
 
 spikes_df = pd.DataFrame({'t_spikes' : t_peaks_s})
 
+
 # %% calc ISIs
 
 # calculate ISIs in seconds
@@ -98,47 +100,195 @@ ISIs_s = np.pad(ISIs_s,
 spikes_df['ISIs'] = ISIs_s
 
 
-
-mean_ISI = spikes_df['ISIs'].mean()
-median_ISI = spikes_df['ISIs'].median()
-
-mean_FR = 1 / mean_ISI
-
-
-pos_ISI = 600 / len(spikes_df.index)
-
-
 # %% poisson distribution
 
-n_spikes = len(t_peaks_s)
+# set bins and bin size
+bin_size = 25e-3 # in ms
+bins = np.arange(0, 20 + bin_size, bin_size)
 
-uni_t_spikes = np.random.uniform(0, 600, n_spikes)
+# calculate histogram for original ISIs
+ISI_hist, ISI_bin_edges = np.histogram(a = ISIs_s, bins = bins)
+n_ISIs = np.sum(ISI_hist)
+max_n_ISIs = np.max(ISI_hist)
+
+# norm to maximal occurance
+ISI_hist_norm = [n / max_n_ISIs for n in ISI_hist]
+
+
+
+colors_dict = get_colors(False)
+
+n_spikes = len(t_peaks_s)
+n_ISIs = n_spikes -1
+
+uni_t_spikes = sc.stats.uniform.rvs(loc = 0, scale = t_total, size = n_spikes)
 uni_t_spikes = np.sort(uni_t_spikes)
 uni_ISIs = np.diff(uni_t_spikes)
 uni_mean_ISI = np.mean(uni_ISIs)
+uni_mean_FR = 1 / uni_mean_ISI
 uni_std_ISI = np.std(uni_ISIs)
 
-x = np.arange(0, 20, 0.1)
-x1 = np.arange(0, 20, 0.1)
-
-poi_ISI_pmf = sc.stats.norm.sf(x = x, loc = uni_mean_ISI, scale = uni_std_ISI)
-
-poi_ISI_cdf = sc.stats.norm.cdf(x = x, loc = uni_mean_ISI, scale = uni_std_ISI)
 
 
 
-# plt.hist(poi_ISI_dist, density=True, edgecolor='black')
+# histogram of uniform distributed spike times
 
-plt.plot(x, poi_ISI_pmf, 'r')
-plt.plot(x, poi_ISI_cdf, 'gray')
+uni_ISI_hist, uni_ISI_bin_edges = np.histogram(a = uni_ISIs, bins = bins)
+uni_n_ISIs = np.sum(uni_ISI_hist)
+uni_max_n_ISIs = np.max(uni_ISI_hist)
+uni_ISI_hist_norm = [n / uni_max_n_ISIs for n in uni_ISI_hist]
 
-bins = np.arange(0, 20, 0.1)
+uni_ISI_hist_cumsum = np.cumsum(uni_ISI_hist)
+uni_ISI_hist_cumsum_normed = [n / n_ISIs for n in uni_ISI_hist_cumsum]
 
-plt.hist(ISIs_s, bins, density=True)
 
-plt.xlim([-1, 5])
-         
-plt.show()
+
+# inter-spike intervals of an poisson process are distributed according to an
+# exponential distribution. (Source: https://github.com/btel/python-in-neuroscience-tutorials/blob/master/poisson_process.ipynb)
+# p(x) = lambda * exp(-lambda * x)
+# p = probability
+# x = ISI (x axis)
+# lambda = firing rate
+
+# def exp_theo_pdf(x, lam):
+#     return lam * np.exp( - lam * x)
+
+
+theo_ISIs_pdf = uni_mean_FR * np.exp( - uni_mean_FR * bins)
+theo_ISIs_pdf_max = np.max(theo_ISIs_pdf)
+
+theo_ISIs_pdf_normed = [o / theo_ISIs_pdf_max for o in theo_ISIs_pdf]
+
+# calculate the cumulatative density function ### QUESTION! ###
+# theo_ISIs_cdf = np.cumsum(theo_ISIs_pdf)
+# theo_ISIs_cdf_max = np.max(theo_ISIs_cdf)
+
+# theo_ISIs_cdf_normed = [o / theo_ISIs_cdf_max for o in theo_ISIs_cdf]
+theo_ISIs_cdf_normed = [1 - p for p in theo_ISIs_pdf_normed]
+
+
+
+# get median ISI interval (ISI_0.5)
+theo_median_ISI = -np.log((theo_ISIs_pdf_max * 0.5) / uni_mean_FR) / uni_mean_FR
+
+
+
+# histogram figure
+
+fig_hists, axs_hists = plt.subplots(nrows = 4,
+                                    ncols = 1,
+                                    layout = 'constrained',
+                                    height_ratios = [1, 2, 2, 2])
+
+# eventplot of spikes
+axs_hists[0].eventplot(uni_t_spikes,
+                       color = colors_dict['primecolor'],
+                       linewidth = .5)
+
+axs_hists[0].eventplot(spikes_df['t_spikes'],
+                       color = colors_dict['color2'],
+                       lineoffsets = 2.5,
+                       linewidth = .5)
+
+axs_hists[0].set_xlim([-10, t_total + 10])
+axs_hists[0].set_xlabel('Time [s]')
+
+# despine top panel
+[axs_hists[0].spines[spine].set_visible(False) for spine in ['left', 'top', 'right']]
+axs_hists[0].spines['bottom'].set_bounds([0, t_total])
+
+
+# no ticks
+axs_hists[0].set_yticks(ticks = [1, 2.5], labels = ['Uniform', 'Original'], rotation = 30)
+
+
+### histogram
+# original ISIs
+axs_hists[1].bar(ISI_bin_edges[:-1], ISI_hist_norm, 
+                 width = bin_size, 
+                 align = 'edge', 
+                 label = 'ISIs original',
+                 facecolor = 'None',
+                 edgecolor = colors_dict['color2'])
+
+
+# uniform distributed spikes ISIs
+axs_hists[2].bar(ISI_bin_edges[:-1], uni_ISI_hist_norm, 
+                 width = bin_size, 
+                 align = 'edge', 
+                 label = 'ISIs uniform spiketimes',
+                 facecolor = 'None',
+                 edgecolor = colors_dict['primecolor'])
+
+axs_hists[2].plot(bins, theo_ISIs_pdf_normed, 
+                  c = colors_dict['primecolor'], 
+                  label = 'Theoretical ISI PDF',
+                  alpha = 0.5)
+
+axs_hists[2].plot(bins, theo_ISIs_cdf_normed, 
+                  c = colors_dict['primecolor'], 
+                  label = 'Theoretical ISI CDF',
+                  alpha = 0.5,
+                  linestyle = '--')
+
+axs_hists[2].vlines(theo_median_ISI, 0, 1.0,
+                    colors = 'r',
+                    alpha = 0.5,
+                    label = 'Theoretical median ISI')
+
+
+# normal distributed ISIs
+axs_hists[3].bar(ISI_bin_edges[:-1], ISI_hist_norm, 
+                 width = bin_size, 
+                 align = 'edge', 
+                 label = 'ISIs original',
+                 facecolor = 'None',
+                 edgecolor = colors_dict['color2'])
+
+axs_hists[3].plot(bins, theo_ISIs_pdf_normed, 
+                  c = colors_dict['primecolor'], 
+                  label = 'Theoretical ISI PDF',
+                  alpha = 0.5)
+
+axs_hists[3].plot(bins, theo_ISIs_cdf_normed, 
+                  c = colors_dict['primecolor'], 
+                  label = 'Theoretical ISI CDF',
+                  alpha = 0.5,
+                  linestyle = '--')
+
+axs_hists[3].vlines(theo_median_ISI, 0, 1.0,
+                    colors = 'r',
+                    alpha = 0.5,
+                    label = 'Theoretical median ISI')
+
+
+x_axis_max = np.ceil(theo_median_ISI) * 4
+
+axs_hists[1].set_xlim([-0.2, x_axis_max + 0.2])
+axs_hists[1].set_ylim([-0.02, 1.02])
+
+[ax.set_ylabel('Normed\noccurance') for ax in axs_hists[1:]]
+axs_hists[3].set_xlabel('ISI [s]')
+
+# share x axis with second
+[ax.sharex(axs_hists[1]) for ax in axs_hists[2:]]
+[ax.sharey(axs_hists[1]) for ax in axs_hists[2:]]
+
+[ax.legend() for ax in axs_hists[1:]]
+
+# despine bottom panel
+[ax.spines[spine].set_visible(False) for ax in axs_hists[1:] for spine in ['top', 'right']]
+[ax.spines['bottom'].set_bounds([0, x_axis_max + 0.2]) for ax in axs_hists[1:]]
+[ax.spines['left'].set_bounds([0, 1]) for ax in axs_hists[1:]]
+
+# xaxis ticks
+axs_hists[3].set_xticks(np.linspace(0, x_axis_max, 5))
+
+# no grid
+[ax.grid(False) for ax in axs_hists]
+
+
+
 
 # %% burst or not 
 
@@ -172,7 +322,6 @@ for idx, t_spike in enumerate(t_peaks_s):
 
 # %%
 
-colors_dict = get_colors(False)
 
 
 fig_trace, ax_trace = plt.subplots(nrows = 3,
@@ -209,6 +358,17 @@ ax_trace[0].eventplot(spikes_df.loc[spikes_df['burst'] == 0,'t_spikes'],
 
 ax_trace[1].plot(t_peaks_s, ISIs_s, '-o')
 
+# no grid
+[ax.grid(False) for ax in ax_trace]
+
+# despine panels
+[ax.spines[spine].set_visible(False) for ax in ax_trace for spine in ['top', 'right']]
+[ax.spines['bottom'].set_bounds([0, t_total]) for ax in ax_trace]
+
+ax_trace[0].spines['left'].set_bounds([-100, 70])
+
+ax_trace[0].set_yticks(np.arange(-100, 70 + 1, 50))
+ax_trace[0].set_xlim([-10, t_total + 10])
 
 
 # %% histogram
@@ -232,7 +392,6 @@ ylim_border = 0.1
 
 bins = np.arange(bins_min, bins_max + bin_width, bin_width)
 
-print(bins)
 
 N, bins, patches = ax_hist[1][0].hist(vf, bins = bins, density = True)
 
