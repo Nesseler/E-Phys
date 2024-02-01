@@ -322,23 +322,22 @@ for idx, t_spike in enumerate(t_peaks_s):
 
 # %%
 
-
+t_binsize = 1
+t_bins = np.arange(0, t_total + t_binsize, t_binsize)
 
 fig_trace, ax_trace = plt.subplots(nrows = 3,
                                    ncols = 1,
                                    layout = 'constrained',
                                    sharex = 'col',
                                    sharey = 'row',
-                                   gridspec_kw={'height_ratios': [1,1,1]},
-                                   figsize = get_figure_size())
+                                   gridspec_kw={'height_ratios': [1,1,1]})
 
 
 
-
+# plot voltage
 ax_trace[0].plot(t_s, vf)
 
-# ax_trace[0].set_xlim([430,470])
-
+# plot spikes in burst
 ax_trace[0].eventplot(spikes_df.loc[spikes_df['burst'] == 1,'t_spikes'],
                       orientation = 'horizontal', 
                       lineoffsets=60, 
@@ -346,6 +345,7 @@ ax_trace[0].eventplot(spikes_df.loc[spikes_df['burst'] == 1,'t_spikes'],
                       linelengths=10, 
                       color = [colors_dict['color2']])
 
+# plot spikes not in burst
 ax_trace[0].eventplot(spikes_df.loc[spikes_df['burst'] == 0,'t_spikes'],
                       orientation = 'horizontal', 
                       lineoffsets=60, 
@@ -353,10 +353,21 @@ ax_trace[0].eventplot(spikes_df.loc[spikes_df['burst'] == 0,'t_spikes'],
                       linelengths=10, 
                       color = [colors_dict['color1']])
 
+ax_trace[0].set_ylabel('Voltage [mV]')
+ax_trace[0].set_yticks(np.arange(-100, 70 + 1, 50))
+ax_trace[0].set_yticks(np.arange(-100, 70 + 1, 10), minor = True)
+
 
 # plot ISIs
-
 ax_trace[1].plot(t_peaks_s, ISIs_s, '-o')
+
+ax_trace[1].set_ylabel('ISI [s]')
+
+
+
+ax_trace[2].plot(t_peaks_s, [1 / ISI for ISI in ISIs_s])
+
+
 
 # no grid
 [ax.grid(False) for ax in ax_trace]
@@ -367,7 +378,7 @@ ax_trace[1].plot(t_peaks_s, ISIs_s, '-o')
 
 ax_trace[0].spines['left'].set_bounds([-100, 70])
 
-ax_trace[0].set_yticks(np.arange(-100, 70 + 1, 50))
+
 ax_trace[0].set_xlim([-10, t_total + 10])
 
 
