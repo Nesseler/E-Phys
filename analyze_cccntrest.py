@@ -322,15 +322,44 @@ for idx, t_spike in enumerate(t_peaks_s):
 
 # %%
 
-t_binsize = 1
+# calc instantanouse firing rate
+inst_FR = [1 / ISI for ISI in ISIs_s]
+
+# define time bins
+t_binsize = 5
 t_bins = np.arange(0, t_total + t_binsize, t_binsize)
+
+# calc binned firing rate
+binned_t_spikes = pd.DataFrame()
+
+for t_bin_idx, t_bin_u_edge in enumerate(t_bins[1:]):
+    t_bin_l_edge = t_bins[t_bin_idx]
+    
+    bin_n_spikes = len([t_spike for t_spike in t_peaks_s if t_spike < t_bin_u_edge and t_spike > t_bin_l_edge])
+    
+    binned_t_spikes.at[t_bin_idx, 'n_spikes'] = bin_n_spikes
+    binned_t_spikes.at[t_bin_idx, 'freq'] = bin_n_spikes / t_binsize
+
+
+t_stepsize = 1
+
+# calc moving average of instantaneouse firing rate
+for idx, t in enumerate(np.arange(t_binsize, t_total + t_stepsize, t_stepsize)):
+    print(t)
+
+
+
+
+
+# %% create figure
 
 fig_trace, ax_trace = plt.subplots(nrows = 3,
                                    ncols = 1,
                                    layout = 'constrained',
                                    sharex = 'col',
                                    sharey = 'row',
-                                   gridspec_kw={'height_ratios': [1,1,1]})
+                                   gridspec_kw={'height_ratios': [1,1,1]},
+                                   figsize = get_figure_size())
 
 
 
@@ -365,8 +394,19 @@ ax_trace[1].set_ylabel('ISI [s]')
 
 
 
-ax_trace[2].plot(t_peaks_s, [1 / ISI for ISI in ISIs_s])
 
+ax_trace[2].scatter(t_peaks_s, inst_FR,
+                    marker = '.',
+                    s = 5)
+    
+
+
+ax_trace[2].bar(t_bins[:-1], binned_t_spikes['freq'], 
+                width = t_binsize, 
+                align = 'edge', 
+                label = 'ISIs original',
+                facecolor = 'None',
+                edgecolor = colors_dict['color2'])
 
 
 # no grid
@@ -380,6 +420,12 @@ ax_trace[0].spines['left'].set_bounds([-100, 70])
 
 
 ax_trace[0].set_xlim([-10, t_total + 10])
+
+u_lim = 5 * round(np.ceil(np.ceil(np.nanmax(inst_FR))) / 5)
+
+ax_trace[2].set_ylim([-0.5, u_lim])
+ax_trace[2].set_yticks(np.linspace(0, u_lim, int((u_lim / 5) + 1)))
+ax_trace[2].spines['left'].set_bounds([0, u_lim])
 
 
 # %% histogram
