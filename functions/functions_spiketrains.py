@@ -314,4 +314,93 @@ def plot_vt_n_dvdtv_colorcoded(v, v_range = [-100, 20], sampling_rate = 20e3, sc
     cc_ppaxs[1].set_xlabel('Membrane potential [mV]')
     
     cc_ppaxs[1].grid(False)
+    
+    
+
+
+
+
+def extract_spike(spike_v, spike_dvdt, dvdt_threshold):
+    '''
+    Function gets v, dvdt and threshold to limit the voltage array to
+    only the spike. The spike indices can be used to exclude spikes from
+    traces.
+    Parameters:
+        spike_v : Array containing the voltage trace.
+        spike_dvdt : Array containing the first derivative of the 
+                     voltage trace.
+        dvdt_threshold : Threshold to be crossed in both positiv and
+        negative direction.
+    Returns:
+        spike_idc : Array of integers corresponding to the indices of
+                    the spike.
+        spike_v : Limited array containing the voltage trace of the spike.
+        spike_dvdt : Limited array containing the first derivative 
+                     of only the spike.
+    '''
+    
+    # 1st crossing of positive threshold
+    spike_dvdt_below_th = np.where(spike_dvdt <= dvdt_threshold, 1, 0)
+    spike_dvdt_change = np.diff(spike_dvdt_below_th)
+    spike_idx_positiv_crossing = np.where(spike_dvdt_change == -1)[0] +1
+    
+    # 2nd crossing of negative threshold
+    spike_dvdt_above_th = np.where(spike_dvdt >= -dvdt_threshold, 1, 0)
+    spike_dvdt_change = np.diff(spike_dvdt_above_th)
+    spike_idx_negative_crossing = np.where(spike_dvdt_change == 1)[-1] +1
+    
+    # create index array with start and stop index
+    spike_idc = np.arange(spike_idx_positiv_crossing, spike_idx_negative_crossing, 1, dtype = int)
+    
+    # limit voltage and first derivative to spike only
+    spike_v = spike_v[spike_idc]
+    spike_dvdt = spike_dvdt[spike_idc]            
+         
+    return spike_idc, spike_v, spike_dvdt
+
+
+def calc_vmem_at_spiketrain(v, dvdt, spike_idc, SR, dvdt_threshold):
+    '''
+    Function calculates the average membrane voltage of a voltage trace 
+    which includes spikes. The datapoints of these spikes are excluded by
+    the dvdt_threshold that is to be crossed.
+    Parameters:
+        v : Voltage trace.
+        dvdt : First derivate of voltage.
+        spike_idc : List of spike indices.
+        SR : Sampling Rate. In Hz.
+        dvdt_threshold : First derivative threshold that is to be crossed.
+    Returns:
+        v_mem : Average membran voltage without spikes.
+    '''
+
+    ### how to get the v_mem at burst ###
+    
+    # exclude datapoints of spike with the dvdt threshold, then take mean
+    # define time pre and post of spike to include
+    t_pre = 5
+    t_post = 40
+   
+    # loop through each spike and exclude it's datapoints using the dvdt threshold
+    for i, idx_spike in enumerate(spike_idc):
+        idx_pre = idx_spike - int((t_pre * (SR/1e3)))
+        idx_post = idx_spike + int((t_post * (SR/1e3)))
+      
+        # get v at spike
+        spike_v = v[idx_pre:idx_post]
+        
+        # get or calc dvdt
+        spike_dvdt = dvdt[idx_pre:idx_post]
+        
+        # extract spike
+        spike_idc ,_ ,_ = extract_spike(spike_v, spike_dvdt, dvdt_threshold)
+           
+        # exclude datapoints
+        spike_v[spike_idc] = np.nan
+        
+    # calc v_mem at burst as mean of datapoints without spikes
+    v_mem =  np.nanmean(v)
+ 
+    return v_mem
+
 

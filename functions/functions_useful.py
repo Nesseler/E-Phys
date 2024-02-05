@@ -132,6 +132,34 @@ def get_data(file_path, traceIndex, scale = 'ms'):
     return i_full, v_full, t_ms, SR
 
     
+
+
+def calc_normed_hist(hist):
+    '''
+    Function calculate the normed histogram to the max number of points.
+    Parameters:
+        hist : Array of values that described the number of occurances per bin.
+    Returns:
+        normed list of values
+    '''
+    hist_max = np.max(hist)
+    return [n / hist_max for n in hist]
+    
+
+def single_gaussian(x, amp1, cen1, sigma1):
+    '''
+    https://en.wikipedia.org/wiki/Normal_distribution
+    '''
+    return amp1 * (1 / (sigma1 * np.sqrt(2 * np.pi))) * (np.exp( (-1./2.) * ((x - cen1) / (sigma1))**2 ))
+
+
+
+def double_gaussian(x, amp1, cen1, sigma1, amp2, cen2, sigma2):
+    '''
+    https://en.wikipedia.org/wiki/Normal_distribution
+    '''
+    return amp1 * (1 / (sigma1 * np.sqrt(2 * np.pi))) * (np.exp( (-1./2.) * ((x - cen1) / (sigma1))**2 )) + amp2 * (1 / (sigma2 * np.sqrt(2 * np.pi))) * (np.exp( (-1./2.) * ((x - cen2) / (sigma2))**2 ))
+
     
     
     
