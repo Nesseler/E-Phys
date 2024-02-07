@@ -17,7 +17,7 @@ cc_APs_t_post_stim = 10 # in ms
 min_peak_prominence = 50 #(mV)
 min_peak_distance = 1 #ms
 
-dvdt_threshold = 20
+dvdt_threshold = 5
 
 
 AP_parameters = ['v_peaks',
@@ -38,4 +38,12 @@ AP_parameters = ['v_peaks',
                   't1_HM',
                   't2_HM']
 
+# %% cnt_rest
+
+min_spikes_tobe_active = 2
+
 min_spike_in_burst = 4
+
+bin_size_ISI_poisson = 25e-3
+
+

@@ -1,0 +1,87 @@
+README-analyze_cccnt_rest
+
+current clamp protocol
+t = 10 min
+I_hold = 0 pA
+
+This script is written to analyze all aspects that can be extracted from this protocol. See the description of the parameters in this file.
+
+Data will be saved to...
+  trace_df - qdata/cnt_rest/traces
+  spikes_df - qdata/cnt_rest/spikes
+  ISIs_df - qdata/cnt_rest/ISIs
+  bursts_df - qdata/cnt_rest/bursts
+  cnt_rest_values - qdata/cell_descriptors
+
+trace_df
+  v - Original recorded voltage trace
+  vf - 1 kHz bessel-filtered voltage trace
+  i - Reconstructed current trace (from parameters)
+  t_ms - Time in milliseconds.
+  t_s - Time in seconds.
+  dvdt - First derivative of filtered voltage trace in millivolt/milliseconds.
+
+  SR - Sampling rate in Hz (written in the first row only)
+  SR_ms - Sampling rate in mHz (written in the first row only)
+
+... when saved, will be saved to csv to circumvent excel size restrictions.
+
+spikes_df
+  idc_spikes - Spike indices, int
+  t_spikes - Spiketimes [seconds] - float
+  ISIs - Interspikeintervals in seconds, assigned to latter spike [seconds] - float
+  burst - Classification of spike to be part of an burst or not, bool (numerice)
+  burst_id - Identification number of the burst, int
+
+
+ISIs_df
+  ISIs - Interspikeintervals [seconds] - float
+  t_ISIs - Times of ISIs as midpoint between two spikes [seconds] - float
+
+
+cnt_rest_values
+  ... single values that can be assign to a given cell
+
+  activity
+    active - Is the cell active or not (spikes_n > 2), bool (numeric)
+    bursting - Is the active cell bursting or not (ratio of spikes in burst to all spikes greater than half), bool (numeric)
+
+  spikes
+    spikes_n - Number of spikes, int
+
+  FR (firing rate, inst. - instantaneouse, i.e. inverse of ISI)
+    FR_mean - Average firing rate as number of all spikes per total time recorded [Hz] - float
+    FR_inst_mean - Average inst. firing rate [Hz] - float
+    FR_inst_median - Median inst. firing rate [Hz] - float
+    FR_inst_std - Standard deviation of the inst. firing rates [Hz] - float
+    FR_unif_mean - Average inst. firing rate of uniformly distributed spike times [Hz] - float 
+
+  ISIs
+    ISIs_mean
+    ISIs_median
+    ISIs_std
+    ISIs_theo_median
+
+  v_mem
+    v_up_allp_gauss - Mean of upper gaussisan fit (double gaussian for active and bursting cells) to all points histogram [mV] - float
+    v_down_allp_gauss - Mean of lower gaussisan fit (double gaussian for active and bursting cells) to all points histogram [mV] - float
+    v_rest_allp_gauss - Mean of gaussisan fit (single gaussian for non-active cells) to all points histogram [mV] - float
+
+  burst
+    spikes_n_in_burst - Number of spikes in burst, int
+    ratio_in_burst_to_all - Ratio of spikes in burst to all spikes, float
+
+    bursts_n - Number of bursts, int
+    burst_mean_inst_FR - Mean inst. firing rate in bursts [Hz] - float
+    burst_mean_vmem - Mean membran voltage at burst (calculated as mean of trace with spikes removed), [mV] - float
+    burst_mean_duration - Mean burst duration [s] - float
+    burst_median_duration - Median burst duration [s] - float
+    burst_mean_IBI - Mean inter-burst interval [s] - float
+    burst_median_IBI - Median inter-burst interval [s] - float
+    
+
+
+
+
+
+

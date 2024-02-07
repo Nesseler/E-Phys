@@ -46,3 +46,9 @@ cc_th1Ap_parameters = {'t_pre' : 240.,
                        't_post': 250.,
                        'i_delta' : 10,
                        'i_start' : 0}
+
+
+# %% cnt_rest
+
+cc_cntrest_parameters = {'t' : 600,
+                         'i_hold': 0}

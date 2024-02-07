@@ -54,10 +54,7 @@ def get_AP_parameters(v, idx_peaks, SR=20e3, dvdt_threshold=20, t_pre=2, t_post=
         t_peaks = np.divide(idx_peaks, (SR/1e3))
         v_peaks = v[idx_peaks]
         
-        
 
-        
-        
         ### AP THRESHOLD & AMPLITUDE
         # thresholding of the dvdt
         # https://stackoverflow.com/questions/62745970/identify-when-time-series-passes-through-threshold-both-in-graph-and-table
@@ -320,46 +317,11 @@ def plot_vt_n_dvdtv_colorcoded(v, v_range = [-100, 20], sampling_rate = 20e3, sc
 
 
 
-def extract_spike(spike_v, spike_dvdt, dvdt_threshold):
-    '''
-    Function gets v, dvdt and threshold to limit the voltage array to
-    only the spike. The spike indices can be used to exclude spikes from
-    traces.
-    Parameters:
-        spike_v : Array containing the voltage trace.
-        spike_dvdt : Array containing the first derivative of the 
-                     voltage trace.
-        dvdt_threshold : Threshold to be crossed in both positiv and
-        negative direction.
-    Returns:
-        spike_idc : Array of integers corresponding to the indices of
-                    the spike.
-        spike_v : Limited array containing the voltage trace of the spike.
-        spike_dvdt : Limited array containing the first derivative 
-                     of only the spike.
-    '''
-    
-    # 1st crossing of positive threshold
-    spike_dvdt_below_th = np.where(spike_dvdt <= dvdt_threshold, 1, 0)
-    spike_dvdt_change = np.diff(spike_dvdt_below_th)
-    spike_idx_positiv_crossing = np.where(spike_dvdt_change == -1)[0] +1
-    
-    # 2nd crossing of negative threshold
-    spike_dvdt_above_th = np.where(spike_dvdt >= -dvdt_threshold, 1, 0)
-    spike_dvdt_change = np.diff(spike_dvdt_above_th)
-    spike_idx_negative_crossing = np.where(spike_dvdt_change == 1)[-1] +1
-    
-    # create index array with start and stop index
-    spike_idc = np.arange(spike_idx_positiv_crossing, spike_idx_negative_crossing, 1, dtype = int)
-    
-    # limit voltage and first derivative to spike only
-    spike_v = spike_v[spike_idc]
-    spike_dvdt = spike_dvdt[spike_idc]            
-         
-    return spike_idc, spike_v, spike_dvdt
+
+from functions.functions_extractspike import extract_spike
 
 
-def calc_vmem_at_spiketrain(v, dvdt, spike_idc, SR, dvdt_threshold):
+def calc_vmem_at_spiketrain(t, v, dvdt, spike_idc, min_ISI, SR):
     '''
     Function calculates the average membrane voltage of a voltage trace 
     which includes spikes. The datapoints of these spikes are excluded by
@@ -368,6 +330,7 @@ def calc_vmem_at_spiketrain(v, dvdt, spike_idc, SR, dvdt_threshold):
         v : Voltage trace.
         dvdt : First derivate of voltage.
         spike_idc : List of spike indices.
+        min_ISI : Minimum ISI of spiketrain in ms.
         SR : Sampling Rate. In Hz.
         dvdt_threshold : First derivative threshold that is to be crossed.
     Returns:
@@ -376,24 +339,47 @@ def calc_vmem_at_spiketrain(v, dvdt, spike_idc, SR, dvdt_threshold):
 
     ### how to get the v_mem at burst ###
     
+    plotting_bool = False
+    
+    if plotting_bool:
+        plt.plot(v, dvdt)
+        plt.ylim([-60, 200])
+        plt.xlim([-100, 60])
+        plt.show()
+        plt.pause(0.1)
+    
     # exclude datapoints of spike with the dvdt threshold, then take mean
     # define time pre and post of spike to include
     t_pre = 5
-    t_post = 40
+    t_post = min_ISI
    
     # loop through each spike and exclude it's datapoints using the dvdt threshold
     for i, idx_spike in enumerate(spike_idc):
-        idx_pre = idx_spike - int((t_pre * (SR/1e3)))
+        
+        # get index of spike relative to spike v array
+        idx_spike_rel = int((t_pre * (SR/1e3)))
+        
+        # get pre and post indices
+        idx_pre = idx_spike - idx_spike_rel
         idx_post = idx_spike + int((t_post * (SR/1e3)))
-      
+        
         # get v at spike
         spike_v = v[idx_pre:idx_post]
+        spike_t = t[idx_pre:idx_post]
         
         # get or calc dvdt
         spike_dvdt = dvdt[idx_pre:idx_post]
         
+        # vplot
+        if plotting_bool:
+            plt.plot(spike_v, spike_dvdt)
+            plt.ylim([-20, 20])
+            plt.xlim([-100, 60])
+            plt.show()
+            plt.pause(0.1)
+        
         # extract spike
-        spike_idc ,_ ,_ = extract_spike(spike_v, spike_dvdt, dvdt_threshold)
+        spike_idc ,_ ,_ ,_ = extract_spike(spike_t, spike_v, spike_dvdt, idx_spike_rel)
            
         # exclude datapoints
         spike_v[spike_idc] = np.nan
