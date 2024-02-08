@@ -48,10 +48,7 @@ trace_dir = join(quant_data_dir, 'cnt_rest', 'traces')
 spikes_dir = join(quant_data_dir, 'cnt_rest', 'spikes')
 ISIs_dir = join(quant_data_dir, 'cnt_rest', 'ISIs')
 bursts_dir = join(quant_data_dir, 'cnt_rest', 'bursts')
-autocorr_dir = join(quant_data_dir, 'cnt_rest', 'autocorrelations')
 
-# autocorrelation dataframe will be filled for all cells
-autocorr_df = pd.DataFrame(columns=cell_IDs)
 
 # WARNING: significantly prolongs runtime
 export_bool = False
@@ -62,8 +59,6 @@ darkmode_bool = False
 vplot_bool = True
 
 save_bool = True
-
-autocorr_bool = True
 
 colors_dict = get_colors(darkmode_bool)
 
@@ -154,7 +149,7 @@ for cell_ID in cell_IDs:
     cnt_rest_values.at[cell_ID, 'spikes_n'] = n_spikes
     
     # categorize cell as active or not
-    if n_spikes > min_spikes_tobe_active:
+    if n_spikes >= min_spikes_tobe_active:
         active_bool = 1
     else:
         active_bool = 0
@@ -529,6 +524,10 @@ for cell_ID in cell_IDs:
         elif ratio_in_burst_to_all <= 0.5:
             bursting_bool = 0
     
+        
+        # get dataframe with only spike in burst and get number of bursts
+        burst_spikes_df = spikes_df.query('burst == 1')
+        n_bursts = burst_spikes_df['burst_id'].max() + 1
     
         # write to dataframe
         cnt_rest_values.at[cell_ID, 'spikes_n_in_burst'] = spikes_n_in_burst
@@ -590,12 +589,8 @@ for cell_ID in cell_IDs:
     
     if active_bool and bursting_bool:
     
-        burst_spikes_df = spikes_df.query('burst == 1')
-    
         # burst DataFrame
         bursts_df = pd.DataFrame()
-        
-        n_bursts = burst_spikes_df['burst_id'].max() + 1
         
         t_all_1st_spikes = []
         t_all_lst_spikes = []
@@ -646,7 +641,7 @@ for cell_ID in cell_IDs:
             burst_dvdt = copy(dvdt[burst_start_idx:burst_stop_idx])
             
             # get average membrane voltage    
-            bursts_df.at[burst_id, 'v_mem'] = calc_vmem_at_spiketrain(burst_t, burst_v, burst_dvdt, burst_idc_all_spikes, np.min(ISIs)*1e3, SR)
+            bursts_df.at[burst_id, 'v_mem'] = calc_vmem_at_spiketrain(burst_t, burst_v, burst_dvdt, burst_idc_all_spikes, np.min(ISIs)*1e3*3, SR)
             
         
         burst_durations = np.subtract(t_all_lst_spikes, t_all_1st_spikes)
@@ -687,7 +682,7 @@ for cell_ID in cell_IDs:
     allp_bin_cens = [bin_e + bin_width / 2 for bin_e in allp_bins[:-1]]
     
     
-    if active_bool and bursting_bool:
+    if active_bool and n_bursts > 3:
         # double gaussian fit
         # source blog: http://emilygraceripka.com/blog/16
         popt_dgauss, pcov_dgauss = sc.optimize.curve_fit(double_gaussian, allp_bin_cens, normed_allp_hist,
@@ -703,8 +698,8 @@ for cell_ID in cell_IDs:
         gauss_both_peaks = double_gaussian(allp_bin_cens, *popt_dgauss)
         
         # save fitted center to v_up andn v_down states in DataFrame for cell
-        v_up = popt_1stgauss[1]
-        v_down = popt_2ndgauss[1]
+        v_up = popt_2ndgauss[1]
+        v_down = popt_1stgauss[1]
         cnt_rest_values.at[cell_ID, 'v_up_allp_fgauss'] = v_up
         cnt_rest_values.at[cell_ID, 'v_down_allp_fgauss'] = v_down
     
@@ -719,7 +714,7 @@ for cell_ID in cell_IDs:
         # write to dataframe
         cnt_rest_values.at[cell_ID, 'v_rest_allp_gauss '] = v_rest_allp_gauss 
         
-        
+
     
     if vplot_bool:
         # ---------- ### all points histograms (abs. and rel.) ### ---------- #
@@ -774,7 +769,7 @@ for cell_ID in cell_IDs:
                             s = 10,
                             label = 'all points histogram')
         
-        if active_bool and bursting_bool:
+        if active_bool and n_bursts > 3:
             
             ax_relhist.plot(allp_bin_cens, gauss_both_peaks,
                             label = 'double gauss fit',
@@ -854,78 +849,22 @@ for cell_ID in cell_IDs:
         plt.show()
     
     
-    # %% autocorrelation
-        
-    if autocorr_bool:
-        # copy filtered version of voltage trace to circumvent pass by reference
-        # create pandas series for its autocorrelation function
-        vf_ds = copy(pd.Series(vf))
-        
-        # define total time frame of autocorrelation
-        lag_s = 600
-        # convert to datapoints
-        lag_points = lag_s * SR
-        
-        # define time steps to shift series by, in seconds
-        lag_steps_s = 0.1
-        # convert to datapoints
-        lag_steps_points = lag_steps_s * SR
-        
-        # create array of lag intervals, datapoints
-        lag = np.arange(-(lag_points + lag_steps_points), lag_points + lag_steps_points, lag_steps_points, dtype = int)
-        autocorr_values = np.zeros((len(lag)))
-        
-        for idx, ilag in enumerate(lag):
-            autocorr_values[idx] = vf_ds.autocorr(ilag)
-            print(f'{idx+1}/{len(lag)}')
-        
-        # convert lag from datapoints to seconds
-        lag_s = [l / SR for l in lag]
-        
-        # write to autocorrelation dataframe
-        autocorr_df['lag_s'] = lag_s
-        autocorr_df = autocorr_df.set_index('lag_s')
-        autocorr_df[cell_ID] = autocorr_values
-        
-        
-        # %%
-    
-        if vplot_bool:
-            fig_autocor, ax_autocor = plt.subplots(nrows = 1,
-                                                    ncols =1,
-                                                    layout = 'constrained')
-            
-            ax_autocor.axhline(c='grey', lw=1)
-            ax_autocor.axvline(c='grey', lw=1)
-            
-            ax_autocor.plot(lag_s, autocorr_values, 
-                            marker = '',
-                            markersize = 5,
-                            linestyle = '-',
-                            c = colors_dict['primecolor'])
-            
-            
-            ax_autocor.set_xlim([-t_total/3, t_total/3])
-            ax_autocor.set_xlabel('Time [s]')
-            
-            ax_autocor.set_ylim([-0.25, 1.05])
-            ax_autocor.set_ylabel('Autocorrelation (Pearson)')
-            
-            ax_autocor.grid(False)
-        
-            if save_bool:
-                save_figures(fig_autocor, f'autocorrelogram-{cell_ID}', vplot_dir_cell, darkmode_bool)
+
 
 
     # %% save dataframes
 
     spikes_df.to_excel(join(spikes_dir, f'cccntrest-spikes-{cell_ID}.xlsx'))
-    ISI_df.to_excel(join(ISIs_dir, f'cccntrest-ISIs-{cell_ID}.xlsx'))
-    bursts_df.to_excel(join(bursts_dir, f'cccntrest-bursts-{cell_ID}.xlsx'))
+
+    if active_bool:        
+        ISI_df.to_excel(join(ISIs_dir, f'cccntrest-ISIs-{cell_ID}.xlsx'))   
+        
+    if active_bool and bursting_bool:
+        bursts_df.to_excel(join(bursts_dir, f'cccntrest-bursts-{cell_ID}.xlsx'))
 
 
-# save dataframes that contain values for all cells
-autocorr_df.to_excel(join(autocorr_dir, f'cccntrest-autocorr-{cell_ID}.xlsx'))
+
+
 cnt_rest_values.to_excel(join(cell_descrip_dir, 'cccntrest-values.xlsx'))
 
 
