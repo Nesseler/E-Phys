@@ -99,12 +99,12 @@ for cell_ID in cell_IDs:
     vf_ds = copy(pd.Series(vf))
     
     # define total time frame of autocorrelation
-    lag_s = 100
+    lag_s = 600
     # convert to datapoints
     lag_points = lag_s * SR
     
     # define time steps to shift series by, in seconds
-    lag_steps_s = 1
+    lag_steps_s = 0.1
     # convert to datapoints
     lag_steps_points = lag_steps_s * SR
     
@@ -156,3 +156,6 @@ for cell_ID in cell_IDs:
             save_figures(fig_autocor, f'autocorrelogram-{cell_ID}', vplot_dir_cell, darkmode_bool)
             
         plt.show()
+
+
+autocorr_df.to_excel(join(autocorr_dir, f'cccntrest-autocorrelation-{cell_ID}.xlsx'))

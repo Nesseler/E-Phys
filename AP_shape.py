@@ -215,17 +215,43 @@ for i, file in enumerate(onlyfiles):
         plt.show()
     
         # if len(local_max_idc) > 1:
-        #     repol_dvdt_df = pd.concat([repol_dvdt_df, pd.DataFrame({i : dvdt_b_th})], axis = 1)       
+            
+        dvdt_b_th_mm_normed = min_max_normalize(dvdt_b_th)
+        repol_dvdt_df = pd.concat([repol_dvdt_df, pd.DataFrame({i : d2vdt2_b_th})], axis = 1)       
 
 
 
 # %%
-    
-# for i in repol_dvdt_df.columns.to_list():
-#     plt.plot(repol_dvdt_df[i],
-#               c = 'gray')
 
-# plt.show()
+auc_all = []
+    
+for i in repol_dvdt_df.columns.to_list():
+    
+    # auc = sc.integrate.simpson(repol_dvdt_df[i].dropna())
+    
+    # auc_all.append(auc)
+    
+    # print(auc)
+    
+    # if auc < 160:
+    #     plt.plot(repol_dvdt_df[i],
+    #              c = 'r')
+    # else:
+    plt.plot(repol_dvdt_df[i],
+             c = 'gray',
+             alpha = 0.5)
+    
+
+plt.show()
+
+
+# %% 
+
+
+plt.scatter(range(len(repol_dvdt_df[3].index.to_list())), repol_dvdt_df[3], s = 1)
+
+
+
     
     
     
