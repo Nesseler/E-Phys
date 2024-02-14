@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['plot\\plot_ccAPs_catplot.py', 'analysis\\analyze_cc1thAP.py', 'plot\\plot_ccth1AP_cat.py', 'analysis\\analyze_cc_APs.py', 'plot\\plot_ccth1AP_all_phaseplanes.py']
+recent_files = ['analyze_cccntrest.py', 'analysis\\analyze_cccntrest_autocorr.py', 'functions\\functions_spiketrains.py', 'functions\\functions_extractspike.py', 'AP_shape.py']
 
 [main]
 version = 0.2.0

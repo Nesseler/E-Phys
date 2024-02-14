@@ -21,18 +21,19 @@ import scipy as sc
 # custom directories & parameters
 from parameters.directories_win import table_dir, raw_data_dir, vplot_dir, quant_data_dir, cell_descrip_dir
 from parameters.PGFs import cc_APs_parameters, cc_APs_t_stims_df, cc_APs_total_dur
-from parameters.parameters import cc_APs_t_post_stim, min_peak_prominence, min_peak_distance, dvdt_threshold
+from parameters.parameters import cc_APs_t_post_stim, min_peak_prominence, min_peak_distance
 
 # custom functions
 from functions.functions_ccIF import get_IF_data
-from functions.functions_spiketrains import get_AP_parameters
-from functions.functions_useful import calc_time_series, butter_filter
+# from functions.functions_spiketrains import get_AP_parameters
+from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt_padded
 from functions.functions_plotting import get_colors, save_figures, set_font_sizes, get_figure_size
+from functions.functions_extractspike import get_AP_parameters
 
 
 # %% verification plots option
 
-vplots_bool = True
+vplots_bool = False
 
 # %% load InVitro database and all PGF indices to be loaded
 
@@ -82,7 +83,7 @@ mean_vamplitude_df = pd.DataFrame(index = frequencies)
 # %% get all AP parameters for one cell
 
 # test cell E-092
-# cell_IDs = ['E-092', 'E-103']
+# cell_IDs = ['E-119', 'E-122' ,'E-123' ,'E-124' ,'E-125' , 'E-126', 'E-129']
 
 for cell_ID in cell_IDs:
 
@@ -116,10 +117,9 @@ for cell_ID in cell_IDs:
         SR_ms = SR / 1e3
         
         # concatenate individual steps
-        n_points = int(np.shape(i)[0] * np.shape(i)[1])    
-        i_concat = i.flatten()    
+        n_points = int(np.shape(i)[0] * np.shape(i)[1])      
         v_concat = v.flatten()    
-        t_concat = calc_time_series(v_concat, SR)
+        t = calc_time_series(v_concat, SR)
         
         
         # filter voltage (to vf)
@@ -127,6 +127,9 @@ for cell_ID in cell_IDs:
                            order = 3,
                            cutoff = 1e3,
                            sampling_rate = SR)
+        
+        # calc dvdt (for concatenated trace)
+        dvdt = calc_dvdt_padded(vf, t)
         
         
         # limit the array to stimulus time frame + set time post stimulus to accomodate late APs
@@ -173,77 +176,94 @@ for cell_ID in cell_IDs:
         # create array of the limited voltage steps
         v_ar = np.empty([n_steps, int(n_points_stim + n_points_post_stim)])
         t_ar = np.empty([n_steps, int(n_points_stim + n_points_post_stim)])
+        dvdt_ar = np.empty([n_steps, int(n_points_stim + n_points_post_stim)])
         
         for step_idx in np.arange(n_steps):
             
+            # for last stimulation (therefore v_last (step)) 
+            # pad array with nan
             if step_idx == (n_steps-1) and fill_bool:
                 nan_fill = np.empty(n_points_to_fill)
                 nan_fill[:] = np.nan
+                
+                # pad v trace
                 v_last = vf[idc_stim_ls[step_idx]]
                 v_last = np.append(v_last, nan_fill)
                 v_ar[step_idx] = v_last
+                
+                # pad dvdt trace
+                dvdt_last = dvdt[idc_stim_ls[step_idx]]
+                dvdt_last = np.append(dvdt_last, nan_fill)
+                dvdt_ar[step_idx] = dvdt_last
+                
+                # calc time series
                 t_ar[step_idx] = calc_time_series(v_last, SR)
+                
             else:
                 v_ar[step_idx] = vf[idc_stim_ls[step_idx]]
                 t_ar[step_idx] = calc_time_series(vf[idc_stim_ls[step_idx]], SR)
+                dvdt_ar[step_idx] = dvdt[idc_stim_ls[step_idx]]
         
         
-        # initialize lists
-        t_spikes = []
-        idx_spikes = []
-        
-        AP_all_params = pd.DataFrame(columns = ['v_peaks',
-                                                't_peaks',
-                                                'v_threshold',
-                                                't_threshold',
-                                                'idx_threshold',
-                                                'v_amplitude',
-                                                't_toPeak',
-                                                'v_AHP',
-                                                't_AHP',
-                                                'idx_AHP',
-                                                'v_AHP_amplitude',
-                                                't_to_AHP',
-                                                't_rise',
-                                                'FWHM',
-                                                'v_HM',
-                                                't1_HM',
-                                                't2_HM'])
-        
+        # loop through all steps
+        # analyze spikes
         for step_idx in np.arange(n_steps):
             
             # limit data array to just the stimulus
             vs = v_ar[step_idx]
-            # vl = vf
-            
+            ts = t_ar[step_idx]
+            dvdts = dvdt_ar[step_idx]
+          
             # find peaks as spikes
             idx_peaks, dict_peak = sc.signal.find_peaks(vs, 
                                                         prominence = min_peak_prominence, 
                                                         distance = min_peak_distance * (SR_ms))
-            
-            idx_spikes.append(idx_peaks)    
      
-            # get times of spikes
-            t_peaks = np.divide(idx_peaks, (SR_ms))
-            t_spikes.append(t_peaks)
-            
-            AP_params = get_AP_parameters(vs, idx_peaks, 
-                                          SR = SR,
-                                          dvdt_threshold = dvdt_threshold,
-                                          t_pre = 2,
-                                          t_post = 10)
+            # exception handling: spike threshold not in analyized window
+            # extract_spike functions throws a ValueError with specific error message
+            # if this error message is caugth AP_params functions is run again
+            # with empty peak index array              
+            try:
+                AP_params = get_AP_parameters(t_spiketrain = ts,
+                                              v_spiketrain = vs,
+                                              dvdt_spiketrain = dvdts,
+                                              idc_spikes = idx_peaks,
+                                              SR = SR)
+                
+                
+            except ValueError as e:
+                if str(e) == 'AP threshold not crossed':
+                    # print(step_idx, 'caught')
+                    
+                    AP_params = get_AP_parameters(t_spiketrain = ts,
+                                                  v_spiketrain = vs,
+                                                  dvdt_spiketrain = dvdts,
+                                                  idc_spikes = [],
+                                                  SR = SR)
+                        
+                
             
             AP_params['idx_step'] = step_idx
-               
-            AP_all_params = pd.concat([AP_all_params, AP_params])
+            
+            # for first step the dataframe with all AP parameters represents 'all' AP
+            # afterwards the dataframes are concatenated
+            if step_idx == 0:
+                AP_all_params = AP_params
+            else:
+                AP_all_params = pd.concat([AP_all_params, AP_params])
+                
+            
         
-        
+        # set the step index as index of pandas array
         AP_all_params = AP_all_params.set_index('idx_step', drop = True, verify_integrity = True)
         
-        
+        # get time points of APs
         t_APs[frequency] = AP_all_params['t_peaks']
+        
+        # get number of APs for given stimulation frequency
         n_APs[frequency] = [len(AP_all_params.query('v_peaks.notnull()').index)]
         
+        # calc average FWHM, t_peaks, and v_amplitude
         mean_FWHM_df.at[frequency, cell_ID] = AP_all_params['FWHM'].mean()
         mean_tpeaks_df.at[frequency, cell_ID] = AP_all_params['t_peaks'].mean()
         mean_vamplitude_df.at[frequency, cell_ID] = AP_all_params['v_amplitude'].mean()
@@ -280,7 +300,7 @@ for cell_ID in cell_IDs:
                 cur_t_step = t_ar[step_idx]
                 cur_ax = axs_steps[plt_idc[step_idx][0]][plt_idc[step_idx][1]]
                 
-                if len(t_spikes[step_idx]):
+                if ~np.isnan(AP_all_params.at[step_idx, 'v_peaks']):
                     color = 'c'
                 else:
                     color = 'm'
@@ -317,8 +337,33 @@ for cell_ID in cell_IDs:
             
             plt.show()
         
-        
+            
+            # trace vplot
+            nrows = 4
+            fig_trace, axs_trace = plt.subplots(nrows = nrows,
+                                                ncols = 1,
+                                                sharex = True,
+                                                sharey = True,
+                                                layout = 'constrained',
+                                                figsize = get_figure_size())
     
+            # create row indices
+            idc_row = np.arange(0, n_points + 1, n_points / nrows, dtype = int)
+    
+            for row in range(nrows):
+                v_row = vf[idc_row[row]:idc_row[row+1]]
+                t_row = calc_time_series(v_row, SR)
+                axs_trace[row].plot(t_row, v_row)
+                
+            axs_trace[0].set_ylim([-100, 60])
+            fig_trace.supylabel('Voltage [mV]')
+            
+            axs_trace[-1].set_xlabel('Time [ms]')
+            axs_trace[-1].set_xlim([t_row[0], t_row[-1]])
+            
+            save_figures(fig_trace, f'Trace-{cell_ID}_{frequency}', vplot_path, darkmode_bool)
+    
+            plt.show()
     
         # export values to excel files
            

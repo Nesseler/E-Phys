@@ -24,7 +24,7 @@ from functions.functions_plotting import get_colors, get_figure_size, save_figur
 
 # %%
 
-vplot_bool = False
+vplot_bool = True
 
 # %% get cell IDs
 

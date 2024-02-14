@@ -60,8 +60,13 @@ def extract_spike(t, v, dvdt, idx_peak):
     # limit dvdt to before peak
     spike_dvdt_pre_peak = dvdt[:idx_peak]
 
-    # get index of the threshold
-    idx_th = get_threshold_crossing_closest_to_peak(spike_dvdt_pre_peak, len(spike_dvdt_pre_peak)-1, dvdt_p_threshold, -1)
+    
+    try:
+        # get index of the threshold
+        idx_th = get_threshold_crossing_closest_to_peak(spike_dvdt_pre_peak, len(spike_dvdt_pre_peak)-1, dvdt_p_threshold, -1)
+        
+    except ValueError:
+        raise ValueError('AP threshold not crossed')
 
 
     ### repolarisation phase - AHP ###
@@ -149,6 +154,164 @@ def extract_spike(t, v, dvdt, idx_peak):
 
 
 #     spike_idc = extract_spike(spike_t, spike_v, spike_dvdt, idx_peak)
+
+import pandas as pd
+
+
+def get_AP_parameters(t_spiketrain, v_spiketrain, dvdt_spiketrain, idc_spikes, SR=20e3):
+    """
+    Function calculates all parameters associated with an action potential (AP).
+    Parameters:
+        v : One-dimensional array with voltage in mV.
+        peak_idx : One-dimensional array of peak indices.
+        SR : Sampling rate in Hz. Default is 20 kHz.
+        dvdt_threshold : Threshold in first derivative to calculate threshold
+            crossing of the AP (in ms/mV). Default is 25 ms/mV.
+        t_pre : Time before peak to investigate in ms. Default is 2 ms.
+        t_post : Time after peak to investigate in ms. Default is 5 ms.
+    Returns:
+        AP_parameters: Pandas Dataframe of all parameters for the provided peaks.
+            v_peaks    
+            t_peaks
+            v_threshold
+            t_threshold
+            idx_threshold
+            v_amplitude
+            t_toPeak
+            v_AHP
+            t_AHP
+            idx_AHP
+            v_AHP_amplitude
+            t_to_AHP
+            FWHM        
+    """     
+
+    keys_ls = ['idx_peak_in_spiketrain',
+               'v_peaks', 't_peaks', 
+               'v_threshold', 't_threshold', 'idc_threshold',
+               'v_amplitude', 
+               't_toPeak', 't_rise', 
+               'FWHM', 'v_HM', 't1_HM', 't2_HM',
+               'v_AHP', 't_AHP', 'idx_AHP', 'v_AHP_amplitude', 't_toAHP']
+    
+    # dataframe_dict = dict.fromkeys(keys_ls, [np.nan])
+    
+    APs_dataframe = pd.DataFrame(columns = keys_ls)
+    
+    
+    if len(idc_spikes) > 0:
+        
+        # set spikes indices
+        APs_dataframe['idx_peak_in_spiketrain'] = np.arange(len(idc_spikes))
+     
+        # loop through spikes in list of peaks
+        for i, idx_peak in enumerate(idc_spikes):
+            
+            ### peak
+            
+            # get voltage at peak
+            v_peak = v_spiketrain[idx_peak]
+            APs_dataframe.at[i, 'v_peaks'] = v_peak
+            
+            # get time spike
+            t_peak = t_spiketrain[idx_peak]
+            APs_dataframe.at[i, 't_peaks'] = t_peak
+                      
+        
+            # extract entire spike shapes
+            spike_idc, spike_t, spike_v, spike_dvdt = extract_spike(t_spiketrain, v_spiketrain, dvdt_spiketrain, idx_peak)
+        
+            ### threshold
+            
+            # get index of threshold
+            idx_threshold = spike_idc[0]
+            APs_dataframe.at[i, 'idc_threshold'] = idx_threshold
+        
+            # get voltage at threshold
+            v_threshold = v_spiketrain[idx_threshold]
+            APs_dataframe.at[i, 'v_threshold'] = v_threshold
+            
+            # get time at threshold
+            t_threshold = t_spiketrain[idx_threshold]
+            APs_dataframe.at[i, 't_threshold'] = t_threshold
+            
+            ### amplitude
+            
+            # get AP amplitude
+            v_amplitude = v_peak - v_threshold
+            APs_dataframe.at[i, 'v_amplitude'] = t_threshold
+            
+            ### time to peak
+            
+            # get time to peak
+            t_toPeak = t_peak - t_threshold
+            APs_dataframe.at[i, 't_toPeak'] = t_toPeak
+            
+            ### rise time
+            
+            # rise time is calculated between 20 % and 80 % of the voltage amplitude.
+            v_20perc = v_threshold + (v_amplitude * 0.2)
+            v_80perc = v_threshold + (v_amplitude * 0.8) 
+            
+            # get voltage trace between 20 % and 80 % amplitude
+            v_rise = v_spiketrain[idx_threshold:idx_peak]
+            v_rise = np.where((v_rise > v_20perc) & (v_rise < v_80perc))[0]
+            
+            t_rise = len(v_rise) / (SR / 1e3)
+            APs_dataframe.at[i, 't_rise'] = t_rise
+            
+            ### FWHM
+            
+            # get half maximum 
+            HM = v_amplitude / 2
+            
+            # get voltage at half maximum            
+            v_HM = v_threshold + HM
+            APs_dataframe.at[i, 'v_HM'] = v_HM
+            
+            # use thresholding to find data points above half maximum
+            spike_v_above_HM = np.where(spike_v >= v_HM, 1, 0)
+            spike_v_change = np.diff(spike_v_above_HM)        
+            idx_change = np.where(spike_v_change != 0)[0]
+            
+            # get start and end time points for half max AP
+            t1_HM = spike_t[idx_change[0]]
+            t2_HM = spike_t[idx_change[1]]
+            
+            # calc FWHM
+            FWHM = t2_HM - t1_HM
+            
+            # populate dataframe
+            APs_dataframe.at[i, 't1_HM'] = t1_HM
+            APs_dataframe.at[i, 't2_HM'] = t2_HM
+            APs_dataframe.at[i, 'FWHM'] = FWHM
+
+            ### AHP
+            
+            # get index of AHP
+            idx_AHP = spike_idc[-1]
+            APs_dataframe.at[i, 'idx_AHP'] = idx_AHP
+            
+            # get voltage of AHP
+            v_AHP = v_spiketrain[idx_AHP]
+            APs_dataframe.at[i, 'v_AHP'] = v_AHP
+            
+            # get time of AHP
+            t_AHP = t_spiketrain[idx_AHP]
+            APs_dataframe.at[i, 't_AHP'] = t_AHP
+            
+            # get time to AHP
+            t_toAHP = t_AHP - t_threshold
+            APs_dataframe.at[i, 't_toAHP'] = t_toAHP
+            
+            # get AHP amplitude
+            v_AHP_amplitude = v_threshold - v_AHP
+            APs_dataframe.at[i, 'v_AHP_amplitude'] = v_AHP_amplitude
+            
+    else:
+        APs_dataframe = pd.DataFrame(np.nan, index = [0], columns = keys_ls)
+
+    return APs_dataframe
 
 
 

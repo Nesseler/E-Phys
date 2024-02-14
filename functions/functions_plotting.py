@@ -138,7 +138,28 @@ def return_segments(x, ys):
     segs[:, :, 0] = x
     return segs
 
+
+
+def plot_t_vs_v(t, v, scale = 'ms'):
+
+    v_range = [-100, 60]    
+
+    fig_v, ax_v = plt.subplots(nrows = 1,
+                               ncols = 1,
+                               figsize = get_figure_size(),
+                               layout = 'constrained')
     
+    ax_v.plot(t, v)
+    
+    ax_v.set_ylim(v_range)
+    ax_v.set_ylabel('Voltage [mV]')
+    
+    ax_v.set_xlabel(f'Time [{scale}]')
+    ax_v.set_xlim([t[0], t[-1]])
+    ax_v.set_xticks(np.linspace(t[0], t[-1], 5))
+    
+    plt.show()
+
     
     
     

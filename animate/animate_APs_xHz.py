@@ -1,19 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan 11 11:41:09 2024
-
-@author: nesseler
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 10 19:03:13 2024
-
-@author: nesseler
-"""
-
-# -*- coding: utf-8 -*-
-"""
 Created on Wed Jan 10 10:36:47 2024
 
 @author: nesseler
@@ -22,15 +8,18 @@ Created on Wed Jan 10 10:36:47 2024
 import matplotlib.pyplot as plt
 import matplotlib as mtl
 import numpy as np
-import directories_win as directories
-from PGFs import cc_APs_parameters, cc_th1Ap_parameters
 import pandas as pd
-from useful_functions import calc_time_series, butter_filter
 import os
-from cc_IF_functions import get_IF_data
-from plotting_functions import get_colors, save_figures, get_figure_size, set_font_sizes
 import scipy as sc
-import parameters
+
+
+from parameters.parameters import min_peak_prominence, min_peak_distance
+import parameters.directories_win as directories
+from parameters.PGFs import cc_APs_parameters, cc_th1Ap_parameters
+
+from functions.functions_ccIF import get_IF_data
+from functions.functions_plotting import get_colors, save_figures, get_figure_size, set_font_sizes
+from functions.functions_useful import calc_time_series, butter_filter
 
 from matplotlib import animation
 from matplotlib.animation import FuncAnimation 
@@ -66,7 +55,7 @@ lookup_table = table.query(query_str)
 # test cell E-092
 cell_ID = 'E-092'
 
-frequency_int = 1
+frequency_int = 10
 
 frequency = str(frequency_int) + 'Hz'
     
@@ -121,8 +110,8 @@ vf = butter_filter(v_concat,
 # %% find peaks
 
 idx_peaks, dict_peak = sc.signal.find_peaks(vf, 
-                                            prominence = parameters.min_peak_prominence, 
-                                            distance = parameters.min_peak_distance * (SR_ms))
+                                            prominence = min_peak_prominence, 
+                                            distance = min_peak_distance * (SR_ms))
 
 
 
