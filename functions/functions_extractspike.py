@@ -47,7 +47,7 @@ def extract_spike(t, v, dvdt, idx_peak):
     
     '''
     dvdt_p_threshold = dvdt_threshold
-    dvdt_n_threshold = -1
+    dvdt_n_threshold = -3
 
 
     if False:
@@ -158,32 +158,36 @@ def extract_spike(t, v, dvdt, idx_peak):
 import pandas as pd
 
 
-def get_AP_parameters(t_spiketrain, v_spiketrain, dvdt_spiketrain, idc_spikes, SR=20e3):
+def get_AP_parameters(t_spiketrain, v_spiketrain, dvdt_spiketrain, idc_spikes, SR=50e3):
     """
     Function calculates all parameters associated with an action potential (AP).
     Parameters:
-        v : One-dimensional array with voltage in mV.
-        peak_idx : One-dimensional array of peak indices.
-        SR : Sampling rate in Hz. Default is 20 kHz.
-        dvdt_threshold : Threshold in first derivative to calculate threshold
-            crossing of the AP (in ms/mV). Default is 25 ms/mV.
-        t_pre : Time before peak to investigate in ms. Default is 2 ms.
-        t_post : Time after peak to investigate in ms. Default is 5 ms.
+        t_spiketrain : timeseries array of the spiketrain
+        v_spiketrain : voltage trace of the spiketrain
+        dvdt_spiketrain : first derivative of the voltage trace
+        idc_spikes : list of spike/peak indices in trace
+        SR : Sampling rate in Hz. Default is 50 kHz.
     Returns:
         AP_parameters: Pandas Dataframe of all parameters for the provided peaks.
-            v_peaks    
-            t_peaks
-            v_threshold
-            t_threshold
-            idx_threshold
-            v_amplitude
-            t_toPeak
-            v_AHP
-            t_AHP
-            idx_AHP
-            v_AHP_amplitude
-            t_to_AHP
-            FWHM        
+            idx_peak_in_spiketrain : index of spike in spiketrain
+            v_peaks : peak voltage
+            t_peaks : time point of peak
+            v_threshold : voltage at threshold
+            t_threshold : time point of threshold
+            idx_threshold : index of threshold
+            v_amplitude : spike amplitude
+            t_toPeak : time to peak (time between threshold and peak)
+            t_rise : time between 20 % and 80 % of spike amplitude
+            v_AHP : voltage at spike afterhyperpolarisation
+            t_AHP : time point of spike afterhyperpolarisation
+            idx_AHP : index of spike afterhyperpolarisation
+            v_AHP_amplitude : amplitude of spike afterhyperpolarisation (v_threshold - v_AHP)
+            t_toAHP : time to spike afterhyperpolarisation (t_AHP - t_peak)
+            FWHM : spike full width at half maximum
+            v_HM : spike half maximal amplitude
+            t1_HM : first time point of spike at half maximum
+            t2_HM : second time point of spike at half maximum
+        spike_v : voltage trace of isolated spike(s)
     """     
 
     keys_ls = ['idx_peak_in_spiketrain',
@@ -220,6 +224,9 @@ def get_AP_parameters(t_spiketrain, v_spiketrain, dvdt_spiketrain, idc_spikes, S
         
             # extract entire spike shapes
             spike_idc, spike_t, spike_v, spike_dvdt = extract_spike(t_spiketrain, v_spiketrain, dvdt_spiketrain, idx_peak)
+            
+            # convert spike_v to pandas Series
+            spike_v = pd.Series(spike_v)
         
             ### threshold
             
@@ -238,8 +245,8 @@ def get_AP_parameters(t_spiketrain, v_spiketrain, dvdt_spiketrain, idc_spikes, S
             ### amplitude
             
             # get AP amplitude
-            v_amplitude = v_peak - v_threshold
-            APs_dataframe.at[i, 'v_amplitude'] = t_threshold
+            v_amplitude = np.abs(v_threshold - v_peak)
+            APs_dataframe.at[i, 'v_amplitude'] = v_amplitude
             
             ### time to peak
             
@@ -310,8 +317,9 @@ def get_AP_parameters(t_spiketrain, v_spiketrain, dvdt_spiketrain, idc_spikes, S
             
     else:
         APs_dataframe = pd.DataFrame(np.nan, index = [0], columns = keys_ls)
+        spike_v = pd.Series([], dtype = float)
 
-    return APs_dataframe
+    return APs_dataframe, spike_v
 
 
 

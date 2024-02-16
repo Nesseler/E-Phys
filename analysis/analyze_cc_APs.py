@@ -83,7 +83,7 @@ mean_vamplitude_df = pd.DataFrame(index = frequencies)
 # %% get all AP parameters for one cell
 
 # test cell E-092
-# cell_IDs = ['E-119', 'E-122' ,'E-123' ,'E-124' ,'E-125' , 'E-126', 'E-129']
+# cell_IDs = ['E-092']
 
 for cell_ID in cell_IDs:
 
@@ -205,6 +205,9 @@ for cell_ID in cell_IDs:
                 dvdt_ar[step_idx] = dvdt[idc_stim_ls[step_idx]]
         
         
+        # set pandas dataframe for spike voltage trace
+        spikes_v_df = pd.DataFrame()
+        
         # loop through all steps
         # analyze spikes
         for step_idx in np.arange(n_steps):
@@ -224,33 +227,39 @@ for cell_ID in cell_IDs:
             # if this error message is caugth AP_params functions is run again
             # with empty peak index array              
             try:
-                AP_params = get_AP_parameters(t_spiketrain = ts,
-                                              v_spiketrain = vs,
-                                              dvdt_spiketrain = dvdts,
-                                              idc_spikes = idx_peaks,
-                                              SR = SR)
+                AP_params, spike_v = get_AP_parameters(t_spiketrain = ts,
+                                                       v_spiketrain = vs,
+                                                       dvdt_spiketrain = dvdts,
+                                                       idc_spikes = idx_peaks,
+                                                       SR = SR)
                 
                 
             except ValueError as e:
                 if str(e) == 'AP threshold not crossed':
                     # print(step_idx, 'caught')
                     
-                    AP_params = get_AP_parameters(t_spiketrain = ts,
-                                                  v_spiketrain = vs,
-                                                  dvdt_spiketrain = dvdts,
-                                                  idc_spikes = [],
-                                                  SR = SR)
+                    AP_params, spike_v = get_AP_parameters(t_spiketrain = ts,
+                                                           v_spiketrain = vs,
+                                                           dvdt_spiketrain = dvdts,
+                                                           idc_spikes = [],
+                                                           SR = SR)
                         
-                
             
+            spike_v.name = step_idx
             AP_params['idx_step'] = step_idx
             
             # for first step the dataframe with all AP parameters represents 'all' AP
             # afterwards the dataframes are concatenated
             if step_idx == 0:
                 AP_all_params = AP_params
+                
+                # assign spike_v to its dataframe
+                spikes_v_df[step_idx] = spike_v
             else:
                 AP_all_params = pd.concat([AP_all_params, AP_params])
+                
+                spikes_v_df = pd.concat([spikes_v_df, spike_v], axis = 1)
+                
                 
             
         
@@ -376,6 +385,8 @@ for cell_ID in cell_IDs:
     
         AP_all_params.to_excel(table_path)
         
+        spikes_v_df.to_excel(os.path.join(cell_path, f'spikes_v-{cell_ID}_{frequency}.xlsx'))
+        
     
     # %% combine all frequencies for one cell
     
@@ -461,11 +472,15 @@ for cell_ID in cell_IDs:
 
 # %%
 
-mean_nAPs_df = pd.DataFrame({'mean_APs' : nAPs_df.mean(axis=0)})
-std_nAPs_df = pd.DataFrame({'std_APs' : nAPs_df.std(axis=0)})
+
 
 
 # %% write dataframes to cell description folder
+
+mean_nAPs_df = pd.DataFrame({'mean_APs' : nAPs_df.mean(axis=0)})
+std_nAPs_df = pd.DataFrame({'std_APs' : nAPs_df.std(axis=0)})
+mean_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_nAPs.xlsx'), index_label = 'frequencies')
+std_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-std_nAPs.xlsx'), index_label = 'frequencies')
 
 # save measurements to excel file
 nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-nAPs.xlsx'), index_label = 'frequencies')
@@ -476,8 +491,7 @@ mean_FWHM_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_FWHM.xlsx'), in
 mean_tpeaks_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_tpeaks.xlsx'), index_label = 'frequencies')
 mean_vamplitude_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_vamplitude.xlsx'), index_label = 'frequencies')
 
-mean_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_nAPs.xlsx'), index_label = 'frequencies')
-std_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-std_nAPs.xlsx'), index_label = 'frequencies')
+
 
 
     

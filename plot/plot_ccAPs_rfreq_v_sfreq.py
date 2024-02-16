@@ -5,12 +5,6 @@ Created on Thu Jan 18 18:07:01 2024
 @author: nesseler
 """
 
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 17 17:27:54 2024
-
-@author: nesseler
-"""
 
 import pandas as pd
 import os
