@@ -12,6 +12,7 @@ import pandas as pd
 
 # directory that contains the excel file with indices and meta data
 table_dir = '//Fileserver/AG Spehr/File transfer/Moritz_transfer/'
+table_file = '//Fileserver/AG Spehr/File transfer/Moritz_transfer/' + 'InVitro_Database.xlsx'
 # table_dir = 'C:/Users/nesseler/Desktop/'
 
 # directory that contains raw data

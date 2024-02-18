@@ -83,7 +83,7 @@ mean_vamplitude_df = pd.DataFrame(index = frequencies)
 # %% get all AP parameters for one cell
 
 # test cell E-092
-# cell_IDs = ['E-092']
+# cell_IDs = ['E-087']
 
 for cell_ID in cell_IDs:
 
@@ -221,7 +221,7 @@ for cell_ID in cell_IDs:
             idx_peaks, dict_peak = sc.signal.find_peaks(vs, 
                                                         prominence = min_peak_prominence, 
                                                         distance = min_peak_distance * (SR_ms))
-     
+        
             # exception handling: spike threshold not in analyized window
             # extract_spike functions throws a ValueError with specific error message
             # if this error message is caugth AP_params functions is run again
@@ -236,7 +236,7 @@ for cell_ID in cell_IDs:
                 
             except ValueError as e:
                 if str(e) == 'AP threshold not crossed':
-                    # print(step_idx, 'caught')
+                    print(step_idx, f'caught: {str(e)}')
                     
                     AP_params, spike_v = get_AP_parameters(t_spiketrain = ts,
                                                            v_spiketrain = vs,
