@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['analysis\\analyze_cc_APs.py', 'functions\\functions_extractspike.py', 'plot\\plot_ccAPs_rfreq_v_sfreq.py', 'plot\\plot_ccAPs_1st_v_last_xth_mean_APparameter.py']
+recent_files = ['analysis\\analyze_cc_APs.py', 'functions\\functions_extractspike.py', 'plot\\plot_ccAPs_rfreq_v_sfreq.py', 'plot\\plot_ccAPs_1st_v_last_xth_mean_APparameter.py', 'plot\\plot_ccAPs_catplot.py']
 
 [main]
 version = 0.2.0

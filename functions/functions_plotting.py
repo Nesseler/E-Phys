@@ -24,6 +24,11 @@ def get_colors(darkmode_bool=False):
         # plt.grid(False)
         plot_dict = {'color':primecolor, 'linewidth' : 0.5}
         seccolor = 'k'
+
+        BAOT_color = '#7a66fc' #'#ff1b6b' #'#03C03C'
+        MeA_color =  '#ff8d00' #'#45caff' #'#FF8F00'
+        BAOT_MeA_color = 'gray'
+        
     elif darkmode_bool == False:
         plt.style.use('default')
         primecolor = 'k'
@@ -35,6 +40,11 @@ def get_colors(darkmode_bool=False):
         plot_dict = {'color':primecolor, 'linewidth' : 0.5}
         seccolor = 'w'
         
+        BAOT_color = '#43388a'
+        MeA_color = '#ff7d00'
+        BAOT_MeA_color = 'gray'
+        
+        
     colors_dict = {'primecolor': primecolor,
                    'color1': color1,
                    'color2': color2,
@@ -42,8 +52,12 @@ def get_colors(darkmode_bool=False):
                    'cmap': cmap,
                    'plot_dict': plot_dict,
                    'seccolor' : seccolor}
+    
+    regions_c = {'BAOT' : BAOT_color,
+                 'MeA' : MeA_color,
+                 'BAOT/MeA' : 'gray'}
         
-    return colors_dict
+    return colors_dict, regions_c
 
 
 def get_figure_size(width = 328.67, height = 165.5):

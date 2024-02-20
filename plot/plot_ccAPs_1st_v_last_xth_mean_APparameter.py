@@ -10,7 +10,6 @@ import pandas as pd
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mtl
 import seaborn as sbn
 
 from os.path import join
@@ -97,7 +96,7 @@ mean = plt_df.mean(axis = 1)
 std = plt_df.std(axis = 1)
 
 # define colors
-colors_dict = get_colors(darkmode_bool)
+colors_dict, region_c = get_colors(darkmode_bool)
 
 
 # %% plot percentage of first spike
@@ -168,11 +167,6 @@ MetaData = MetaData.loc[cell_IDs, :]
 
 # %% same plot with color coded regions
 
-regions = ['BAOT', 'MeA', 'BAOT / MeA']
-regions_c = {'BAOT' : colors_dict['color1'],
-             'MeA' : colors_dict['color2'],
-             'BAOT / MeA' : 'gray'}
-
 fig_ccmeta, axs_ccmeta = plt.subplots(nrows = 1,
                                             ncols = 1,
                                             layout = 'constrained',
@@ -183,19 +177,21 @@ for cell_ID in cell_IDs:
     cell_region = MetaData.at[cell_ID, 'Region']
     
     axs_ccmeta.plot(freqs_int, plt_df[cell_ID],
-                       color = regions_c[cell_region],
-                       alpha = 0.5)
+                    color = region_c[cell_region],
+                    lw = 1,
+                    marker = 'x')
 
 
-axs_ccmeta.errorbar(x = freqs_int,
-                       y = mean,
-                       yerr = std,
-                       color = colors_dict['primecolor'],
-                       ecolor = colors_dict['primecolor'],
-                       linestyle = '--',
-                       capsize = 3,
-                       marker = '_',
-                       markersize = 10)
+
+# axs_ccmeta.errorbar(x = freqs_int,
+#                        y = mean,
+#                        yerr = std,
+#                        color = colors_dict['primecolor'],
+#                        ecolor = colors_dict['primecolor'],
+#                        linestyle = '--',
+#                        capsize = 3,
+#                        marker = '_',
+#                        markersize = 10)
 
 
 axs_ccmeta.set_xlim([-1, 77])
@@ -213,7 +209,7 @@ axs_ccmeta.axhline(y = 1.0, xmin = 0, xmax = 1,
 
 # xlimit axis spines to their limits
 axs_ccmeta.spines['bottom'].set_bounds([1, 75])
-
+axs_ccmeta.grid(False)
 
 # y axis settings per parameter
 axs_ccmeta.set_ylabel(f'Percentage of first spike {AP_parameter}')
@@ -225,9 +221,72 @@ elif AP_parameter == 'FWHM':
     axs_ccmeta.set_ylim([0.5, 3])
     
     
-axs_ccmeta.grid(False)
+
 
 save_figures(fig_ccmeta, f'ccAPs-{AP_parameter}-perc_of_fst-cc_region', figure_dir, darkmode_bool)
+
+
+# %% separate subplots for the regions
+
+fig_ccmeta_sep, axs_ccmeta_sep = plt.subplots(nrows = 3,
+                                              ncols = 1,
+                                              layout = 'constrained',
+                                              dpi = 600,
+                                              sharey = True,
+                                              sharex = True)
+
+
+regions = ['BAOT/MeA', 'BAOT', 'MeA']
+
+for region_idx, region in enumerate(regions):
+    
+    for cell_ID in cell_IDs:
+        
+        cell_region = MetaData.at[cell_ID, 'Region']
+        
+        if cell_region == region:
+            
+            axs_ccmeta_sep[region_idx].plot(freqs_int, plt_df[cell_ID],
+                                            color = region_c[cell_region],
+                                            lw = 1,
+                                            marker = 'x')
+
+
+axs_ccmeta_sep[-1].set_xlim([-1, 77])
+axs_ccmeta_sep[-1].set_xlabel('Stimulation frequency [Hz]')
+axs_ccmeta_sep[-1].set_xticks(ticks = freqs_int)
+
+# y axis settings per parameter
+fig_ccmeta_sep.supylabel(f'Percentage of first spike {AP_parameter}')
+
+for ax in axs_ccmeta_sep:
+    # x axis at zero
+    ax.axhline(y = 1.0, xmin = 0, xmax = 1,
+                          lw = 1,
+                          color = colors_dict['primecolor'])
+    
+    
+    # despine
+    [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
+    
+    # xlimit axis spines to their limits
+    ax.spines['bottom'].set_bounds([1, 75])
+    
+    
+
+    
+    if AP_parameter == 'v_amplitude':
+        ax.set_ylim([0.45, 1.15])
+        
+    elif AP_parameter == 'FWHM':
+        ax.set_ylim([0.5, 3])
+
+
+[ax.grid(False) for ax in axs_ccmeta_sep]
+
+
+
+
 
 
 
@@ -307,4 +366,131 @@ axs_rfreq.grid(False)
 save_figures(fig_rfreq, f'ccAPs-{AP_parameter}-perc_of_fst-rfreq', figure_dir, darkmode_bool)
 
 
+
+# %%
+
+region_df = MetaData['Region']
+
+plt_df = perc_of_fst_df
+
+plt_df = plt_df.transpose()
+
+
+
+plt_df_melted = pd.melt(plt_df, var_name='frequency', value_name=AP_parameter, ignore_index= False) 
+
+plt_df_melted['Region'] = region_df
+plt_df_melted.index.name = 'cell_ID'
+
+# %%
+
+fig_ccmeta, axs_ccmeta = plt.subplots(nrows = 1,
+                                            ncols = 1,
+                                            layout = 'constrained',
+                                            dpi = 600,
+                                            figsize = get_figure_size())
+
+# violins = sbn.violinplot(data = plt_df_melted,
+#                           y = plt_df_melted[AP_parameter].to_list(),
+#                           x = 'frequency',
+#                           hue = 'Region',
+#                           inner = 'quart',
+#                           spilt = True,
+#                           palette = ['k', 'k', 'k'], 
+#                           linewidth = 1,
+#                           label ='_nolegend_')
+
+
+# for l in violins.lines:
+#     l.set_color(colors_dict['primecolor'])
+
+# [violin.set_edgecolor(colors_dict['primecolor']) for violin in violins.collections]
+
+
+
+
+sbn.swarmplot(plt_df_melted,
+              x = 'frequency',
+              y = AP_parameter,
+              hue = 'Region',
+              palette = region_c,
+              dodge = True,
+              size = 6)
+
+
+for region_idx, region in enumerate(['BAOT/MeA', 'BAOT', 'MeA']):
+    
+    print(region_idx, region)
+    
+    print(MetaData[MetaData['Region'] == region].index.to_list())
+    
+    region_cell_IDs = MetaData[MetaData['Region'] == region].index.to_list()
+
+    # get positions of all points in swarmplots to plot the connecting lines
+    positions_df = pd.DataFrame()
+    
+    for idx, frequency in enumerate(frequencies):
+        positions = np.array(axs_ccmeta.collections[(idx*3)+region_idx].get_offsets())
+        
+        cur_df = pd.DataFrame({'x' : positions[:, 0],
+                                'y' : positions[:, 1],
+                                'frequency' : [freqs_int[idx]] * len(positions),
+                                'freq_str' : [frequency] * len(positions),
+                                'cell_ID' : region_cell_IDs
+                                })
+    
+        positions_df = pd.concat([positions_df, cur_df])
+        
+
+
+    for idx, cell_ID in enumerate(region_cell_IDs):
+        lines = sbn.lineplot(data = positions_df[positions_df.cell_ID == cell_ID], 
+                              x = 'x', 
+                              y = 'y',
+                              ax = axs_ccmeta,
+                              estimator=None,
+                              color = region_c[region],
+                              alpha = 0.3)
+
+
+
+# axs_ccmeta.errorbar(x = freqs_int,
+#                        y = mean,
+#                        yerr = std,
+#                        color = colors_dict['primecolor'],
+#                        ecolor = colors_dict['primecolor'],
+#                        linestyle = '--',
+#                        capsize = 3,
+#                        marker = '_',
+#                        markersize = 10)
+
+
+# axs_ccmeta.set_xlim([-1, 77])
+# axs_ccmeta.set_xlabel('Stimulation frequency [Hz]')
+# axs_ccmeta.set_xticks(ticks = freqs_int)
+
+# # x axis at zero
+# axs_ccmeta.axhline(y = 1.0, xmin = 0, xmax = 1,
+#                       lw = 1,
+#                       color = colors_dict['primecolor'])
+
+
+# # despine
+# [axs_ccmeta.spines[spine].set_visible(False) for spine in ['top', 'right']]
+
+# # xlimit axis spines to their limits
+# axs_ccmeta.spines['bottom'].set_bounds([1, 75])
+
+
+# y axis settings per parameter
+axs_ccmeta.set_ylabel(f'Percentage of first spike {AP_parameter}')
+
+if AP_parameter == 'v_amplitude':
+    axs_ccmeta.set_ylim([0.45, 1.15])
+    
+elif AP_parameter == 'FWHM':
+    axs_ccmeta.set_ylim([0.5, 3])
+    
+    
+axs_ccmeta.grid(False)
 

@@ -62,7 +62,7 @@ color_pal = {'1Hz'  : cmap.to_rgba(freqs_int[0]),
 
 darkmode_bool = True
 
-colors_dict = get_colors(darkmode_bool)
+colors_dict, _ = get_colors(darkmode_bool)
 
 fig_APcats, axs_APcats = plt.subplots(nrows = 1, 
                                       ncols = 1,

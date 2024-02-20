@@ -18,8 +18,8 @@ from parameters.directories_win import table_dir, vplot_dir, cell_descrip_dir, q
 from functions.functions_ccIF import get_IF_data
 from functions.functions_import import get_traceIndex_n_file
 from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt, calc_dvdt_padded
-from functions.functions_spiketrains import get_AP_parameters
 from functions.functions_plotting import get_colors, get_figure_size, save_figures
+from functions.functions_extractspike import get_AP_parameters
 
 
 # %%
@@ -202,11 +202,11 @@ for cell_ID in cell_IDs:
     
     th_spike_idx = [int(idx - (cc_th1Ap_parameters['t_pre'] * SR_ms)) for idx in idx_peaks_s[idx_th]]
     
-    AP_params = get_AP_parameters(v_th, th_spike_idx, 
-                                  SR = SR,
-                                  dvdt_threshold = dvdt_threshold,
-                                  t_pre = 2,
-                                  t_post = 10)
+    AP_params, _ = get_AP_parameters(t_spiketrain = t, 
+                                     v_spiketrain = v_th,
+                                     dvdt_spiketrain = dvdt_th,
+                                     idc_spikes = th_spike_idx,
+                                     SR = SR)
     
     firstAP_parameters_df.loc[cell_ID] = AP_params.iloc[0]
     
