@@ -14,7 +14,7 @@ cc_APs_t_post_stim = 10 # in ms
 
 
 # set parameters to find peaks
-min_peak_prominence = 50 #(mV)
+min_peak_prominence = 30 #(mV)
 min_peak_distance = 1 #ms
 
 dvdt_threshold = 5
@@ -45,5 +45,6 @@ min_spikes_tobe_active = 2
 min_spike_in_burst = 4
 
 bin_size_ISI_poisson = 25e-3
+
 
 

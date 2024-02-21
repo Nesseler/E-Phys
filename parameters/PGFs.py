@@ -48,7 +48,31 @@ cc_th1Ap_parameters = {'t_pre' : 240.,
                        'i_start' : 0}
 
 
-# %% cnt_rest
+# %% cc_cnt_rest
 
 cc_cntrest_parameters = {'t' : 600,
                          'i_hold': 0}
+
+
+# %% cc_IF
+
+cc_IF_parameters = {'t_pre' : 250, #ms
+                    't_stim' : 1000, #ms
+                    't_post' : 250, #ms
+                    'i_delta' : 5, #pA
+                    'i_start' : -50, #pA
+                    'max_n_steps' : 71}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

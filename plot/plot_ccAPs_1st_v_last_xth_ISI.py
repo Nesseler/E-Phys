@@ -153,9 +153,9 @@ axs_1st_v_lst.grid(False)
 # %% same plot with color coded regions
 
 fig_ccmeta, axs_ccmeta = plt.subplots(nrows = 1,
-                                            ncols = 1,
-                                            layout = 'constrained',
-                                            dpi = 600)
+                                      ncols = 1,
+                                      layout = 'constrained',
+                                      dpi = 600)
 
 for cell_ID in cell_IDs:
     
