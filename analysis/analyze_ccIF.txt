@@ -1,0 +1,30 @@
+README-analyze_cc_IF
+
+current clamp protocol
+  I_hold - adjusted to be at -85 mV
+
+pre_stim
+  t_pre = 250 ms
+  I_hold = I_hold pA
+
+stim
+  t_stim = 1000 ms
+  I_0 = -50 pA
+  I_delta = 5 pA
+  n_steps_max = 71
+
+pre_stim
+  t_post = 250 ms
+  I_hold = I_hold pA
+
+
+passive membrane properties
+  r_input
+  tau_membrane
+
+active membrane properties
+  rheobase
+  n_spikes
+  t_spikes
+  ISIs
+  inst_freq

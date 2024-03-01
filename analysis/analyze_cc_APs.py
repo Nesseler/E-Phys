@@ -25,15 +25,14 @@ from parameters.parameters import cc_APs_t_post_stim, min_peak_prominence, min_p
 
 # custom functions
 from functions.functions_ccIF import get_IF_data
+from getter.get_cell_IDs import get_cell_IDs_all_ccAPfreqs
 # from functions.functions_spiketrains import get_AP_parameters
 from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt_padded
 from functions.functions_plotting import get_colors, save_figures, set_font_sizes, get_figure_size
 from functions.functions_extractspike import get_AP_parameters
 
 
-# %% verification plots option
 
-vplots_bool = False
 
 # %% load InVitro database and all PGF indices to be loaded
 
@@ -41,33 +40,20 @@ table = pd.read_excel(table_dir + 'InVitro_Database.xlsx',
                       sheet_name="PGFs",
                       index_col='cell_ID')
 
-
+# get list of stimulation frequencies
 frequencies = list(cc_APs_parameters.keys())
 
-# loop to create string to include all frequencies in query
-query_str = ''
-
-for idx, frequency in enumerate(frequencies):
-    PGF = 'cc_APs_' + frequency
-    
-    if idx > 0:
-        query_str = query_str + ' and '
-        
-    query_str = query_str + f'{PGF}.notnull()'
-    
-
-# limit lookup table
-lookup_table = table.query(query_str)
-
 # cell IDs 
-cell_IDs = list(lookup_table.index)
+cell_IDs = get_cell_IDs_all_ccAPfreqs()
 
-# %% plotting specifications if vplots_bool is given
+# %% verification plots option
+
+vplots_bool = True
+
 if vplots_bool:
-    darkmode_bool = False
-    colors_dict = get_colors(darkmode_bool)
+    darkmode_bool = True
+    colors_dict, _ = get_colors(darkmode_bool)
     set_font_sizes()
-
 
 # %% 
 
@@ -83,7 +69,7 @@ mean_vamplitude_df = pd.DataFrame(index = frequencies)
 # %% get all AP parameters for one cell
 
 # test cell E-092
-# cell_IDs = ['E-087']
+cell_IDs = ['E-077']
 
 for cell_ID in cell_IDs:
 
@@ -99,14 +85,14 @@ for cell_ID in cell_IDs:
         PGF_parameters = cc_APs_parameters[frequency]
     
         # get indices of current cell with the dataframe containing all indices    
-        group_idx = int(lookup_table.at[cell_ID, 'group'])-1
-        series_idx = int(lookup_table.at[cell_ID, f'{PGF}'])-1
+        group_idx = int(table.at[cell_ID, 'group'])-1
+        series_idx = int(table.at[cell_ID, f'{PGF}'])-1
         
         # construct traceIndex with indices
         traceIndex = [group_idx, series_idx, 0, 0]
         
         # call on data file with indices from dataframe above
-        current_file = lookup_table.at[cell_ID, 'file']
+        current_file = table.at[cell_ID, 'file']
         data_file_path = os.path.join(raw_data_dir, current_file + '.dat')  
         data_file_path_str = fr"{data_file_path}"
         

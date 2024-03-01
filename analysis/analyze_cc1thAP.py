@@ -228,7 +228,7 @@ for cell_ID in cell_IDs:
     
         darkmode_bool = True
         
-        colors_dict = get_colors(darkmode_bool)
+        colors_dict, _ = get_colors(darkmode_bool)
         
         fig_1stAP, ax_1stAP = plt.subplots(1, 2, 
                                            layout = 'constrained',

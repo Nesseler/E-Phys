@@ -50,7 +50,7 @@ def extract_spike(t, v, dvdt, idx_peak):
     dvdt_n_threshold = -3
 
 
-    if False:
+    if True:
         plt.hlines([dvdt_n_threshold, dvdt_p_threshold], -100, 60, colors = 'gray', linestyle = '--', alpha = 0.5)
         plt.plot(v, dvdt, c = 'gray', linestyle = '-')
 
@@ -100,7 +100,7 @@ def extract_spike(t, v, dvdt, idx_peak):
     spike_dvdt = dvdt[spike_idc] 
 
 
-    if False:
+    if True:
         plt.scatter(v[idx_th], dvdt[idx_th], marker = 'x', c = 'm')
         plt.scatter(v[idx_AHP], dvdt[idx_AHP], marker = 'x', c = 'c')
         plt.ylim([-100, 250])
@@ -108,8 +108,8 @@ def extract_spike(t, v, dvdt, idx_peak):
 
         plt.show()
     
-    if False:
-        plt.plot(t, v, 'k')
+    if True:
+        plt.plot(t, v, 'w')
         plt.plot(spike_t, spike_v, 'm')
         plt.title(iterations)
         plt.ylim([-100, 60])

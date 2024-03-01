@@ -162,6 +162,7 @@ def double_gaussian(x, amp1, cen1, sigma1, amp2, cen2, sigma2):
 
     
     
-    
+def round_to_base(number, base):
+    return base * round(number/base)    
     
     
