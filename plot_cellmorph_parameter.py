@@ -56,7 +56,7 @@ morph_parameters = pd.concat([morph_parameters, MetaData], axis = 1)
 
 # set_font_sizes()
 
-parameter = 'No. of terminal branches [Single value]'
+parameter = 'Complexity index [Single value]'
 
 darkmode_bool = True
 
