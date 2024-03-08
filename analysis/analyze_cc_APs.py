@@ -19,7 +19,7 @@ import numpy as np
 import scipy as sc
 
 # custom directories & parameters
-from parameters.directories_win import table_dir, raw_data_dir, vplot_dir, quant_data_dir, cell_descrip_dir
+from parameters.directories_win import table_dir, table_file, raw_data_dir, vplot_dir, quant_data_dir, cell_descrip_dir
 from parameters.PGFs import cc_APs_parameters, cc_APs_t_stims_df, cc_APs_total_dur
 from parameters.parameters import cc_APs_t_post_stim, min_peak_prominence, min_peak_distance
 
@@ -36,7 +36,7 @@ from functions.functions_extractspike import get_AP_parameters
 
 # %% load InVitro database and all PGF indices to be loaded
 
-table = pd.read_excel(table_dir + 'InVitro_Database.xlsx',
+table = pd.read_excel(table_file,
                       sheet_name="PGFs",
                       index_col='cell_ID')
 
@@ -51,7 +51,7 @@ cell_IDs = get_cell_IDs_all_ccAPfreqs()
 vplots_bool = True
 
 if vplots_bool:
-    darkmode_bool = True
+    darkmode_bool = False
     colors_dict, _ = get_colors(darkmode_bool)
     set_font_sizes()
 
@@ -69,9 +69,11 @@ mean_vamplitude_df = pd.DataFrame(index = frequencies)
 # %% get all AP parameters for one cell
 
 # test cell E-092
-cell_IDs = ['E-077']
+# cell_IDs = ['E-077']
 
 for cell_ID in cell_IDs:
+    
+    print(f'Started: {cell_ID}')
 
     # initialise dataframes of parameters to be summarized
     t_APs = pd.DataFrame()
@@ -269,9 +271,6 @@ for cell_ID in cell_IDs:
             n_rows = 10
             n_cols = 10
             
-            darkmode_bool = False
-            color_dict = get_colors(darkmode_bool)
-            
             plt_idc = []
             
             # construct indices array for all plots in subplots
@@ -348,7 +347,7 @@ for cell_ID in cell_IDs:
             for row in range(nrows):
                 v_row = vf[idc_row[row]:idc_row[row+1]]
                 t_row = calc_time_series(v_row, SR)
-                axs_trace[row].plot(t_row, v_row)
+                axs_trace[row].plot(t_row, v_row, c = colors_dict['primecolor'])
                 
             axs_trace[0].set_ylim([-100, 60])
             fig_trace.supylabel('Voltage [mV]')
@@ -463,19 +462,19 @@ for cell_ID in cell_IDs:
 
 # %% write dataframes to cell description folder
 
-mean_nAPs_df = pd.DataFrame({'mean_APs' : nAPs_df.mean(axis=0)})
-std_nAPs_df = pd.DataFrame({'std_APs' : nAPs_df.std(axis=0)})
-mean_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_nAPs.xlsx'), index_label = 'frequencies')
-std_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-std_nAPs.xlsx'), index_label = 'frequencies')
+# mean_nAPs_df = pd.DataFrame({'mean_APs' : nAPs_df.mean(axis=0)})
+# std_nAPs_df = pd.DataFrame({'std_APs' : nAPs_df.std(axis=0)})
+# mean_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_nAPs.xlsx'), index_label = 'frequencies')
+# std_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-std_nAPs.xlsx'), index_label = 'frequencies')
 
-# save measurements to excel file
-nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-nAPs.xlsx'), index_label = 'frequencies')
-mean_ISIs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_ISIs.xlsx'), index_label = 'frequencies')
-resul_freq_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-resul_freq.xlsx'), index_label = 'frequencies')
+# # save measurements to excel file
+# nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-nAPs.xlsx'), index_label = 'frequencies')
+# mean_ISIs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_ISIs.xlsx'), index_label = 'frequencies')
+# resul_freq_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-resul_freq.xlsx'), index_label = 'frequencies')
 
-mean_FWHM_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_FWHM.xlsx'), index_label = 'frequencies')
-mean_tpeaks_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_tpeaks.xlsx'), index_label = 'frequencies')
-mean_vamplitude_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_vamplitude.xlsx'), index_label = 'frequencies')
+# mean_FWHM_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_FWHM.xlsx'), index_label = 'frequencies')
+# mean_tpeaks_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_tpeaks.xlsx'), index_label = 'frequencies')
+# mean_vamplitude_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_vamplitude.xlsx'), index_label = 'frequencies')
 
 
 

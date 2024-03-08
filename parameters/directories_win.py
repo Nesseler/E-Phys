@@ -8,8 +8,6 @@ list of all directories on windows machine
 
 """
 
-import pandas as pd
-
 # directory that contains the excel file with indices and meta data
 table_dir = '//Fileserver/AG Spehr BigData/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/'
 table_file = '//Fileserver/AG Spehr BigData/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/' + 'ePhys-database.xlsx'
@@ -36,4 +34,4 @@ vplot_dir = 'C:/Users/nesseler/Desktop/local E-Phys/vplots'
 
 # directory for cell morphology measures (SNT traces/Measurements)
 cell_morph_measures_dir = 'Z:/n2021_MOS_AOS_Integration/cellmorphology_BAOT_MeA/SNT traces/Measurements'
- 
+cell_morph_figures_dir = 'Z:/n2021_MOS_AOS_Integration/cellmorphology_BAOT_MeA/cellmorph_figures'

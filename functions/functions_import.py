@@ -7,11 +7,11 @@ Created on Fri Jan 19 18:57:17 2024
 import pandas as pd
 import os
 
-from parameters.directories_win import table_dir, raw_data_dir
+from parameters.directories_win import table_dir, table_file, raw_data_dir
 
 def get_traceIndex_n_file(PGF = 'ccth1AP', cell_ID = 'E-092'):
     # excel sheet with PGF indices as lookup table
-    lookup_table = pd.read_excel(table_dir + 'InVitro_Database.xlsx',
+    lookup_table = pd.read_excel(table_file,
                                  sheet_name="PGFs",
                                  index_col='cell_ID')
     

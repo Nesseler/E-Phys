@@ -13,7 +13,7 @@ import scipy as sc
 import warnings 
 
 # custom directories & parameters
-from parameters.directories_win import raw_data_dir, figure_dir, cell_descrip_dir
+from parameters.directories_win import raw_data_dir, figure_dir, cell_descrip_dir, table_file
 from parameters.parameters import min_peak_prominence, min_peak_distance
 
 # custom functions
@@ -26,7 +26,7 @@ from functions.functions_useful import butter_filter, get_data
 
 ## n/3 by 3 subplots with each a 30 sec resting activity plot
 
-table = pd.read_excel('//Fileserver/AG Spehr/File transfer/Moritz_transfer/InVitro_Database.xlsx',
+table = pd.read_excel(table_file,
                       sheet_name="PGFs",
                       index_col='cell_ID')
 

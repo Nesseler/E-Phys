@@ -50,7 +50,7 @@ fIndex_melted = fIndex.melt(var_name = 'measurement')
 
 dm_bool = True
 
-colors_dict = get_colors(dm_bool)
+colors_dict, region_colors = get_colors(dm_bool)
 
 set_font_sizes()
 

@@ -68,7 +68,7 @@ for idx, parameter in enumerate(fstAP_df.columns):
     sbn.swarmplot(data = fstAP_df, 
                   y = parameter, 
                   ax = axs_fstAP[idx],
-                  size = 7,
+                  size = 5,
                   color = colors_dict['primecolor'])
 
 
@@ -175,7 +175,7 @@ for idx, parameter in enumerate(fstAP_df.columns):
     swarm = sbn.swarmplot(data = plt_df,
                           y = parameter, 
                           ax = axs_fstAP[idx],
-                          size = 7,
+                          size = 5,
                           color = colors_dict['primecolor'],
                           hue = 'Region',
                           palette = regions_c)
@@ -265,7 +265,8 @@ for idx, parameter in enumerate(fstAP_df.columns):
                             inner = 'quart',
                             linewidth = 1,
                             ax = axs_fstAP[idx],
-                            size = 0.9)
+                            size = 0.9,
+                            order = ['BAOT/MeA', 'MeA', 'BAOT'])
 
     for l in violin.lines:
         l.set_color(colors_dict['primecolor'])
@@ -281,7 +282,8 @@ for idx, parameter in enumerate(fstAP_df.columns):
                           size = 5,
                           color = colors_dict['primecolor'],
                           hue = 'Region',
-                          palette = regions_c)
+                          palette = regions_c,
+                          order = ['BAOT/MeA', 'MeA', 'BAOT'])
 
     axs_fstAP[idx].legend().set_visible(False)
 
@@ -289,7 +291,7 @@ for idx, parameter in enumerate(fstAP_df.columns):
     
 [ax.grid(False) for ax in axs_fstAP]
 [ax.set_xlabel('') for ax in axs_fstAP]
-[ax.set_xticklabels(['BAOT/\nMeA', 'BAOT', 'MeA'], rotation = 45) for ax in axs_fstAP]
+[ax.set_xticklabels(['BAOT/\nMeA', 'MeA', 'BAOT'], rotation = 45) for ax in axs_fstAP]
 
 # set axes 
 

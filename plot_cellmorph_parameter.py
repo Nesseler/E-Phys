@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt
 from os.path import join
 
 from getter.get_onlyfiles_list import get_onlyfiles_list
-from parameters.directories_win import cell_morph_measures_dir, table_file
+from parameters.directories_win import cell_morph_measures_dir, table_file, cell_morph_figures_dir
 
-from functions.functions_plotting import set_font_sizes, get_colors, get_figure_size
+from functions.functions_plotting import set_font_sizes, get_colors, get_figure_size, save_figures
 
 
 # get list of all files in directory
@@ -52,82 +52,70 @@ MetaData = MetaData.loc[cell_IDs, :]
 
 morph_parameters = pd.concat([morph_parameters, MetaData], axis = 1)
 
+# export to combined list
+morph_parameters.T.to_excel(join(cell_morph_measures_dir, 'morph_parameters.xlsx'), index = 'cell_ID')
+
 # %% trail plot
 
 # set_font_sizes()
 
-parameter = 'Complexity index [Single value]'
+parameters = ['No. of branches [Single value]',
+              'No. of terminal branches [Single value]',
+              'No. of primary branches [Single value]',
+              'Convex hull: Size (µm³) [Single value]',
+              'Convex hull: Centroid-root distance (µm) [Single value]',
+              'Convex hull: Roundness [Single value]',
+              'Convex hull: Elongation (µm) [Single value]',
+              'Complexity index [Single value]',
+              'Horton-Strahler bifurcation ratio [Single value]'
+              ]
+
 
 darkmode_bool = True
 
 colors_dict, regions_c = get_colors(darkmode_bool)
 
 
-fig, axs = plt.subplots(nrows = 1,
-                        ncols = 1,
-                        layout = 'constrained')
 
-violin = sbn.violinplot(data = morph_parameters,
-                        y = parameter,
-                        inner = 'quart',
-                        linewidth = 1,
-                        ax = axs)
+for parameter in parameters:
 
-for l in violin.lines:
-    l.set_color(colors_dict['primecolor'])
-
-for violin in violin.collections:
-    violin.set_edgecolor(colors_dict['primecolor'])
-    violin.set_facecolor('None')
-
+    fig_sep_regions, axs_sep_regions = plt.subplots(nrows = 1,
+                                                    ncols = 1,
+                                                    layout = 'constrained')
     
-swarm = sbn.swarmplot(data = morph_parameters,
-                      y = parameter, 
-                      ax = axs,
-                      size = 7,
-                      color = colors_dict['primecolor'],
-                      hue = 'Region',
-                      palette = regions_c)
-
-plt.show()
-
-
-# plot with separate violins
-
-
-fig_sep_regions, axs_sep_regions = plt.subplots(nrows = 1,
-                                                ncols = 1,
-                                                layout = 'constrained')
-
-violin = sbn.violinplot(data = morph_parameters,
-                        x = 'Region',
-                        y = parameter,
-                        inner = 'quart',
-                        linewidth = 1,
-                        ax = axs_sep_regions)
-
-for l in violin.lines:
-    l.set_color(colors_dict['primecolor'])
-
-for violin in violin.collections:
-    violin.set_edgecolor(colors_dict['primecolor'])
-    violin.set_facecolor('None')
-
+    violin = sbn.violinplot(data = morph_parameters,
+                            x = 'Region',
+                            y = parameter,
+                            inner = 'quart',
+                            linewidth = 1,
+                            hue = 'put. morph category',
+                            ax = axs_sep_regions,
+                            palette = 'deep')
     
-swarm = sbn.swarmplot(data = morph_parameters,
-                      x = 'Region',
-                      y = parameter, 
-                      ax = axs_sep_regions,
-                      size = 7,
-                      color = colors_dict['primecolor'],
-                      hue = 'Region',
-                      palette = regions_c)
+    for l in violin.lines:
+        l.set_color(colors_dict['primecolor'])
+    
+    for violin in violin.collections:
+        violin.set_edgecolor(colors_dict['primecolor'])
+        violin.set_facecolor('None')
+    
+        
+    swarm = sbn.swarmplot(data = morph_parameters,
+                          x = 'Region',
+                          y = parameter, 
+                          ax = axs_sep_regions,
+                          size = 7,
+                          color = colors_dict['primecolor'],
+                          hue = 'put. morph category',
+                          palette = 'deep',
+                          dodge = True)
+    
+    
+    plt.grid(False)
+    
+    # save_figures(fig_sep_regions, f'{parameter.replace(" ", "_").replace(":", "_")}', cell_morph_figures_dir, darkmode_bool)
 
-
-
-
-
-
+    plt.show()
 
 
 

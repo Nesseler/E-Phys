@@ -12,10 +12,10 @@ import matplotlib.pyplot as plt
 import seaborn as sbn
 
 # custom directories & parameters
-from parameters.directories_win import quant_data_dir, cell_descrip_dir
+from parameters.directories_win import quant_data_dir, cell_descrip_dir, figure_dir
 
 # custom functions
-from functions.functions_plotting import get_figure_size, get_colors
+from functions.functions_plotting import get_figure_size, get_colors, save_figures
 from functions.functions_useful import calc_time_series
 
 
@@ -63,7 +63,7 @@ for cell_ID in cell_IDs:
 
 darkmode_bool = True
 
-colors_dict = get_colors(darkmode_bool)
+colors_dict, _ = get_colors(darkmode_bool)
 
 
 fig_1stall, ax_1stall = plt.subplots(1, 2, 
@@ -101,7 +101,7 @@ ax_1stall[1].set_xlim([-100, 60])
 [ax.grid(False) for ax in ax_1stall]  
     
     
-    
+save_figures(fig_1stall, 'cc_th1AP_all_firstAPs', figure_dir, darkmode_bool)
     
 plt.show()
     

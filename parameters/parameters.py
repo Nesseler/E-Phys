@@ -14,7 +14,7 @@ cc_APs_t_post_stim = 10 # in ms
 
 
 # set parameters to find peaks
-min_peak_prominence = 30 #(mV)
+min_peak_prominence = 40 #(mV)
 min_peak_distance = 1 #ms
 
 dvdt_threshold = 5

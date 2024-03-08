@@ -13,7 +13,8 @@ import scipy as sc
 # custom directories & parameters
 from parameters.PGFs import cc_th1Ap_parameters, cc_APs_parameters
 from parameters.parameters import min_peak_prominence, min_peak_distance, dvdt_threshold, AP_parameters
-from parameters.directories_win import table_dir, vplot_dir, cell_descrip_dir, quant_data_dir
+from parameters.directories_win import table_dir, table_file, vplot_dir, cell_descrip_dir, quant_data_dir
+from getter.get_cell_IDs import get_cell_IDs_one_protocol, get_cell_IDs_all_ccAPfreqs
 
 from functions.functions_ccIF import get_IF_data
 from functions.functions_import import get_traceIndex_n_file
@@ -28,32 +29,12 @@ vplot_bool = True
 
 # %% get cell IDs
 
-table = pd.read_excel(table_dir + 'InVitro_Database.xlsx',
+table = pd.read_excel(table_file,
                       sheet_name="PGFs",
                       index_col='cell_ID')
 
-
-# loop to create string to include all frequencies in query
-query_str = ''
-
-frequencies = list(cc_APs_parameters.keys())
-
-for idx, frequency in enumerate(frequencies):
-    PGF = 'cc_APs_' + frequency
-    
-    if idx > 0:
-        query_str = query_str + ' and '
-        
-    query_str = query_str + f'{PGF}.notnull()'
-
-query_str = query_str + ' and cc_th1AP.notnull()'    
-
-# limit lookup table
-lookup_table = table.query(query_str)
-
-# cell IDs 
-cell_IDs = list(lookup_table.index)
-
+cell_IDs = get_cell_IDs_one_protocol('cc_th1AP')
+# cell_IDs = get_cell_IDs_all_ccAPfreqs()
 
 # %% initialize dataframes to populate
 
@@ -110,7 +91,7 @@ for cell_ID in cell_IDs:
        
     
     # get i_hold
-    lookup_table = pd.read_excel(table_dir + 'InVitro_Database.xlsx',
+    lookup_table = pd.read_excel(table_file,
                                  sheet_name="V_or_I_hold",
                                  index_col='cell_ID')
     
