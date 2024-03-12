@@ -152,6 +152,7 @@ axs_1st_v_lst.grid(False)
 
 # %% same plot with color coded regions
 
+
 fig_ccmeta, axs_ccmeta = plt.subplots(nrows = 1,
                                       ncols = 1,
                                       layout = 'constrained',
@@ -184,5 +185,68 @@ axs_ccmeta.axhline(y = 1.0, xmin = 0, xmax = 1,
 axs_ccmeta.spines['bottom'].set_bounds([1, 75])
 axs_ccmeta.grid(False)
 
+
+# %% same plot with color coded regions + separate planes
+
+regions = ['BAOT/MeA', 'MeA', 'BAOT']
+
+fig_regions, axs_regions = plt.subplots(nrows = 3,
+                                        ncols = 1,
+                                        layout = 'constrained',
+                                        dpi = 600,
+                                        figsize = get_figure_size(width = 107.057))
+
+
+set_font_sizes()
+
+# separate panels for regions
+
+for idx_region, region in enumerate(regions):
+    
+    # get cell_IDs of dataframe per region
+    cell_IDs_region = MetaData[MetaData['Region'] == region].index.to_list()
+    
+    # get number of cells in region
+    n_cells_region = len(cell_IDs_region)
+    
+    ax = axs_regions[idx_region]
+    
+    for idx_cell, cell_ID in enumerate(cell_IDs_region):
+
+        cell_region = MetaData.at[cell_ID, 'Region']
+        
+        ax.plot(freqs_int, plt_df[cell_ID],
+                            color = region_c[cell_region],
+                            lw = 1,
+                            marker = 'x')
+
+
+    ax.set_ylim([-1, 7])
+
+    ax.set_xlim([-1, 77])
+
+    ax.set_xticks(ticks = freqs_int, labels = [])
+    # ax.tick_params('both', width = 5, length = 5, color = 'k', direction = 'in')
+
+    # x axis at zero
+    ax.axhline(y = 1.0, xmin = 0, xmax = 1,
+               lw = 1,
+               color = colors_dict['primecolor'],
+               linestyle = '--')
+
+    # xlimit axis spines to their limits
+    ax.spines['bottom'].set_bounds([1, 75])
+
+axs_regions[-1].set_xlabel('Stimulation frequency [Hz]')
+axs_regions[-1].set_xticks(ticks = freqs_int, labels = freqs_int)
+fig_regions.supylabel(f'first ISI / mean of last {nAPs} ISIs')
+
+
+# despine
+[ax.spines[spine].set_visible(False) for spine in ['top', 'right'] for ax in axs_regions]
+
+[ax.grid(False) for ax in axs_regions]
+
+save_figures(fig_regions, 'ccAPs_ISI_adaptation-sep_regions', figure_dir, darkmode_bool)
 
 

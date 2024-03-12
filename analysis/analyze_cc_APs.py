@@ -51,7 +51,7 @@ cell_IDs = get_cell_IDs_all_ccAPfreqs()
 vplots_bool = True
 
 if vplots_bool:
-    darkmode_bool = False
+    darkmode_bool = True
     colors_dict, _ = get_colors(darkmode_bool)
     set_font_sizes()
 
@@ -71,7 +71,7 @@ mean_vamplitude_df = pd.DataFrame(index = frequencies)
 # test cell E-092
 # cell_IDs = ['E-077']
 
-for cell_ID in cell_IDs:
+for cell_ID in ['E-092']:
     
     print(f'Started: {cell_ID}')
 
@@ -267,7 +267,7 @@ for cell_ID in cell_IDs:
         
         
         # opt: verification plot #
-        if vplots_bool:  
+        if vplots:  
             n_rows = 10
             n_cols = 10
             
@@ -320,6 +320,8 @@ for cell_ID in cell_IDs:
                 for col in np.arange(n_cols):
                     axs_steps[row][col].tick_params(axis = 'y', size = 0)
                     axs_steps[row][col].tick_params(axis = 'x', size = 0)
+            
+            [ax.grid(False) for ax_cols in axs_steps for ax in ax_cols]
             
             # path to save verification plot
             vplot_path = os.path.join(vplot_dir, 'APs', cell_ID)
@@ -403,15 +405,18 @@ for cell_ID in cell_IDs:
                                                   figsize = get_figure_size(),
                                                   gridspec_kw = {'width_ratios': [6,2,2,2]})
         
+        spiketrain_keys = ax_keys[:len(frequencies)]
+        
+        spiketrain_keys.reverse()
         
         for idx_freq, freq in enumerate(frequencies):
-            axs_event[ax_keys[idx_freq]].eventplot(t_APs_cont[freq].dropna(), colors = colors_dict['primecolor'])
-            axs_event[ax_keys[idx_freq]].set_xlim([0, cc_APs_total_dur[freq]])
-            axs_event[ax_keys[idx_freq]].set_xticks(np.linspace(0, cc_APs_total_dur[freq], 6))
-            axs_event[ax_keys[idx_freq]].set_ylabel(freq)
+            axs_event[spiketrain_keys[idx_freq]].eventplot(t_APs_cont[freq].dropna(), colors = colors_dict['primecolor'])
+            axs_event[spiketrain_keys[idx_freq]].set_xlim([0, cc_APs_total_dur[freq]])
+            axs_event[spiketrain_keys[idx_freq]].set_xticks(np.linspace(0, cc_APs_total_dur[freq], 6))
+            axs_event[spiketrain_keys[idx_freq]].set_ylabel(freq)
             
             # eventplot for stimulations
-            axs_event[ax_keys[idx_freq]].eventplot(cc_APs_t_stims_df[freq] + 5, lineoffsets = 2.25, linelength = 0.75, colors = 'grey')
+            axs_event[spiketrain_keys[idx_freq]].eventplot(cc_APs_t_stims_df[freq] + 5, lineoffsets = 2.25, linelength = 0.75, colors = 'grey')
         
         fig_event.suptitle(cell_ID)
         
@@ -421,7 +426,7 @@ for cell_ID in cell_IDs:
         
         [axs_event[ax_i].grid(False) for ax_i in ax_keys[:]]
         
-        fig_event.supxlabel('Time [ms]')
+        axs_event['F'].set_xlabel('Time [ms]')
         
         
         # number of APs

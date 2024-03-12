@@ -185,9 +185,9 @@ for idx_region, region in enumerate(regions):
     # set y axis for each subplot  
     axs_regions[ax_keys[idx_region]].set_ylim([0-(tick_size/2), n_cells_region-1+(tick_size/2)])
     axs_regions[ax_keys[idx_region]].set_yticks(ticks = np.arange(5 - 1, n_cells_region+1, 5), 
-                              labels = np.arange(5, n_cells_region + 1, 5))
+                                                labels = np.arange(5, n_cells_region + 1, 5))
     axs_regions[ax_keys[idx_region]].set_yticks(ticks = np.arange(0, n_cells_region, 1), 
-                              minor = True)
+                                                minor = True)
     axs_regions[ax_keys[idx_region]].set_ylabel('Cells [#]')
 
 
@@ -238,7 +238,6 @@ axs_regions['D'].spines['bottom'].set_bounds([0, 1])
 
 # despine
 [axs_regions['D'].spines[spine].set_visible(False) for spine in ['top', 'right']]
-
 
 # set grid as False for all subplots
 [axs_regions[ax].grid(False) for ax in axs_regions]

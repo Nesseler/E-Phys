@@ -26,6 +26,7 @@ resul_freq_df = pd.read_excel(os.path.join(cell_descrip_dir, 'ccAPs-resul_freq.x
 
 # get maximal resulting frequency
 max_resul_freq_df = resul_freq_df.max(axis = 0)
+max_resul_freq_df.name = 'max_resul_freq'
 
 
 frequencies = list(mean_ISIs_df.index)
@@ -41,6 +42,8 @@ MetaData = pd.read_excel(table_file,
                          index_col='cell_ID')
 
 MetaData = MetaData.loc[cell_IDs, :]
+
+max_resul_freq_n_metadata_df = pd.concat([max_resul_freq_df, MetaData], axis = 1)
 
 # %% plotting
 
@@ -133,16 +136,6 @@ fig_freq, axs_freq = plt.subplots(1,2,
                                   gridspec_kw = {'width_ratios': [6,2]})
 
 
-# initialise color code
-norm_min = 0
-norm_max = 75
-cmap_str = 'viridis'
-
-norm = mtl.colors.Normalize(norm_min, norm_max)
-cmap = mtl.cm.ScalarMappable(norm=norm, cmap=cmap_str)
-
-# colorbar
-fig_freq.colorbar(cmap, ax = axs_freq[0])
 
 # add unity line
 axs_freq[0].axline(xy1 = (0,0), slope = 1, 
@@ -167,26 +160,27 @@ axs_freq[0].set_ylabel('Resulting frequency [Hz]')
 
 
 # max frequency
-violin = sbn.violinplot(data = max_resul_freq_df,
+violins = sbn.violinplot(data = max_resul_freq_n_metadata_df,
+                        y = 'max_resul_freq',
                         width = .8,
                         inner = 'quart',
                         linewidth = 1.5,
                         color = colors_dict['seccolor'],
                         ax = axs_freq[1])
 
-[c.set_edgecolor(colors_dict['primecolor']) for c in violin.collections[:2]]
-
-for l in violin.lines:
+for l in violins.lines:
     l.set_color(colors_dict['primecolor'])
 
-sbn.swarmplot(data = max_resul_freq_df,
-              c = max_resul_freq_df, 
-              cmap = cmap_str, 
-              norm = norm,
-              ax = axs_freq[1], 
-              size = 8)
+[violin.set_edgecolor(colors_dict['primecolor']) for violin in violins.collections]
 
-axs_freq[1].set_xticks([])
+sbn.swarmplot(data = max_resul_freq_n_metadata_df,
+              y = 'max_resul_freq', 
+              ax = axs_freq[1], 
+              size = 8,
+              hue = 'Region',
+              palette = region_colors)
+
+# axs_freq[1].set_xticks([])
 axs_freq[1].set_ylim([0,80])
 axs_freq[1].set_ylabel('Maximal resulting frequency [Hz]')
 
@@ -194,6 +188,118 @@ axs_freq[1].set_ylabel('Maximal resulting frequency [Hz]')
 [ax.grid(False) for ax in axs_freq]
 
 plt.show()
+save_figures(fig_freq, 'rfreq_v_sfreq+regions', figure_dir, darkmode_bool)
+
+
+# %% plot + separate panels for regions
+
+
+# initialize figure
+ax_keys = ['A', 'B', 'C', 'D']
+regions = ['BAOT/MeA', 'MeA', 'BAOT']
+
+fig_regions, axs_regions = plt.subplot_mosaic('AD;BD;CD', 
+                                              layout = 'constrained',
+                                              figsize = get_figure_size(),
+                                              width_ratios = [1.5, 1],
+                                              dpi = 600)
+
+set_font_sizes()
+
+# sfreq vs rfreq
+
+for idx_region, region in enumerate(regions):
+    
+    # get cell_IDs of dataframe per region
+    cell_IDs_region = MetaData[MetaData['Region'] == region].index.to_list()
+    
+    # get number of cells in region
+    n_cells_region = len(cell_IDs_region)
+    
+    # set axis 
+    ax = axs_regions[ax_keys[idx_region]]
+    
+    for idx_cell, cell_ID in enumerate(cell_IDs_region):
+
+        # add unity line
+        ax.axline(xy1 = (0,0), slope = 1, 
+                           c = 'gray', 
+                           linestyle = '--')
+
+        # plot resulted frequency vs stimulated frequency with colorcode
+        # for cell_ID in cell_IDs_region:
+        ax.plot(freqs_int, resul_freq_df[cell_ID],
+                marker = 'o',
+                c = region_colors[MetaData.at[cell_ID, 'Region']])
+
+    ax.set_xlim([0, 80])
+    ax.set_xticks(freqs_int)
+    
+    ax.set_ylim([0, 80])
+    ax.set_yticks(ticks = np.arange(0, 80, 25), 
+                  labels = np.arange(0, 80, 25))
+    ax.set_yticks(np.arange(0, 80, 5), minor = True)
+
+
+
+# remove ticks between first two activity plots
+for i in ['A', 'B']:
+    axs_regions[i].set_xticks(ticks = [], labels = [])
+    
+axs_regions['C'].set_xlabel('Stimulated frequency [Hz]')  
+
+fig_regions.supylabel('Resulting frequency [Hz]')
+    
+# max frequency
+violins = sbn.violinplot(data = max_resul_freq_n_metadata_df,
+                        y = 'max_resul_freq',
+                        x  = 'Region',
+                        width = .9,
+                        inner = 'quart',
+                        linewidth = 1.5,
+                        color = colors_dict['seccolor'],
+                        ax = axs_regions['D'],
+                        bw_adjust=.5,
+                        density_norm = "area")
+
+for l in violins.lines:
+    l.set_color(colors_dict['primecolor'])
+
+[violin.set_edgecolor(colors_dict['primecolor']) for violin in violins.collections]
+
+swarms = sbn.swarmplot(data = max_resul_freq_n_metadata_df,
+                       y = 'max_resul_freq',
+                       x  = 'Region', 
+                       ax = axs_regions['D'], 
+                       size = 8,
+                       hue = 'Region',
+                       palette = region_colors)
+
+# axs_freq[1].set_xticks([])
+axs_regions['D'].set_ylim([0,80])
+axs_regions['D'].set_ylabel('Maximal resulting frequency [Hz]')
+
+# limit spines
+axs_regions['D'].spines['left'].set_bounds([0, 80])
+axs_regions['D'].spines['bottom'].set_bounds([0, 2])
+
+# despine
+[axs_regions['D'].spines[spine].set_visible(False) for spine in ['top', 'right']]
+
+[axs_regions[ax_keys].grid(False) for ax_keys in axs_regions]
+
+
+
+plt.show()
+
+save_figures(fig_regions, 'rfreq_v_sfreq+sep_regions', figure_dir, darkmode_bool)
+
+
+
+
+
+
+
 
 
 
