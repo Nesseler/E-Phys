@@ -163,6 +163,31 @@ def double_gaussian(x, amp1, cen1, sigma1, amp2, cen2, sigma2):
     
     
 def round_to_base(number, base):
-    return base * round(number/base)    
+    return base * round(number/base)  
+
+    
+# define function of exponential fit
+def exp_func(x, a, b, c):
+    return a * np.exp(-b * x) + c
+
+
+def calc_rsquared_from_exp_fit(x_data, y_data, popt):
+    # calculate the residuals form fit
+    residuals = y_data - exp_func(x_data, *popt)
+    
+    # calculate residual sum of squares
+    ss_res = np.sum(residuals**2)
+    
+    # calc total sum of squares
+    ss_tot = np.sum((y_data - np.mean(y_data))**2)
+    
+    # calc r squared
+    r_squared = 1 - (ss_res / ss_tot)
+    
+    return r_squared
+
+
+
+
     
     

@@ -8,19 +8,20 @@ Created on Wed Feb 21 09:16:29 2024
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sbn
 import numpy as np
 import scipy as sc
 
 # custom directories & parameters
-from parameters.directories_win import table_file
-from parameters.parameters import min_peak_prominence, min_peak_distance, dvdt_threshold, AP_parameters
+from parameters.directories_win import table_file, quant_data_dir
+from parameters.parameters import min_peak_prominence, min_peak_distance, dvdt_threshold, AP_parameters, t_expo_fit, popt_guess
 from parameters.PGFs import cc_IF_parameters
 from getter.get_cell_IDs import get_cell_IDs_one_protocol, get_cell_IDs_all_ccAPfreqs
 
 from functions.functions_constructors import construct_current_array
 from functions.functions_ccIF import get_IF_data
 from functions.functions_import import get_traceIndex_n_file
-from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt, calc_dvdt_padded, round_to_base
+from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt, calc_dvdt_padded, round_to_base, exp_func, calc_rsquared_from_exp_fit
 from functions.functions_plotting import get_colors, get_figure_size, save_figures, plot_t_vs_v
 from functions.functions_extractspike import get_AP_parameters
 
@@ -30,7 +31,7 @@ from functions.functions_extractspike import get_AP_parameters
 vplot_bool = False
 
 darkmode_bool = False
-colors_dict, _ = get_colors(darkmode_bool)
+colors_dict, region_colors = get_colors(darkmode_bool)
 
 
 # %% load data
@@ -49,8 +50,13 @@ I_hold_table = pd.read_excel(table_file, sheet_name="V_or_I_hold", index_col='ce
 IF_df = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 400 + 1, 5))
 IF_inst_df = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 400 + 1, 5))
 
-# test cekk 
-# cell_IDs = ['E-109']
+# create dataframe for other parameters
+rheobase_df = pd.DataFrame(columns=['rheobase_abs', 'rheobase_rel'], index = cell_IDs)
+
+# test cell 
+# cell_IDs = ['E-082']
+
+cell_IDs = ['E-082', 'E-137', 'E-138', 'E-140']
 
 for cell_ID in cell_IDs:
     
@@ -138,7 +144,7 @@ for cell_ID in cell_IDs:
         if vplot_bool:
             plt.plot(v_step, linewidth = 1, c = colors_dict['primecolor'])
             plt.eventplot(idc_peaks, lineoffsets=60, colors = 'r', linelengths=5)
-            plt.ylim([-100, 75])
+            plt.ylim([-140, 75])
             plt.grid(False)
             plt.show()
             
@@ -164,17 +170,213 @@ for cell_ID in cell_IDs:
             IF_inst_df.at[i_input_step, cell_ID] = inst_freq
 
 
+    ### rheobase ###
+    # get first index in number of spikes where there more than 0 spikes
+    rheobase_idx = next(idx for idx, n_spike in enumerate(IF_df[cell_ID]) if n_spike > 0)
+    
+    # get rheobase relative to holding
+    rheobase_rel = i_input[rheobase_idx]
+    
+    # add holding current
+    rheobase = rheobase_rel + i_hold_rounded
+
+    # populate dataframe
+    rheobase_df.at[cell_ID, 'rheobase_abs'] = rheobase
+    rheobase_df.at[cell_ID, 'rheobase_rel'] = rheobase_rel
+    
+    
+    ### tau_mem & R_input ###
+    useful_steps = True
+    
+    # create list of indices for stimulation period
+    idc_stim = np.arange(pre_points, pre_n_stim_points)
+    
+    # create list of indices for exponential fit window
+    delta_points = int(t_expo_fit * SR_ms)
+    idc_expoFit = np.arange(pre_points, pre_points + delta_points)
+    
+    # include time periode before step to compare volatges for R_input calculation
+    idc_pre = np.arange(pre_points - delta_points, pre_points)
+    idc_post = np.arange(pre_points, pre_points + delta_points)
+    idc_withbuffer = np.arange(pre_points - delta_points, pre_points + delta_points)
+    x_withbuffer = np.arange(-delta_points, +delta_points)
+    
+    # initialise dataframe for r_input calculation
+    r_input_calc_df = pd.DataFrame(columns = ['step_idx', 'mean_v_pre', 'v_post_fitted' , 'delta_v', 'delta_i', 'r_input'])
+    tau_mem_calc_df = pd.DataFrame(columns = ['step_idx', 'delta_v', 'delta_v_63', 'v_tau', 'tau_mem'])
+    
+    #vplot
+    if True:
+        fig_expfit, axs_expfit = plt.subplots(nrows = 2,
+                                              ncols = 2,
+                                              layout = 'constrained',
+                                              dpi = 600,
+                                              sharex = True,
+                                              sharey = True)
+        
+        # melt array of axis for easier handling
+        axs_expfit = axs_expfit.flatten()
+        
+        # set figure title
+        fig_expfit.suptitle(cell_ID)
+    
+    # while loop until at least specified number of steps were analyized
+    while useful_steps:
+        
+        # loop through steps
+        for step_idx in np.arange(0, n_steps, 1):
+            
+            i_input_step = i_input[step_idx]
+            
+            v_step_withbuffer = v[step_idx][idc_withbuffer]
+            
+            v_step_fit = v[step_idx][idc_expoFit]
+            
+            v_step_min = np.min(v_step_fit)
+            
+            v_step_min_idx = np.argmin(v_step_fit)
+            
+            # limit trace of first minimum
+            v_step_expFit = v_step_fit[:v_step_min_idx]
+
+            # calc x
+            x_expFit = np.arange(len(v_step_expFit))
+            
+            # fit exponential curve
+            popt, pcov = sc.optimize.curve_fit(exp_func, x_expFit, v_step_expFit, p0=popt_guess, maxfev = 1000)
+            
+            r_squared = calc_rsquared_from_exp_fit(x_expFit, v_step_expFit, popt)
+            
+            
+            ### R_INPUT ###
+            #R_input = ∆U/∆I
+            #∆U = a = popt[0], ∆I = 20 (for first step)
+            v_pre = v[step_idx][idc_pre]
+            v_pre_mean = np.mean(v_pre)
+            delta_v = (popt[2] - v_pre_mean)
+        
+            #delta I
+            delta_i = i_input[step_idx]
+        
+            # calc r_input for current step
+            r_input = ( delta_v / delta_i ) * 1e3 #in MOhm
+            
+            r_input_calc_df.at[step_idx, 'step_idx'] = step_idx
+            r_input_calc_df.at[step_idx, 'mean_v_pre'] = v_pre_mean
+            r_input_calc_df.at[step_idx, 'v_post_fitted'] = popt[2]
+            r_input_calc_df.at[step_idx, 'delta_v'] = delta_v
+            r_input_calc_df.at[step_idx, 'delta_i'] = delta_i
+            r_input_calc_df.at[step_idx, 'r_input'] = r_input
+            
+            
+            ### MEMBRANE TIME CONSTANT
+            # tau_mem
+            # time it takes the potential to reach 1 - (1/e) (~63%) of the max voltage
+        
+            # calc 1 - 1/e
+            tau_perc_value = 1-(1/np.exp(1))
+            
+            # calc max voltage delta
+            delta_v_63 = delta_v * tau_perc_value
+            
+            # calc 63 % of max voltage
+            v_tau = v_pre_mean + delta_v_63
+            
+            # calc time (indices first) it takes to reach v_tau
+            idx_63 = - (np.log((v_tau - popt[2]) / (popt[0]))) / (popt[1])
+            tau_mem = idx_63 / (SR / 1e3) 
+            
+            # append to list
+            tau_mem_calc_df.at[step_idx, 'step_idx'] = step_idx
+            tau_mem_calc_df.at[step_idx, 'delta_v'] = delta_v
+            tau_mem_calc_df.at[step_idx, 'delta_v_63'] = delta_v_63
+            tau_mem_calc_df.at[step_idx, 'v_tau'] = v_tau
+            tau_mem_calc_df.at[step_idx, 'tau_mem'] = tau_mem
+            
+            # vplot
+            if True:
+                
+                # set step as subplot title
+                axs_expfit[step_idx].set_title(f'Step #: {step_idx} {i_input_step} pA')
+                
+                # plot
+                axs_expfit[step_idx].plot(x_withbuffer,
+                                          v_step_withbuffer,
+                                          color = 'gray',
+                                          alpha = 0.5)
+                axs_expfit[step_idx].hlines(y = v_step_min,
+                                            xmin = -delta_points,
+                                            xmax = delta_points,
+                                            color = 'r',
+                                            linestyle = '--',
+                                            alpha = 0.5)
+                axs_expfit[step_idx].scatter(v_step_min_idx, v_step_min,
+                                             c = 'r',
+                                             marker = 'x',
+                                             alpha = 0.5) 
+                
+                # plot exponential fit
+                axs_expfit[step_idx].plot(x_expFit,
+                                          exp_func(x_expFit, *popt),
+                                          linestyle = '--',
+                                          color = colors_dict['color2'])
+                
+                axs_expfit[step_idx].set_ylim([-140, -75])
+                
+                # text field with fit info
+                axs_expfit[step_idx].text(x = -delta_points+100,
+                                          y = -140,
+                                          s = f'{popt[0]}\n{popt[1]}\n{popt[2]}\nr^2: {r_squared}',
+                                          va = 'bottom',
+                                          ha = 'left',
+                                          fontsize = 6)
+                
+                axs_expfit[step_idx].text(x = 0+100,
+                                          y = -140,
+                                          s = f'r_input: {r_input}\ntau_mem: {tau_mem}',
+                                          va = 'bottom',
+                                          ha = 'left',
+                                          fontsize = 6)
+             
+            if step_idx == 3:
+                useful_steps = False
+                break
 
 
+    r_input_calc_df = r_input_calc_df.set_index('step_idx')
+        
+    # save excel sheet    
+    cell_path = os.path.join(quant_data_dir, 'cc_IF', cell_ID)
+    
+    if not os.path.exists(cell_path):
+        os.mkdir(cell_path)
+        
+    r_input_calc_path = os.path.join(cell_path, f'{cell_ID}-R_input_calc.xlsx')
+
+    r_input_calc_df.to_excel(r_input_calc_path, index_label='step_idx')
+
+            
+    
+    if True:
+        # show plot
+        [ax.grid(False) for ax in axs_expfit]
+        plt.show()
+        
+    
+            
+    
+    
+    
+    
 # %%
 
 
 
-plt.figure()
-for cell_ID in cell_IDs:
-    plt.plot(IF_inst_df[cell_ID])
+# plt.figure()
+# for cell_ID in cell_IDs:
+#     plt.plot(IF_df[cell_ID])
     
-plt.show
+# plt.show
 
 
 

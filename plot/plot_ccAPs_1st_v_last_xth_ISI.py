@@ -194,7 +194,7 @@ fig_regions, axs_regions = plt.subplots(nrows = 3,
                                         ncols = 1,
                                         layout = 'constrained',
                                         dpi = 600,
-                                        figsize = get_figure_size(width = 107.057))
+                                        figsize = get_figure_size(width = 161.835))
 
 
 set_font_sizes()

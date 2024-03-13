@@ -48,3 +48,9 @@ bin_size_ISI_poisson = 25e-3
 
 
 
+# %% cc_IF
+
+t_expo_fit = 150. #ms
+
+# set a guess for exponential fit
+popt_guess = [10, 0.005, -85]

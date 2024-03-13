@@ -104,7 +104,10 @@ colors_dict, region_c = get_colors(darkmode_bool)
 fig_1st_v_lst, axs_1st_v_lst = plt.subplots(nrows = 1,
                                             ncols = 1,
                                             layout = 'constrained',
-                                            dpi = 600)
+                                            dpi = 600,
+                                            figsize = get_figure_size(width = 165.5))
+
+set_font_sizes()
 
 for cell_ID in cell_IDs:
     axs_1st_v_lst.plot(freqs_int, plt_df[cell_ID],
@@ -130,7 +133,8 @@ axs_1st_v_lst.set_xticks(ticks = freqs_int)
 # x axis at zero
 axs_1st_v_lst.axhline(y = 1.0, xmin = 0, xmax = 1,
                       lw = 1,
-                      color = colors_dict['primecolor'])
+                      color = colors_dict['primecolor'],
+                      linestyle = '--')
 
 
 # despine
@@ -233,10 +237,11 @@ fig_ccmeta_sep, axs_ccmeta_sep = plt.subplots(nrows = 3,
                                               layout = 'constrained',
                                               dpi = 600,
                                               sharey = True,
-                                              sharex = True)
+                                              sharex = True,
+                                              figsize = get_figure_size(width = 165.5))
 
 
-regions = ['BAOT/MeA', 'BAOT', 'MeA']
+regions = ['BAOT/MeA', 'MeA', 'BAOT']
 
 for region_idx, region in enumerate(regions):
     
@@ -285,7 +290,7 @@ for ax in axs_ccmeta_sep:
 [ax.grid(False) for ax in axs_ccmeta_sep]
 
 
-
+save_figures(fig_ccmeta_sep, f'ccAPs-{AP_parameter}-perc_of_fst-cc_region+sep_panels', figure_dir, darkmode_bool)
 
 
 
@@ -319,8 +324,8 @@ for cell_ID in cell_IDs:
     
     
     axs_rfreq.plot(xy['resul_freq'], xy['prec_of_first'],
-                       color = colors_dict['primecolor'] ,#regions_c[cell_region],
-                       alpha = 0.5)
+                       color = region_c[cell_region] ,#regions_c[cell_region],
+                       alpha = 1)
 
 
 # axs_ccmeta.errorbar(x = freqs_int,
@@ -390,35 +395,43 @@ fig_ccmeta, axs_ccmeta = plt.subplots(nrows = 1,
                                             dpi = 600,
                                             figsize = get_figure_size())
 
-# violins = sbn.violinplot(data = plt_df_melted,
-#                           y = plt_df_melted[AP_parameter].to_list(),
-#                           x = 'frequency',
-#                           hue = 'Region',
-#                           inner = 'quart',
-#                           spilt = True,
-#                           palette = ['k', 'k', 'k'], 
-#                           linewidth = 1,
-#                           label ='_nolegend_')
+violins = sbn.violinplot(data = plt_df_melted,
+                         y = plt_df_melted[AP_parameter].to_list(),
+                         x = 'frequency',
+                         hue = 'Region',
+                         inner = 'quart',
+                         palette = ['k', 'k', 'k'],
+                         hue_order = regions,
+                         linewidth = 1.5)
 
 
-# for l in violins.lines:
-#     l.set_color(colors_dict['primecolor'])
+# 6 stimulation frequencies, 3 regions and 3 lines (for quartiles) in violins
+region_per_violin = []
+[region_per_violin.append(region) for freq in frequencies for region in regions for i in range(3)]
 
-# [violin.set_edgecolor(colors_dict['primecolor']) for violin in violins.collections]
+for idx_l, l in enumerate(violins.lines):
+    l.set_color(region_c[region_per_violin[idx_l]])
+
+# 6 stimulation frequencies, 3 regions and 3 lines (for quartiles) in violins
+region_per_violin = []
+[region_per_violin.append(region) for freq in frequencies for region in regions]
+
+for idx_violin, violin in enumerate(violins.collections):
+    violin.set_edgecolor(region_c[region_per_violin[idx_violin]])
+    
 
 
+swarms = sbn.swarmplot(plt_df_melted,
+                       x = 'frequency',
+                       y = AP_parameter,
+                       hue = 'Region',
+                       palette = region_c,
+                       dodge = True,
+                       size = 5,
+                       hue_order = regions)
 
 
-sbn.swarmplot(plt_df_melted,
-              x = 'frequency',
-              y = AP_parameter,
-              hue = 'Region',
-              palette = region_c,
-              dodge = True,
-              size = 6)
-
-
-for region_idx, region in enumerate(['BAOT/MeA', 'BAOT', 'MeA']):
+for region_idx, region in enumerate(regions):
     
     print(region_idx, region)
     
@@ -430,7 +443,7 @@ for region_idx, region in enumerate(['BAOT/MeA', 'BAOT', 'MeA']):
     positions_df = pd.DataFrame()
     
     for idx, frequency in enumerate(frequencies):
-        positions = np.array(axs_ccmeta.collections[(idx*3)+region_idx].get_offsets())
+        positions = np.array(axs_ccmeta.collections[(idx*3)+region_idx+18].get_offsets())
         
         cur_df = pd.DataFrame({'x' : positions[:, 0],
                                 'y' : positions[:, 1],
@@ -455,24 +468,25 @@ for region_idx, region in enumerate(['BAOT/MeA', 'BAOT', 'MeA']):
 
 
 # axs_ccmeta.errorbar(x = freqs_int,
-#                        y = mean,
-#                        yerr = std,
-#                        color = colors_dict['primecolor'],
-#                        ecolor = colors_dict['primecolor'],
-#                        linestyle = '--',
-#                        capsize = 3,
-#                        marker = '_',
-#                        markersize = 10)
+#                         y = mean,
+#                         yerr = std,
+#                         color = colors_dict['primecolor'],
+#                         ecolor = colors_dict['primecolor'],
+#                         linestyle = '--',
+#                         capsize = 3,
+#                         marker = '_',
+#                         markersize = 10)
 
 
 # axs_ccmeta.set_xlim([-1, 77])
 # axs_ccmeta.set_xlabel('Stimulation frequency [Hz]')
 # axs_ccmeta.set_xticks(ticks = freqs_int)
 
-# # x axis at zero
-# axs_ccmeta.axhline(y = 1.0, xmin = 0, xmax = 1,
-#                       lw = 1,
-#                       color = colors_dict['primecolor'])
+# x axis at one
+axs_ccmeta.axhline(y = 1.0, xmin = 0, xmax = 1,
+                      lw = 1,
+                      color = colors_dict['primecolor'],
+                      linestyle = '--')
 
 
 # # despine
@@ -494,3 +508,4 @@ elif AP_parameter == 'FWHM':
     
 axs_ccmeta.grid(False)
 
+save_figures(fig_ccmeta, f'ccAPs-{AP_parameter}-perc_of_fst-violins-regions', figure_dir, darkmode_bool)
