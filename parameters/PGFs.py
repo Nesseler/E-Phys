@@ -64,8 +64,14 @@ cc_IF_parameters = {'t_pre' : 250, #ms
                     'max_n_steps' : 71}
 
 
+# %% cc_sag
 
-
+cc_sag_parameters = {'t_pre' : 250, #ms
+                     't_stim' : 1000, #ms
+                     't_post' : 250, #ms
+                     'i_delta' : 10, #pA
+                     'i_start' : -100, #pA
+                     'max_n_steps' : 21}
 
 
 

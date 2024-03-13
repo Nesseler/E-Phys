@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Wed Mar 13 15:55:49 2024
+
+@author: nesseler
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Wed Feb 21 09:16:29 2024
 
 @author: nesseler
@@ -8,61 +15,34 @@ Created on Wed Feb 21 09:16:29 2024
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sbn
 import numpy as np
 import scipy as sc
 
 # custom directories & parameters
 from parameters.directories_win import table_file, quant_data_dir
-from parameters.parameters import min_peak_prominence, min_peak_distance, dvdt_threshold, AP_parameters, t_expo_fit, popt_guess
-from parameters.PGFs import cc_IF_parameters
-from getter.get_cell_IDs import get_cell_IDs_one_protocol, get_cell_IDs_all_ccAPfreqs
+from parameters.parameters import t_expo_fit, popt_guess
+from parameters.PGFs import cc_sag_parameters
 
 from functions.functions_constructors import construct_current_array
 from functions.functions_ccIF import get_IF_data
 from functions.functions_import import get_traceIndex_n_file
-from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt, calc_dvdt_padded, round_to_base, exp_func, calc_rsquared_from_exp_fit
-from functions.functions_plotting import get_colors, get_figure_size, save_figures, plot_t_vs_v
-from functions.functions_extractspike import get_AP_parameters
+from functions.functions_useful import calc_time_series, butter_filter, round_to_base, exp_func, calc_rsquared_from_exp_fit
+from functions.functions_plotting import get_colors, get_figure_size, save_figures
 
-from analysis.analyze_ccsag_for_rinput_taumem import get_rinput_n_taumem_from_cc_sag
-
-# %% settings
-
-vplot_bool = False
-
-darkmode_bool = False
-colors_dict, region_colors = get_colors(darkmode_bool)
+# cell_ID = 'E-138'
 
 
-# %% load data
-
-# protocol 
-PGF = 'cc_IF'
-
-# get cell IDs
-# cell_IDs = get_cell_IDs_one_protocol(PGF)
-cell_IDs = get_cell_IDs_all_ccAPfreqs()
-
-# get hold current as table
-I_hold_table = pd.read_excel(table_file, sheet_name="V_or_I_hold", index_col='cell_ID').loc[cell_IDs, :]
-
-# create dataframe for firing frequency
-IF_df = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 400 + 1, 5))
-IF_inst_df = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 400 + 1, 5))
-
-# create dataframe for other parameters
-active_properties_df = pd.DataFrame(columns=['rheobase_abs', 'rheobase_rel'], index = cell_IDs)
-passiv_properties_df = pd.DataFrame(columns=['r_input', 'tau_mem'], index = cell_IDs)
-
-# test cell 
-# cell_IDs = ['E-134']
-
-# cell_IDs = ['E-082', 'E-137', 'E-138', 'E-140']
-
-for cell_ID in cell_IDs:
+def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
     
-    print(f'Started: {cell_ID}')
+    colors_dict, region_colors = get_colors(darkmode_bool)
+    
+    # protocol 
+    PGF = 'cc_sag'
+    
+    # get hold current as table
+    I_hold_table = pd.read_excel(table_file, sheet_name="V_or_I_hold", index_col='cell_ID').loc[cell_ID, :]
+    
+    
     
     # get the traceIndex and the file path string for data import functions
     traceIndex, file_path = get_traceIndex_n_file(PGF, cell_ID)
@@ -74,45 +54,43 @@ for cell_ID in cell_IDs:
     SR_ms = SR / 1e3
     
     # concatenate individual steps
-    n_points = int(np.shape(i)[0] * np.shape(i)[1])
     
     v_concat = v.flatten() 
     
     t_ms = calc_time_series(v_concat, SR)
-    t_s = calc_time_series(v_concat, SR, scale = 's')
     
     # filter voltage (to vf)
     vf = butter_filter(v_concat, 
                        order = 3,
                        cutoff = 1e3,
                        sampling_rate = SR)
-
+    
     ### construct current dataframe
-    i_hold = I_hold_table.at[cell_ID, PGF]
+    i_hold = I_hold_table[PGF]
     
     # calculate current steps relative to I_hold
     ## rounded to nearest 5
     i_hold_rounded = round_to_base(i_hold, 5)
     
+    # rewrite I start for each cells since that varies in the protocols
+    cc_sag_parameters['i_start'] = I_hold_table['cc_sag-i_start']
+    
     # get current arrays and list of input current relative to i_hold
     i, i_input = construct_current_array(i_hold = i_hold_rounded,
                                          n_steps = n_steps,
-                                         parameters_dict = cc_IF_parameters,
+                                         parameters_dict = cc_sag_parameters,
                                          SR_ms = SR_ms)
     
     # split concatenate arrays back to steps wise 
     # needs to occurs after filtering because of the filtering artifact
-    
     v = [None] * n_steps
     t = [None] * n_steps
-    peaks = [None] * n_steps
-    idx_peaks_s = [None] * n_steps
     
-    step_dur = cc_IF_parameters['t_pre'] + cc_IF_parameters['t_stim'] + cc_IF_parameters['t_post']
+    step_dur = cc_sag_parameters['t_pre'] + cc_sag_parameters['t_stim'] + cc_sag_parameters['t_post']
     step_points = step_dur * SR_ms
     
-    pre_points = int(cc_IF_parameters['t_pre'] * SR_ms)
-    pre_n_stim_points = int((cc_IF_parameters['t_pre'] + cc_IF_parameters['t_stim']) * SR_ms)
+    pre_points = int(cc_sag_parameters['t_pre'] * SR_ms)
+    pre_n_stim_points = int((cc_sag_parameters['t_pre'] + cc_sag_parameters['t_stim']) * SR_ms)
     
     
     # loop through steps to limit voltage trace
@@ -129,62 +107,6 @@ for cell_ID in cell_IDs:
         v[step_idx] = v_step
         t[step_idx] = t_ms[start_idx:stop_idx]
         i_input_step = i_input[step_idx]
-    
-        # find peaks
-        idc_peaks, dict_peak = sc.signal.find_peaks(v_step, 
-                                                    prominence = min_peak_prominence, 
-                                                    distance = min_peak_distance * (SR_ms))
-
-            
-        # limit spike indices to stimulation time period
-        idc_peaks = [idx_peak for idx_peak in idc_peaks if idx_peak > pre_points and idx_peak <= pre_n_stim_points]
-        
-        # get times of spikes
-        t_spikes = np.divide(idc_peaks, SR_ms)
-        
-        # verification plot for detection of spikes in each step
-        if vplot_bool:
-            plt.plot(v_step, linewidth = 1, c = colors_dict['primecolor'])
-            plt.eventplot(idc_peaks, lineoffsets=60, colors = 'r', linelengths=5)
-            plt.ylim([-140, 75])
-            plt.grid(False)
-            plt.show()
-            
-        # calc frequency over entire step 
-        n_spikes = len(idc_peaks)
-        
-        # write to dataframe
-        IF_df.at[i_input_step, cell_ID] = n_spikes / (cc_IF_parameters['t_stim'] / 1e3)
-    
-        # calculate ISI
-        if n_spikes >= 2:
-            
-            # get ISI as difference of spike times
-            ISIs = np.diff(t_spikes)
-            
-            # calculate average ISI
-            mean_ISI = np.mean(ISIs)
-    
-            # calculate the instantaneous firing frequency as inverse of the firing frequency
-            inst_freq = (1 / mean_ISI ) * 1e3
-            
-            # write to dataframe
-            IF_inst_df.at[i_input_step, cell_ID] = inst_freq
-
-
-    ### rheobase ###
-    # get first index in number of spikes where there more than 0 spikes
-    rheobase_idx = next(idx for idx, n_spike in enumerate(IF_df[cell_ID]) if n_spike > 0)
-    
-    # get rheobase relative to holding
-    rheobase_rel = i_input[rheobase_idx]
-    
-    # add holding current
-    rheobase = rheobase_rel + i_hold_rounded
-
-    # populate dataframe
-    active_properties_df.at[cell_ID, 'rheobase_abs'] = rheobase
-    active_properties_df.at[cell_ID, 'rheobase_rel'] = rheobase_rel
     
     
     ### tau_mem & R_input ###
@@ -283,9 +205,6 @@ for cell_ID in cell_IDs:
             
                 #delta I
                 delta_i = i_input[step_idx]
-                
-                if delta_i == 0:
-                    raise ValueError('Zero input current')
             
                 # calc r_input for current step
                 r_input = ( delta_v / delta_i ) * 1e3 #in MOhm
@@ -351,18 +270,14 @@ for cell_ID in cell_IDs:
             
                 useful_steps += 1
             
-            except RuntimeError:
+            except (RuntimeError, ValueError):
                 print(f'{cell_ID} step number {step_idx+1} has been omitted')
-            
-            except ValueError:
-                useful_steps_bool = False
-                break
             
             if useful_steps == 3 or step_idx ==6:
                 useful_steps_bool = False
                 break
-
-
+    
+    
     r_input_calc_df = r_input_calc_df.set_index('step_idx')
     tau_mem_calc_df = tau_mem_calc_df.set_index('step_idx')
         
@@ -377,47 +292,33 @@ for cell_ID in cell_IDs:
     
     tau_mem_calc_path = os.path.join(cell_path, f'{cell_ID}-{PGF}-tau_mem_calc.xlsx')
     tau_mem_calc_df.to_excel(tau_mem_calc_path, index_label='step_idx')
-
+    
               
     if True:
         # show plot
         [ax.grid(False) for ax in axs_expfit]
         plt.show()
+        save_figures(fig_expfit, f'{cell_ID}-{PGF}-r_input_n_tau_mem', cell_path, darkmode_bool)
         
     
     ### break out if fitting to first steps of IF is not successful ###
     n_steps_w_good_fit = len(r_input_calc_df[r_input_calc_df['r_squared'] > 0.75])
-
+    
     if n_steps_w_good_fit < 3:
-        print(f'{cell_ID} will use cc_sag')
-        
-        # call sag_analysis function
-        r_input, tau_mem = get_rinput_n_taumem_from_cc_sag(cell_ID, True, darkmode_bool)
-    
-    else:
-        # calc values as mean of 3 steps
-        r_input = r_input_calc_df['r_input'].mean()   
-        tau_mem = tau_mem_calc_df['tau_mem'].mean()
-
-
-    passiv_properties_df.at[cell_ID, 'r_input'] = r_input
-    passiv_properties_df.at[cell_ID, 'tau_mem'] = tau_mem
-
-
+        print(f'{cell_ID} needs to be discarded')
     
     
+    # calc values as mean of 3 steps
+    r_input = r_input_calc_df['r_input'].mean()   
+    tau_mem = tau_mem_calc_df['tau_mem'].mean()
     
-    
-    
-# %%
+    return r_input, tau_mem
 
 
 
-# plt.figure()
-# for cell_ID in cell_IDs:
-#     plt.plot(IF_df[cell_ID])
-    
-# plt.show
+
+
+
 
 
 
