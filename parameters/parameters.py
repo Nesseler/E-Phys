@@ -54,3 +54,11 @@ t_expo_fit = 150. #ms
 
 # set a guess for exponential fit
 popt_guess = [10, 0.005, -85]
+
+# useful step r_squared threshold
+r_squared_thresh = 0.9
+
+# set parameters to find peaks
+min_peak_prominence_ccIF = 20 #(mV)
+min_peak_distance_ccIF = 1 #ms
+min_max_peak_width_ccIF = [0.5, 10]

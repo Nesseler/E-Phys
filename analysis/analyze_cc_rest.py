@@ -132,6 +132,8 @@ v_rest = []
 
 
 for cell_idx, cell_ID in enumerate(all_cell_IDs):
+    
+    print(f'Started: {cell_ID}')
         
     v_cell = v_filtered_df[cell_idx].to_list()
     

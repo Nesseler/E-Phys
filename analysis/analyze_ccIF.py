@@ -13,8 +13,8 @@ import numpy as np
 import scipy as sc
 
 # custom directories & parameters
-from parameters.directories_win import table_file, quant_data_dir
-from parameters.parameters import min_peak_prominence, min_peak_distance, dvdt_threshold, AP_parameters, t_expo_fit, popt_guess
+from parameters.directories_win import table_file, quant_data_dir, cell_descrip_dir, vplot_dir
+from parameters.parameters import min_peak_prominence_ccIF, min_peak_distance_ccIF, min_max_peak_width_ccIF, dvdt_threshold, AP_parameters, t_expo_fit, popt_guess, r_squared_thresh
 from parameters.PGFs import cc_IF_parameters
 from getter.get_cell_IDs import get_cell_IDs_one_protocol, get_cell_IDs_all_ccAPfreqs
 
@@ -41,8 +41,8 @@ colors_dict, region_colors = get_colors(darkmode_bool)
 PGF = 'cc_IF'
 
 # get cell IDs
-# cell_IDs = get_cell_IDs_one_protocol(PGF)
-cell_IDs = get_cell_IDs_all_ccAPfreqs()
+cell_IDs = get_cell_IDs_one_protocol(PGF)
+# cell_IDs = get_cell_IDs_all_ccAPfreqs()
 
 # get hold current as table
 I_hold_table = pd.read_excel(table_file, sheet_name="V_or_I_hold", index_col='cell_ID').loc[cell_IDs, :]
@@ -52,11 +52,12 @@ IF_df = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 400 + 1, 5))
 IF_inst_df = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 400 + 1, 5))
 
 # create dataframe for other parameters
-active_properties_df = pd.DataFrame(columns=['rheobase_abs', 'rheobase_rel'], index = cell_IDs)
+active_properties_df = pd.DataFrame(columns=['rheobase_abs', 'rheobase_rel', 'v_thres_rheobase_spike'], index = cell_IDs)
 passiv_properties_df = pd.DataFrame(columns=['r_input', 'tau_mem'], index = cell_IDs)
+fstAP_df = pd.DataFrame(columns = AP_parameters, index = cell_IDs)
 
 # test cell 
-# cell_IDs = ['E-134']
+# cell_IDs = ['E-111']
 
 # cell_IDs = ['E-082', 'E-137', 'E-138', 'E-140']
 
@@ -105,7 +106,7 @@ for cell_ID in cell_IDs:
     
     v = [None] * n_steps
     t = [None] * n_steps
-    peaks = [None] * n_steps
+    peak_idc = [None] * n_steps
     idx_peaks_s = [None] * n_steps
     
     step_dur = cc_IF_parameters['t_pre'] + cc_IF_parameters['t_stim'] + cc_IF_parameters['t_post']
@@ -132,20 +133,25 @@ for cell_ID in cell_IDs:
     
         # find peaks
         idc_peaks, dict_peak = sc.signal.find_peaks(v_step, 
-                                                    prominence = min_peak_prominence, 
-                                                    distance = min_peak_distance * (SR_ms))
+                                                    prominence = min_peak_prominence_ccIF, 
+                                                    distance = min_peak_distance_ccIF * (SR_ms),
+                                                    width = np.multiply(min_max_peak_width_ccIF, SR_ms))
 
             
         # limit spike indices to stimulation time period
         idc_peaks = [idx_peak for idx_peak in idc_peaks if idx_peak > pre_points and idx_peak <= pre_n_stim_points]
         
+        # write peak indices to array for all steps
+        peak_idc[step_idx] = idc_peaks
+        
         # get times of spikes
         t_spikes = np.divide(idc_peaks, SR_ms)
         
         # verification plot for detection of spikes in each step
-        if vplot_bool:
+        if False:
             plt.plot(v_step, linewidth = 1, c = colors_dict['primecolor'])
             plt.eventplot(idc_peaks, lineoffsets=60, colors = 'r', linelengths=5)
+            plt.title(f'{cell_ID}: step #: {step_idx}')
             plt.ylim([-140, 75])
             plt.grid(False)
             plt.show()
@@ -174,7 +180,7 @@ for cell_ID in cell_IDs:
 
     ### rheobase ###
     # get first index in number of spikes where there more than 0 spikes
-    rheobase_idx = next(idx for idx, n_spike in enumerate(IF_df[cell_ID]) if n_spike > 0)
+    rheobase_idx = next(idx for idx, n_spike in enumerate(IF_df[cell_ID].dropna()) if n_spike > 0)
     
     # get rheobase relative to holding
     rheobase_rel = i_input[rheobase_idx]
@@ -186,7 +192,43 @@ for cell_ID in cell_IDs:
     active_properties_df.at[cell_ID, 'rheobase_abs'] = rheobase
     active_properties_df.at[cell_ID, 'rheobase_rel'] = rheobase_rel
     
+    # rheobase as voltage at threshold of first spike
+    # get voltage trace with rheobase step
+    v_rheobase = v[rheobase_idx]
+    t_rheobase = t[rheobase_idx]
+    dvdt_rheobase = calc_dvdt_padded(v_rheobase, t_rheobase)
     
+    # get index of first spike
+    idc_rheobase_spikes = peak_idc[rheobase_idx]
+    
+    # get only first indec
+    if len(idc_rheobase_spikes) > 1:
+        idx_rheobase_spike = [idc_rheobase_spikes[0]]
+    elif len(idc_rheobase_spikes) == 1:
+        idx_rheobase_spike = idc_rheobase_spikes
+    else:
+        raise ValueError('size of list for rheobase spike')
+
+    # rheobase step verification plot
+    if vplot_bool:
+        plt.plot(v_rheobase, linewidth = 1, c = colors_dict['primecolor'])
+        plt.eventplot(idx_rheobase_spike, lineoffsets=60, colors = 'r', linelengths=5)
+        plt.title(f'{cell_ID}: rheobase step #: {rheobase_idx}')
+        plt.ylim([-140, 75])
+        plt.grid(False)
+        plt.show()
+    
+    # get AP parameters of first spike
+    rheobase_spike_params, rheobase_spike_v = get_AP_parameters(t_rheobase, v_rheobase, dvdt_rheobase, idx_rheobase_spike)
+    
+    # write to active properties dataframe
+    active_properties_df.at[cell_ID, 'v_thres_rheobase_spike'] = rheobase_spike_params.at[0, 'v_threshold']
+    
+    # concatenate all AP parameters of first spike to dataframe
+    fstAP_df.loc[cell_ID] = rheobase_spike_params.iloc[0]
+    fstAP_df.at[cell_ID, 'SR_ms'] = SR_ms
+
+
     ### tau_mem & R_input ###
     useful_steps_bool = True
     useful_steps = 0
@@ -209,7 +251,7 @@ for cell_ID in cell_IDs:
     tau_mem_calc_df = pd.DataFrame(columns = ['step_idx', 'delta_v', 'delta_v_63', 'v_tau', 'tau_mem'])
     
     #vplot
-    if True:
+    if vplot_bool:
         fig_expfit, axs_expfit = plt.subplots(nrows = 2,
                                               ncols = 3,
                                               layout = 'constrained',
@@ -244,7 +286,7 @@ for cell_ID in cell_IDs:
             v_step_expFit = v_step_fit[:v_step_min_idx]
 
             # vplot
-            if True:
+            if vplot_bool:
                 # set step as subplot title
                 axs_expfit[step_idx].set_title(f'Step #: {step_idx} {i_input_step} pA')
                 
@@ -265,6 +307,12 @@ for cell_ID in cell_IDs:
                                              alpha = 0.5)
 
             try:
+                #delta I
+                delta_i = i_input[step_idx]
+                
+                if delta_i > -10:
+                    raise ValueError('Zero input current')
+            
                 # calc x
                 x_expFit = np.arange(len(v_step_expFit))
                 
@@ -273,20 +321,14 @@ for cell_ID in cell_IDs:
                 
                 r_squared = calc_rsquared_from_exp_fit(x_expFit, v_step_expFit, popt)
                 
-                
                 ### R_INPUT ###
                 #R_input = ∆U/∆I
                 #∆U = a = popt[0], ∆I = 20 (for first step)
                 v_pre = v[step_idx][idc_pre]
                 v_pre_mean = np.mean(v_pre)
-                delta_v = (popt[2] - v_pre_mean)
-            
-                #delta I
-                delta_i = i_input[step_idx]
-                
-                if delta_i == 0:
-                    raise ValueError('Zero input current')
-            
+                # delta_v = (popt[2] - v_pre_mean)
+                delta_v = -popt[0]
+                    
                 # calc r_input for current step
                 r_input = ( delta_v / delta_i ) * 1e3 #in MOhm
                 
@@ -325,7 +367,7 @@ for cell_ID in cell_IDs:
                 
      
                 # vplot
-                if True:               
+                if vplot_bool:               
                     # plot exponential fit
                     axs_expfit[step_idx].plot(x_expFit,
                                               exp_func(x_expFit, *popt),
@@ -348,8 +390,9 @@ for cell_ID in cell_IDs:
                                               va = 'bottom',
                                               ha = 'left',
                                               fontsize = 8)
-            
-                useful_steps += 1
+                    
+                if r_squared > r_squared_thresh:
+                    useful_steps += 1
             
             except RuntimeError:
                 print(f'{cell_ID} step number {step_idx+1} has been omitted')
@@ -379,10 +422,18 @@ for cell_ID in cell_IDs:
     tau_mem_calc_df.to_excel(tau_mem_calc_path, index_label='step_idx')
 
               
-    if True:
+    if vplot_bool:
         # show plot
         [ax.grid(False) for ax in axs_expfit]
         plt.show()
+        
+        # save excel sheet    
+        cell_vplots_path = os.path.join(vplot_dir, 'cc_IF', cell_ID)
+        
+        if not os.path.exists(cell_vplots_path):
+            os.mkdir(cell_vplots_path)
+        
+        save_figures(fig_expfit, f'{cell_ID}-ccIF-expon_fit', cell_vplots_path, darkmode_bool)
         
     
     ### break out if fitting to first steps of IF is not successful ###
@@ -392,7 +443,7 @@ for cell_ID in cell_IDs:
         print(f'{cell_ID} will use cc_sag')
         
         # call sag_analysis function
-        r_input, tau_mem = get_rinput_n_taumem_from_cc_sag(cell_ID, True, darkmode_bool)
+        r_input, tau_mem = get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool)
     
     else:
         # calc values as mean of 3 steps
@@ -404,11 +455,24 @@ for cell_ID in cell_IDs:
     passiv_properties_df.at[cell_ID, 'tau_mem'] = tau_mem
 
 
-    
-    
-    
-    
-    
+# %%
+
+# calculate the membrane capacitance as
+# c_mem = tau_mem / r_input
+# times 1e3 for conversion to pF
+passiv_properties_df['c_mem'] = (passiv_properties_df['tau_mem'] / passiv_properties_df['r_input']) * 1e3
+
+
+# %%
+
+# save measurements to excel file
+passiv_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-passiv_properties.xlsx'), index_label = 'cell_ID')    
+active_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-active_properties.xlsx'), index_label = 'cell_ID')   
+IF_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF.xlsx'), index_label = 'i_input')       
+IF_inst_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF_inst.xlsx'), index_label = 'i_input')   
+ 
+fstAP_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-fst_AP_parameters.xlsx'), index_label = 'cell_ID')
+
 # %%
 
 
@@ -418,6 +482,10 @@ for cell_ID in cell_IDs:
 #     plt.plot(IF_df[cell_ID])
     
 # plt.show
+
+
+
+
 
 
 

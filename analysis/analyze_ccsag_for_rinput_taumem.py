@@ -20,7 +20,7 @@ import scipy as sc
 
 # custom directories & parameters
 from parameters.directories_win import table_file, quant_data_dir
-from parameters.parameters import t_expo_fit, popt_guess
+from parameters.parameters import t_expo_fit, popt_guess, r_squared_thresh
 from parameters.PGFs import cc_sag_parameters
 
 from functions.functions_constructors import construct_current_array
@@ -74,6 +74,7 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
     
     # rewrite I start for each cells since that varies in the protocols
     cc_sag_parameters['i_start'] = I_hold_table['cc_sag-i_start']
+    cc_sag_parameters['i_delta'] = I_hold_table['cc_sag-i_delta']
     
     # get current arrays and list of input current relative to i_hold
     i, i_input = construct_current_array(i_hold = i_hold_rounded,
@@ -131,7 +132,7 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
     tau_mem_calc_df = pd.DataFrame(columns = ['step_idx', 'delta_v', 'delta_v_63', 'v_tau', 'tau_mem'])
     
     #vplot
-    if True:
+    if vplot_bool:
         fig_expfit, axs_expfit = plt.subplots(nrows = 2,
                                               ncols = 3,
                                               layout = 'constrained',
@@ -201,7 +202,8 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
                 #∆U = a = popt[0], ∆I = 20 (for first step)
                 v_pre = v[step_idx][idc_pre]
                 v_pre_mean = np.mean(v_pre)
-                delta_v = (popt[2] - v_pre_mean)
+                # delta_v = (popt[2] - v_pre_mean)
+                delta_v = -popt[0]
             
                 #delta I
                 delta_i = i_input[step_idx]
@@ -244,7 +246,7 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
                 
      
                 # vplot
-                if True:               
+                if vplot_bool:               
                     # plot exponential fit
                     axs_expfit[step_idx].plot(x_expFit,
                                               exp_func(x_expFit, *popt),
@@ -268,7 +270,8 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
                                               ha = 'left',
                                               fontsize = 8)
             
-                useful_steps += 1
+                if r_squared > r_squared_thresh:
+                    useful_steps += 1
             
             except (RuntimeError, ValueError):
                 print(f'{cell_ID} step number {step_idx+1} has been omitted')
@@ -294,7 +297,7 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
     tau_mem_calc_df.to_excel(tau_mem_calc_path, index_label='step_idx')
     
               
-    if True:
+    if vplot_bool:
         # show plot
         [ax.grid(False) for ax in axs_expfit]
         plt.show()

@@ -8,7 +8,7 @@ Created on Fri Mar  1 16:52:58 2024
 import pandas as pd
 import seaborn as sbn
 import matplotlib.pyplot as plt
-from os.path import join
+from os.path import join, dirname
 
 from getter.get_onlyfiles_list import get_onlyfiles_list
 from parameters.directories_win import cell_morph_measures_dir, table_file, cell_morph_figures_dir
@@ -53,7 +53,7 @@ MetaData = MetaData.loc[cell_IDs, :]
 morph_parameters = pd.concat([morph_parameters, MetaData], axis = 1)
 
 # export to combined list
-morph_parameters.T.to_excel(join(cell_morph_measures_dir, 'morph_parameters.xlsx'), index = 'cell_ID')
+morph_parameters.T.to_excel(join(dirname(cell_morph_measures_dir), 'morph_parameters.xlsx'), index = 'cell_ID')
 
 # %% trail plot
 
@@ -88,9 +88,7 @@ for parameter in parameters:
                             y = parameter,
                             inner = 'quart',
                             linewidth = 1,
-                            hue = 'put. morph category',
-                            ax = axs_sep_regions,
-                            palette = 'deep')
+                            ax = axs_sep_regions)
     
     for l in violin.lines:
         l.set_color(colors_dict['primecolor'])
@@ -106,9 +104,8 @@ for parameter in parameters:
                           ax = axs_sep_regions,
                           size = 7,
                           color = colors_dict['primecolor'],
-                          hue = 'put. morph category',
-                          palette = 'deep',
-                          dodge = True)
+                          hue = 'Region',
+                          palette = regions_c)
     
     
     plt.grid(False)
