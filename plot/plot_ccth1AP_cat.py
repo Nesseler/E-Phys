@@ -253,9 +253,11 @@ fig_fstAP, axs_fstAP = plt.subplots(nrows = 2,
                                     layout = 'constrained')
 
 axs_fstAP = axs_fstAP.flatten()
-fig_fstAP.delaxes(axs_fstAP[-1])
+fig_fstAP.delaxes(axs_fstAP[0])
 
 for idx, parameter in enumerate(fstAP_df.columns):
+    
+    ax = axs_fstAP[idx+1]
 
     # identified_regions_only_df = plt_df.query('Region != "BAOT / MeA"')
 
@@ -264,7 +266,7 @@ for idx, parameter in enumerate(fstAP_df.columns):
                             y = parameter,
                             inner = 'quart',
                             linewidth = 1,
-                            ax = axs_fstAP[idx],
+                            ax = ax,
                             size = 0.9,
                             order = ['BAOT/MeA', 'MeA', 'BAOT'])
 
@@ -278,67 +280,73 @@ for idx, parameter in enumerate(fstAP_df.columns):
     swarm = sbn.swarmplot(data = plt_df,
                           x = 'Region',
                           y = parameter, 
-                          ax = axs_fstAP[idx],
+                          ax = ax,
                           size = 5,
                           color = colors_dict['primecolor'],
                           hue = 'Region',
                           palette = regions_c,
                           order = ['BAOT/MeA', 'MeA', 'BAOT'])
 
-    axs_fstAP[idx].legend().set_visible(False)
+    ax.legend().set_visible(False)
 
 
+    if parameter == 'v_threshold':
+        # v_threshold
+        ax.set_ylim([-85, -40])
+        ax.set_ylabel('Voltage at threshold [mV]')
+        ax.set_yticks(np.arange(-85, -40+1, 10))
+        ax.set_yticks(np.arange(-85, -40+1, 5), minor = True)
+
+    elif parameter == 'v_amplitude':
+        # v_threshold
+        ax.set_ylim([40, 140])
+        ax.set_ylabel('Spike amplitude [mV]')
+        ax.set_yticks(np.arange(40, 140+1, 20))
+        ax.set_yticks(np.arange(40, 140+1, 5), minor = True)     
+        
+    elif parameter == 't_toPeak':
+        # t_toPeak
+        ax.set_ylim([0.5, 1.5])
+        ax.set_ylabel('Time to peak [ms]')
+        ax.set_yticks(np.arange(0.5, 1.5 + 0.1, 0.5))
+        ax.set_yticks(np.arange(0.5, 1.5 + 0.1, 0.25), minor = True)
+        
+    elif parameter == 't_rise':
+        # t_rise
+        ax.set_ylim([0, 0.75])
+        ax.set_ylabel('Rise time [ms]')
+        ax.set_yticks(np.arange(0, 0.75 + 0.1, 0.25))
+        ax.set_yticks(np.arange(0., 0.75 + 0.05, 0.05), minor = True)
+        
+    elif parameter == 'FWHM':
+        # FWHM
+        ax.set_ylim([0.5, 2.0])
+        ax.set_ylabel('FWHM [ms]')
+        ax.set_yticks(np.arange(0.5, 2. + 0.1, 0.25))
+        ax.set_yticks(np.arange(0.5, 2. + 0.05, 0.05), minor = True)
+        
+    elif parameter == 'i_th_abs':
+        # i_th_abs
+        ax.set_ylim([0, 400])
+        ax.set_ylabel('Abs. input current [pA]')
+        ax.set_yticks(np.arange(0, 400 + 1, 100))
+        ax.set_yticks(np.arange(0, 400 + 1, 10), minor = True)
+        
+    elif parameter == 'i_th_rel':
+        # i_th_rel
+        ax.set_ylim([0, 400])
+        ax.set_ylabel('Rel. input current [pA]')
+        ax.set_yticks(np.arange(0, 400 + 1, 100))
+        ax.set_yticks(np.arange(0, 400 + 1, 10), minor = True)
     
 [ax.grid(False) for ax in axs_fstAP]
 [ax.set_xlabel('') for ax in axs_fstAP]
 [ax.set_xticklabels(['BAOT/\nMeA', 'MeA', 'BAOT'], rotation = 45) for ax in axs_fstAP]
+[ax.set_xticklabels(['', '', '']) for ax in axs_fstAP[:4]]
 
-# set axes 
-
-# v_threshold
-axs_fstAP[0].set_ylim([-85, -40])
-axs_fstAP[0].set_ylabel('Voltage at threshold [mV]')
-axs_fstAP[0].set_yticks(np.arange(-85, -40+1, 10))
-axs_fstAP[0].set_yticks(np.arange(-85, -40+1, 5), minor = True)
-
-# amplitude
-axs_fstAP[1].set_ylim([40, 140])
-axs_fstAP[1].set_ylabel('Spike amplitude [mV]')
-axs_fstAP[1].set_yticks(np.arange(40, 140+1, 20))
-axs_fstAP[1].set_yticks(np.arange(40, 140+1, 5), minor = True)
-
-# t_topeak
-axs_fstAP[2].set_ylim([0.5, 1.5])
-axs_fstAP[2].set_ylabel('Time to peak [ms]')
-axs_fstAP[2].set_yticks(np.arange(0.5, 1.5 + 0.1, 0.5))
-axs_fstAP[2].set_yticks(np.arange(0.5, 1.5 + 0.1, 0.25), minor = True)
-
-# t_rise
-axs_fstAP[3].set_ylim([0, 0.75])
-axs_fstAP[3].set_ylabel('Rise time [ms]')
-axs_fstAP[3].set_yticks(np.arange(0, 0.75 + 0.1, 0.25))
-axs_fstAP[3].set_yticks(np.arange(0., 0.75 + 0.05, 0.05), minor = True)
-
-# FWHM
-axs_fstAP[4].set_ylim([0.5, 2.0])
-axs_fstAP[4].set_ylabel('FWHM [ms]')
-axs_fstAP[4].set_yticks(np.arange(0.5, 2. + 0.1, 0.25))
-axs_fstAP[4].set_yticks(np.arange(0.5, 2. + 0.05, 0.05), minor = True)
-
-# i_th_abs
-axs_fstAP[5].set_ylim([0, 400])
-axs_fstAP[5].set_ylabel('Abs. input current [pA]')
-axs_fstAP[5].set_yticks(np.arange(0, 400 + 1, 100))
-axs_fstAP[5].set_yticks(np.arange(0, 400 + 1, 10), minor = True)
-
-# i_th_rel
-axs_fstAP[6].set_ylim([0, 400])
-axs_fstAP[6].set_ylabel('Rel. input current [pA]')
-axs_fstAP[6].set_yticks(np.arange(0, 400 + 1, 100))
-axs_fstAP[6].set_yticks(np.arange(0, 400 + 1, 10), minor = True)
 
 # despine
-[ax.spines[spine].set_visible(False) for ax in axs_fstAP for spine in ['bottom', 'top', 'right']]
-
+[ax.spines[spine].set_visible(False) for ax in axs_fstAP for spine in ['top', 'right']]
+[ax.spines['bottom'].set_bounds([0, 2]) for ax in axs_fstAP]
 
 save_figures(fig_fstAP, 'cc_th1AP_cat-cc_region+separate_violins', figure_dir, darkmode_bool)

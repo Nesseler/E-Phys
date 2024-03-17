@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['functions\\functions_ccIF.py', 'analysis\\analyze_ccIF.py', 'cc_IF2.py', 'plot\\plot_ccAPs_1st_v_last_xth_mean_APparameter.py', 'functions\\functions_useful.py']
+recent_files = ['functions\\functions_ccIF.py', 'analysis\\analyze_ccIF.py', 'plot\\plot_ccIF_cat.py', 'plot\\plot_ccth1AP_cat.py', 'parameters\\parameters.py', 'analysis\\analyze_cc1thAP.py', 'analysis\\analyze_ccsag_for_rinput_taumem.py', 'plot\\plot_ccrest_activity_n_vrest.py', 'functions\\functions_plotting.py']
 
 [main]
 version = 0.2.0

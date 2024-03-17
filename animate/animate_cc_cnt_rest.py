@@ -12,7 +12,7 @@ from copy import copy
 from os.path import join, exists
 from os import mkdir
 
-from parameters.directories_win import table_dir, quant_data_dir, vplot_dir
+from parameters.directories_win import table_dir, quant_data_dir, vplot_dir, table_file
 from parameters.PGFs import cc_cntrest_parameters
 
 
@@ -26,12 +26,12 @@ from matplotlib import animation
 from matplotlib.animation import FuncAnimation 
 
 
-table = pd.read_excel(table_dir + 'InVitro_Database.xlsx',
+table = pd.read_excel(table_file,
                       sheet_name="PGFs",
                       index_col='cell_ID')
 
 # loop to create string to include all frequencies in query
-PGF = 'cc_cnt_rest'  
+PGF = 'cc_rest'  
 
 # limit lookup table
 lookup_table = table.query(f'{PGF}.notnull()')
@@ -46,7 +46,7 @@ autocorr_df = pd.DataFrame(columns=cell_IDs)
 
 
 # plotting specifications
-darkmode_bool = False
+darkmode_bool = True
 
 vplot_bool = True
 
@@ -54,14 +54,14 @@ save_bool = True
 
 autocorr_bool = False
 
-colors_dict = get_colors(darkmode_bool)
+colors_dict, _ = get_colors(darkmode_bool)
 
-cell_ID = 'E-113'
+cell_ID = 'E-102'
 
 
-vplot_dir_cell = join(vplot_dir, PGF, cell_ID)
-if not exists(vplot_dir_cell):
-    mkdir(vplot_dir_cell)
+# vplot_dir_cell = join(vplot_dir, PGF, cell_ID)
+# if not exists(vplot_dir_cell):
+#     mkdir(vplot_dir_cell)
 
 # get the traceIndex and the file path string for data import functions
 traceIndex, file_path = get_traceIndex_n_file(PGF, cell_ID)
@@ -96,7 +96,7 @@ vf = butter_filter(v_concat,
 
 # plot_t_vs_v(t_s[:5000000], vf[:5000000])
 
-t_total = 20 #s
+t_total = 30 #s
 
 points_total = int(t_total * SR)
 
@@ -110,13 +110,13 @@ i = np.zeros(len(t))
 # see link
 # https://spikesandbursts.wordpress.com/2024/01/04/patch-clamp-data-analysis-animate-time-series/
 
-darkmode_bool = True
+# darkmode_bool = True
 
-colors_dict = get_colors(darkmode_bool)
+# colors_dict, _ = get_colors(darkmode_bool)
 
 # Initialise figure
 fig_ani, ax_ani = plt.subplots(2, 1, 
-                               figsize = get_figure_size(width=141.27, height=147.433),
+                               figsize = get_figure_size(width=80.917, height=56.209),
                                sharex = 'col',
                                height_ratios = [1, 5])
 
@@ -124,26 +124,33 @@ fig_ani, ax_ani = plt.subplots(2, 1,
 set_font_sizes()
 
 # plot parameters
-line_v, = ax_ani[1].plot([], [], color=colors_dict['color1'], lw=1)
-line_i, = ax_ani[0].plot([], [], color=colors_dict['color2'], lw=1)
+line_v, = ax_ani[1].plot([], [], color=colors_dict['primecolor'], lw=1)
+line_i, = ax_ani[0].plot([], [], color='r', lw=1)
 
 # axis settings
-ax_ani[0].set_ylabel('Current [pA]')
+# ax_ani[0].set_ylabel('Current [pA]')
+ax_ani[0].set_ylabel('')
 ax_ani[0].set_ylim([-50, 100])
 ax_ani[0].set_yticks(ticks = np.arange(-50, 100+1, 50), 
-                      labels = [None, 0, None, 100])
+                      labels = [None, 0, None, None])
 ax_ani[0].set_yticks(np.arange(-50, 100+1, 25), minor = True)
 
 v_range = [-100, 40]
 
-ax_ani[1].set_xlabel('Time [s]')
+# ax_ani[1].set_xlabel('Time [s]')
+ax_ani[1].set_xlabel('')
 ax_ani[1].set_xlim([0, t_total])
 
-ax_ani[1].set_ylabel('Voltage [mV]')
+# ax_ani[1].set_ylabel('Voltage [mV]')
+ax_ani[1].set_ylabel('')
 ax_ani[1].set_ylim(v_range)
 
-ax_ani[1].set_yticks(np.arange(v_range[0], v_range[1] + 1, 50))
+ax_ani[1].set_yticks(ticks = np.arange(v_range[0], v_range[1] + 1, 50), 
+                     labels = [None, None, 0])
 ax_ani[1].set_yticks(np.arange(v_range[0], v_range[1] + 1, 25), minor = True)
+
+ax_ani[1].set_xticks(np.arange(0, 30 + 1, 30))
+ax_ani[1].set_xticks(np.arange(0, 30 + 1, 1), minor = True)
 
 [ax.grid(False) for ax in ax_ani]
 [ax.spines[spine].set_visible(False) for ax in ax_ani for spine in ['top', 'right']]
@@ -203,7 +210,7 @@ writer = animation.FFMpegWriter(fps=anim_fps, bitrate=3000,
                                 codec="h264",  extra_args=extra_args)
  
 # Save path
-anim.save('C:/Users/nesseler/Desktop/local E-Phys/figures/cc_cnt_rest_realtime.mp4', writer = writer)
+anim.save(f'C:/Users/nesseler/Desktop/local E-Phys/figures/{cell_ID}-{PGF}-realtime.mp4', writer = writer)
 
 # anim.save('C:/Users/nesseler/Desktop/local E-Phys/figures/video.mp4', writer=writer)
  
@@ -214,7 +221,7 @@ print('Video_fps:', anim_fps)
 # %% gif
 writergif = animation.PillowWriter(fps=anim_fps, bitrate=2000)
  
-anim.save('C:/Users/nesseler/Desktop/local E-Phys/figures/cc_cnt_rest_realtime.gif', writer=writergif)
+anim.save(f'C:/Users/nesseler/Desktop/local E-Phys/figures/{cell_ID}-{PGF}-realtime.gif', writer=writergif)
 
 print('Done!')
 

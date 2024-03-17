@@ -13,17 +13,21 @@ Created on Wed Jan 10 10:36:47 2024
 """
 
 import matplotlib.pyplot as plt
-import matplotlib as mtl
 import numpy as np
-import directories_win as directories
-from PGFs import cc_APs_parameters, cc_th1Ap_parameters
+
+
+from parameters.directories_win import table_file, raw_data_dir
+from parameters.PGFs import cc_th1Ap_parameters
+
 import pandas as pd
-from useful_functions import calc_time_series, butter_filter
+from functions.functions_useful import calc_time_series, butter_filter
 import os
-from cc_IF_functions import get_IF_data
-from plotting_functions import get_colors, save_figures, get_figure_size, set_font_sizes
+
+from functions.functions_ccIF import get_IF_data
+from functions.functions_plotting import get_colors, save_figures, get_figure_size, set_font_sizes
+
 import scipy as sc
-import parameters
+from parameters.parameters import min_peak_distance, min_peak_prominence
 
 from matplotlib import animation
 from matplotlib.animation import FuncAnimation 
@@ -32,27 +36,27 @@ from matplotlib.collections import LineCollection
 
 # %%
 
-table = pd.read_excel(directories.table_dir + 'InVitro_Database.xlsx',
+table = pd.read_excel(table_file,
                       sheet_name="PGFs",
                       index_col='cell_ID')
 
 
-frequencies = ['1Hz', '30Hz', '75Hz']
+# frequencies = ['1Hz', '30Hz', '75Hz']
 
-# loop to create string to include all frequencies in query
-query_str = ''
+# # loop to create string to include all frequencies in query
+# query_str = ''
 
-for idx, frequency in enumerate(frequencies):
-    PGF = 'cc_APs_' + frequency
+# for idx, frequency in enumerate(frequencies):
+#     PGF = 'cc_APs_' + frequency
     
-    if idx > 0:
-        query_str = query_str + ' and '
+#     if idx > 0:
+#         query_str = query_str + ' and '
         
-    query_str = query_str + f'{PGF}.notnull()'
+#     query_str = query_str + f'{PGF}.notnull()'
     
 
 # limit lookup table
-lookup_table = table.query(query_str)
+lookup_table = table
 
 # %%
 
@@ -62,7 +66,7 @@ cell_ID = 'E-092'
     
 # PGF to load
 PGF = 'cc_th1AP'
-PGF_parameters = cc_APs_parameters[frequency]
+# PGF_parameters = cc_APs_parameters[frequency]
 
 # lookup_table = table.query(f'{PGF}.notnull()')
 
@@ -77,7 +81,7 @@ traceIndex = [group_idx, series_idx, 0, 0]
 # call on data file with indices from dataframe above
 current_file = lookup_table.at[cell_ID, 'file']
 
-data_file_path = os.path.join(directories.raw_data_dir, current_file + '.dat')
+data_file_path = os.path.join(raw_data_dir, current_file + '.dat')
 
 data_file_path_str = fr"{data_file_path}"
 
@@ -111,8 +115,8 @@ vf = butter_filter(v_concat,
 # %% find peaks
 
 idx_peaks, dict_peak = sc.signal.find_peaks(vf, 
-                                            prominence = parameters.min_peak_prominence, 
-                                            distance = parameters.min_peak_distance * (SR_ms))
+                                            prominence = min_peak_prominence, 
+                                            distance = min_peak_distance * (SR_ms))
 
 
 
@@ -180,7 +184,7 @@ def return_segments(x, ys):
 
 darkmode_bool = True
 
-color_dict = get_colors(darkmode_bool)
+color_dict, _ = get_colors(darkmode_bool)
 
 fig, ax = plt.subplots(2,1,
                        gridspec_kw={'height_ratios': [1,4]}) 

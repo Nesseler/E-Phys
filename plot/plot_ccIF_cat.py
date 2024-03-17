@@ -11,9 +11,9 @@ import seaborn as sbn
 import matplotlib.pyplot as plt
 import numpy as np
 
-from functions.functions_plotting import set_font_sizes, get_colors, get_figure_size
+from functions.functions_plotting import set_font_sizes, get_colors, get_figure_size, save_figures
 
-from parameters.directories_win import quant_data_dir, cell_descrip_dir, table_file
+from parameters.directories_win import quant_data_dir, cell_descrip_dir, table_file, figure_dir
 
 
 # %% load data
@@ -152,5 +152,5 @@ for idx, parameter in enumerate(IF_cat_df.columns):
 [ax.set_xticklabels(['BAOT/\nMeA', 'MeA', 'BAOT'], rotation = 45) for ax in axs_cats]
 [ax.set_xticklabels(['', '', '']) for ax in axs_cats[:3]]
 
-
+save_figures(fig_cats, 'ccIF-active_passive_properties', figure_dir, darkmode_bool)
 
