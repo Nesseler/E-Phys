@@ -56,7 +56,7 @@ autocorr_bool = False
 
 colors_dict, _ = get_colors(darkmode_bool)
 
-cell_ID = 'E-102'
+cell_ID = 'E-122'
 
 
 # vplot_dir_cell = join(vplot_dir, PGF, cell_ID)
@@ -210,7 +210,7 @@ writer = animation.FFMpegWriter(fps=anim_fps, bitrate=3000,
                                 codec="h264",  extra_args=extra_args)
  
 # Save path
-anim.save(f'C:/Users/nesseler/Desktop/local E-Phys/figures/{cell_ID}-{PGF}-realtime.mp4', writer = writer)
+anim.save(f'C:/Users/nesseler/Desktop/local E-Phys/figures/{cell_ID}-{PGF}-animation-realtime.mp4', writer = writer)
 
 # anim.save('C:/Users/nesseler/Desktop/local E-Phys/figures/video.mp4', writer=writer)
  
@@ -219,11 +219,11 @@ print('Video_duration (s):', frames/anim_fps)
 print('Video_fps:', anim_fps)
 
 # %% gif
-writergif = animation.PillowWriter(fps=anim_fps, bitrate=2000)
+# writergif = animation.PillowWriter(fps=anim_fps, bitrate=2000)
  
-anim.save(f'C:/Users/nesseler/Desktop/local E-Phys/figures/{cell_ID}-{PGF}-realtime.gif', writer=writergif)
+# anim.save(f'C:/Users/nesseler/Desktop/local E-Phys/figures/{cell_ID}-{PGF}-animation-realtime.gif', writer=writergif)
 
-print('Done!')
+# print('Done!')
 
 
 

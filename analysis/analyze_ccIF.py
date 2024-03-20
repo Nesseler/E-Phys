@@ -31,7 +31,7 @@ from analysis.analyze_ccsag_for_rinput_taumem import get_rinput_n_taumem_from_cc
 
 vplot_bool = False
 
-darkmode_bool = False
+darkmode_bool = True
 colors_dict, region_colors = get_colors(darkmode_bool)
 
 
@@ -52,7 +52,7 @@ IF_df = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 400 + 1, 5))
 IF_inst_df = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 400 + 1, 5))
 
 # create dataframe for other parameters
-active_properties_df = pd.DataFrame(columns=['rheobase_abs', 'rheobase_rel', 'v_thres_rheobase_spike'], index = cell_IDs)
+active_properties_df = pd.DataFrame(columns=['rheobase_abs', 'rheobase_rel', 'v_thres_rheobase_spike', 'rheobase_step_idx'], index = cell_IDs)
 passiv_properties_df = pd.DataFrame(columns=['r_input', 'tau_mem'], index = cell_IDs)
 fstAP_df = pd.DataFrame(columns = AP_parameters, index = cell_IDs)
 
@@ -191,6 +191,7 @@ for cell_ID in cell_IDs:
     # populate dataframe
     active_properties_df.at[cell_ID, 'rheobase_abs'] = rheobase
     active_properties_df.at[cell_ID, 'rheobase_rel'] = rheobase_rel
+    active_properties_df.at[cell_ID, 'rheobase_step_idx'] = rheobase_idx
     
     # rheobase as voltage at threshold of first spike
     # get voltage trace with rheobase step
@@ -211,12 +212,16 @@ for cell_ID in cell_IDs:
 
     # rheobase step verification plot
     if vplot_bool:
+        fig_rheobase = plt.figure()
         plt.plot(v_rheobase, linewidth = 1, c = colors_dict['primecolor'])
         plt.eventplot(idx_rheobase_spike, lineoffsets=60, colors = 'r', linelengths=5)
         plt.title(f'{cell_ID}: rheobase step #: {rheobase_idx}')
         plt.ylim([-140, 75])
         plt.grid(False)
         plt.show()
+        vplots_path_rheobase = os.path.join(vplot_dir, 'cc_IF', 'rheobase')
+        save_figures(fig_rheobase, f'{cell_ID}-{PGF}-rheobase_step', vplots_path_rheobase, darkmode_bool)
+        
     
     # get AP parameters of first spike
     rheobase_spike_params, rheobase_spike_v = get_AP_parameters(t_rheobase, v_rheobase, dvdt_rheobase, idx_rheobase_spike)
@@ -427,13 +432,10 @@ for cell_ID in cell_IDs:
         [ax.grid(False) for ax in axs_expfit]
         plt.show()
         
-        # save excel sheet    
-        cell_vplots_path = os.path.join(vplot_dir, 'cc_IF', cell_ID)
+        # save figure
+        vplots_path_passive_properties = os.path.join(vplot_dir, 'cc_IF', 'passive_properties')
         
-        if not os.path.exists(cell_vplots_path):
-            os.mkdir(cell_vplots_path)
-        
-        save_figures(fig_expfit, f'{cell_ID}-ccIF-expon_fit', cell_vplots_path, darkmode_bool)
+        save_figures(fig_expfit, f'{cell_ID}-ccIF-expon_fit', vplots_path_passive_properties, darkmode_bool)
         
     
     ### break out if fitting to first steps of IF is not successful ###

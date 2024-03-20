@@ -19,7 +19,7 @@ import numpy as np
 import scipy as sc
 
 # custom directories & parameters
-from parameters.directories_win import table_file, quant_data_dir
+from parameters.directories_win import table_file, quant_data_dir, vplot_dir
 from parameters.parameters import t_expo_fit, popt_guess, r_squared_thresh
 from parameters.PGFs import cc_sag_parameters
 
@@ -167,7 +167,7 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
             v_step_expFit = v_step_fit[:v_step_min_idx]
 
             # vplot
-            if True:
+            if vplot_bool:
                 # set step as subplot title
                 axs_expfit[step_idx].set_title(f'Step #: {step_idx} {i_input_step} pA')
                 
@@ -301,7 +301,8 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
         # show plot
         [ax.grid(False) for ax in axs_expfit]
         plt.show()
-        save_figures(fig_expfit, f'{cell_ID}-{PGF}-r_input_n_tau_mem', cell_path, darkmode_bool)
+        vplot_path = os.path.join(vplot_dir, 'cc_IF', 'passive_properties')
+        save_figures(fig_expfit, f'{cell_ID}-{PGF}-r_input_n_tau_mem', vplot_path, darkmode_bool)
         
     
     ### break out if fitting to first steps of IF is not successful ###

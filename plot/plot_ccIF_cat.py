@@ -31,6 +31,7 @@ fstAP_df.drop(columns = todrop, inplace = True)
 
 # concatenate active and passive properties
 IF_cat_df = pd.concat([passiv_properties_df, active_properties_df], axis = 1)
+IF_cat_df.drop(columns = 'rheobase_step_idx', inplace = True)
 
 # get cell IDs
 cell_IDs = IF_cat_df.index.to_list()
