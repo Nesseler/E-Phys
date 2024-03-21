@@ -32,7 +32,7 @@ darkmode_bool = True
 
 
 
-AP_parameter = 'v_amplitude'
+AP_parameter = 'FWHM'
 
 nAPs = 3
 

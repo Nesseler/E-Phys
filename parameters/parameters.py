@@ -53,7 +53,7 @@ bin_size_ISI_poisson = 25e-3
 t_expo_fit = 150. #ms
 
 # set a guess for exponential fit
-popt_guess = [10, 0.005, -85]
+popt_guess = [50, 0.01, -100]
 
 # useful step r_squared threshold
 r_squared_thresh = 0.9

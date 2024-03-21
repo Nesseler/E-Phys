@@ -29,7 +29,7 @@ from analysis.analyze_ccsag_for_rinput_taumem import get_rinput_n_taumem_from_cc
 
 # %% settings
 
-vplot_bool = False
+vplot_bool = True
 
 darkmode_bool = True
 colors_dict, region_colors = get_colors(darkmode_bool)
@@ -56,8 +56,10 @@ active_properties_df = pd.DataFrame(columns=['rheobase_abs', 'rheobase_rel', 'v_
 passiv_properties_df = pd.DataFrame(columns=['r_input', 'tau_mem'], index = cell_IDs)
 fstAP_df = pd.DataFrame(columns = AP_parameters, index = cell_IDs)
 
+cells_todrop = []
+
 # test cell 
-# cell_IDs = ['E-111']
+# cell_IDs = ['E-089']
 
 # cell_IDs = ['E-082', 'E-137', 'E-138', 'E-140']
 
@@ -243,13 +245,14 @@ for cell_ID in cell_IDs:
     
     # create list of indices for exponential fit window
     delta_points = int(t_expo_fit * SR_ms)
-    idc_expoFit = np.arange(pre_points, pre_points + delta_points)
+    delta_points_pre = int(50 * SR_ms)
+    idc_expoFit = np.arange(pre_points-1, pre_points -1 + delta_points)
     
     # include time periode before step to compare volatges for R_input calculation
-    idc_pre = np.arange(pre_points - delta_points, pre_points)
+    idc_pre = np.arange(pre_points - delta_points_pre, pre_points)
     idc_post = np.arange(pre_points, pre_points + delta_points)
-    idc_withbuffer = np.arange(pre_points - delta_points, pre_points + delta_points)
-    x_withbuffer = np.arange(-delta_points, +delta_points)
+    idc_withbuffer = np.arange(pre_points - delta_points_pre, pre_points + delta_points)
+    x_withbuffer = np.arange(-delta_points_pre, +delta_points)
     
     # initialise dataframe for r_input calculation
     r_input_calc_df = pd.DataFrame(columns = ['step_idx', 'mean_v_pre', 'v_post_fitted', 'r_squared', 'delta_v', 'delta_i', 'r_input'])
@@ -289,6 +292,9 @@ for cell_ID in cell_IDs:
             
             # limit trace of first minimum
             v_step_expFit = v_step_fit[:v_step_min_idx]
+            
+            # calc x
+            x_expFit = np.arange(len(v_step_expFit))
 
             # vplot
             if vplot_bool:
@@ -301,7 +307,7 @@ for cell_ID in cell_IDs:
                                           color = 'gray',
                                           alpha = 0.5)
                 axs_expfit[step_idx].hlines(y = v_step_min,
-                                            xmin = -delta_points,
+                                            xmin = -delta_points_pre,
                                             xmax = delta_points,
                                             color = 'r',
                                             linestyle = '--',
@@ -317,20 +323,27 @@ for cell_ID in cell_IDs:
                 
                 if delta_i > -10:
                     raise ValueError('Zero input current')
+                    print(f'{cell_ID} close to zero input current')
             
-                # calc x
-                x_expFit = np.arange(len(v_step_expFit))
+                
+                # calc delta v with mini
+                v_pre = v[step_idx][idc_pre]
+                v_pre_mean = np.mean(v_pre)
+                delta_v = abs(v_step_min - v_pre_mean)
                 
                 # fit exponential curve
-                popt, pcov = sc.optimize.curve_fit(exp_func, x_expFit, v_step_expFit, p0=popt_guess, maxfev = 1000)
+                popt, pcov = sc.optimize.curve_fit(exp_func, x_expFit, v_step_expFit, p0 = [delta_v, *popt_guess[1:]], maxfev = 5000,
+                                                   bounds = ([delta_v-3, 0, -200], [delta_v+3, 1, -80]))
+                
+                # popt = [delta_v, *popt]
                 
                 r_squared = calc_rsquared_from_exp_fit(x_expFit, v_step_expFit, popt)
                 
                 ### R_INPUT ###
                 #R_input = ∆U/∆I
                 #∆U = a = popt[0], ∆I = 20 (for first step)
-                v_pre = v[step_idx][idc_pre]
-                v_pre_mean = np.mean(v_pre)
+                # v_pre = v[step_idx][idc_pre]
+                # v_pre_mean = np.mean(v_pre)
                 # delta_v = (popt[2] - v_pre_mean)
                 delta_v = -popt[0]
                     
@@ -379,21 +392,14 @@ for cell_ID in cell_IDs:
                                               linestyle = '--',
                                               color = colors_dict['color2'])
                     
-                    axs_expfit[step_idx].set_ylim([-140, -75])
+                    axs_expfit[step_idx].set_ylim([-150, -50])
                     
                     # text field with fit info
-                    axs_expfit[step_idx].text(x = -delta_points+100,
-                                              y = -140,
-                                              s = f'{popt[0]}\n{popt[1]}\n{popt[2]}\nr^2: {r_squared}',
+                    axs_expfit[step_idx].text(x = delta_points-250,
+                                              y = -145,
+                                              s = f'{popt[0]}\n{popt[1]}\n{popt[2]}\nr^2: {r_squared}\nr_input: {r_input}\ntau_mem: {tau_mem}',
                                               va = 'bottom',
-                                              ha = 'left',
-                                              fontsize = 8)
-                    
-                    axs_expfit[step_idx].text(x = 0+100,
-                                              y = -140,
-                                              s = f'r_input: {r_input}\ntau_mem: {tau_mem}',
-                                              va = 'bottom',
-                                              ha = 'left',
+                                              ha = 'right',
                                               fontsize = 8)
                     
                 if r_squared > r_squared_thresh:
@@ -402,11 +408,12 @@ for cell_ID in cell_IDs:
             except RuntimeError:
                 print(f'{cell_ID} step number {step_idx+1} has been omitted')
             
-            except ValueError:
+            except ValueError as m:
+                print(f'{cell_ID} {str(m)}')
                 useful_steps_bool = False
                 break
             
-            if useful_steps == 3 or step_idx ==6:
+            if useful_steps == 3 or step_idx == 6:
                 useful_steps_bool = False
                 break
 
@@ -439,13 +446,18 @@ for cell_ID in cell_IDs:
         
     
     ### break out if fitting to first steps of IF is not successful ###
-    n_steps_w_good_fit = len(r_input_calc_df[r_input_calc_df['r_squared'] > 0.75])
+    n_steps_w_good_fit = len(r_input_calc_df[r_input_calc_df['r_squared'] > r_squared_thresh])
 
     if n_steps_w_good_fit < 3:
-        print(f'{cell_ID} will use cc_sag')
+        print(f'{cell_ID} will try to use cc_sag')
         
-        # call sag_analysis function
-        r_input, tau_mem = get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool)
+        try:
+            # call sag_analysis function
+            r_input, tau_mem = get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool)
+            
+        except ValueError:
+            print(f'{cell_ID} will be disgarded')
+            cells_todrop.append(cell_ID)
     
     else:
         # calc values as mean of 3 steps
@@ -464,6 +476,14 @@ for cell_ID in cell_IDs:
 # times 1e3 for conversion to pF
 passiv_properties_df['c_mem'] = (passiv_properties_df['tau_mem'] / passiv_properties_df['r_input']) * 1e3
 
+
+# %% drop cells with unsuccessful calculations
+
+passiv_properties_df.drop(index=cells_todrop, inplace = True)
+active_properties_df.drop(index=cells_todrop, inplace = True)
+IF_df.drop(columns=cells_todrop, inplace = True)
+IF_inst_df.drop(columns=cells_todrop, inplace = True)
+fstAP_df.drop(index=cells_todrop, inplace = True)
 
 # %%
 

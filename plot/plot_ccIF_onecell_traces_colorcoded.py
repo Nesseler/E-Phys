@@ -6,6 +6,7 @@ Created on Wed Mar 20 14:36:48 2024
 """
 
 import os
+os.chdir('C:/Users/nesseler/E-Phys')
 from os.path import join
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -15,10 +16,10 @@ import numpy as np
 import scipy as sc
 
 # custom directories & parameters
-from parameters.directories_win import table_file, quant_data_dir, cell_descrip_dir, vplot_dir
+from parameters.directories_win import table_file, quant_data_dir, cell_descrip_dir, vplot_dir, figure_dir
 from parameters.parameters import min_peak_prominence_ccIF, min_peak_distance_ccIF, min_max_peak_width_ccIF, dvdt_threshold, AP_parameters, t_expo_fit, popt_guess, r_squared_thresh
 from parameters.PGFs import cc_IF_parameters
-from getter.get_cell_IDs import get_cell_IDs_one_protocol, get_cell_IDs_all_ccAPfreqs
+# from getter.get_cell_IDs import get_cell_IDs_one_protocol, get_cell_IDs_all_ccAPfreqs
 
 from functions.functions_constructors import construct_current_array
 from functions.functions_ccIF import get_IF_data
@@ -37,7 +38,7 @@ darkmode_bool = True
 colors_dict, region_colors = get_colors(darkmode_bool)
 
 
-cell_ID = 'E-061'
+cell_ID = 'E-122'
 PGF = 'cc_IF'
 
 
@@ -46,6 +47,8 @@ PGF = 'cc_IF'
 IF_df = pd.read_excel(join(cell_descrip_dir, 'ccIF-IF.xlsx'), index_col = 'i_input')
 active_properties_df = pd.read_excel(join(cell_descrip_dir, 'ccIF-active_properties.xlsx'), index_col = 'cell_ID')
 rheobase_step_idx = active_properties_df.at[cell_ID, 'rheobase_step_idx']
+
+
 
 # get the traceIndex and the file path string for data import functions
 traceIndex, file_path = get_traceIndex_n_file(PGF, cell_ID)
@@ -89,36 +92,54 @@ i, i_input = construct_current_array(i_hold = i_hold_rounded,
 
 # %% start plotting
 
-zero_input_step_idx = np.where(i_input == 0)[0][0]
+# zero_input_step_idx = np.where(i_input == 0)[0][0]
 max_freq_step_idx = IF_df[cell_ID].dropna().argmax()
 
 above_max_freq_step_idx = max_freq_step_idx + (max_freq_step_idx - rheobase_step_idx)
 
-if above_max_freq_step_idx > len(i_input):
+if above_max_freq_step_idx >= len(i_input):
     above_max_freq_step_idx = len(i_input) -1
+    
+first_step_idx = 0
+last_step_idx = len(i_input) -1
 
-steps_to_plot = [0, rheobase_step_idx, max_freq_step_idx, above_max_freq_step_idx]
+steps_to_plot = [first_step_idx, rheobase_step_idx, max_freq_step_idx, last_step_idx]
+
 
 fig_IF, ax_IF = plt.subplots(nrows = 2,
                              ncols = 1,
-                             layout = 'constrained',
+                             gridspec_kw={'height_ratios': [1, 4]},
                              dpi = 600,
-                             figsize = get_figure_size(), #(height = 82.75, width = 106.223),
-                             height_ratios = [1, 4],
-                             sharex = True)
+                             figsize = get_figure_size(),
+                             sharex = True,
+                             layout = 'constrained')
 
 fig_IF.suptitle(cell_ID)
 
 set_font_sizes()
 
+# x axis at 0
+ax_IF[0].axhline(y = 0, xmin = 0, xmax = 1500,
+                 linestyle = '--',
+                 lw = 1,
+                 color = 'gray')
+
+# x axis at -85
+ax_IF[1].axhline(y = -85, xmin = 0, xmax = 1500,
+                 linestyle = '--',
+                 lw = 1,
+                 color = 'gray')
+
+
+
 # initialise color code
 ## same normalisation for all cells
-# norm_min = IF_df.index.to_list()[0]
-# norm_max = IF_df.index.to_list()[-1]
+norm_min = IF_df.index.to_list()[0]
+norm_max = IF_df.index.to_list()[-1]
 
 ## cell specific normalisation
-norm_min = i_input[0]
-norm_max = i_input[above_max_freq_step_idx]
+# norm_min = i_input[0]
+# norm_max = i_input[above_max_freq_step_idx]
 cmap_str = 'rainbow'
 
 
@@ -127,8 +148,9 @@ cmap = mpl.cm.ScalarMappable(norm=norm, cmap=cmap_str)
 cmap.set_array(list(i_input))
 
 
-# colorbar
-fig_IF.colorbar(cmap, ax = ax_IF[1])
+# fig_IF.subplots_adjust(right=0.8)
+# cbar_ax = fig_IF.add_axes([0.85, 0.15, 0.05, 0.7])
+fig_IF.colorbar(cmap, ax=ax_IF.ravel().tolist(), label = 'Input current [pA]')
 
 
 step_dur = cc_IF_parameters['t_pre'] + cc_IF_parameters['t_stim'] + cc_IF_parameters['t_post']
@@ -154,10 +176,12 @@ for step_idx in np.arange(0, n_steps, 1):
 
         # plot each step
         ax_IF[0].plot(t_step[:-1], i_step, 
-                      c=cmap.to_rgba(i_input[step_idx]))
+                      c=cmap.to_rgba(i_input[step_idx]),
+                      lw = 1)
         
         ax_IF[1].plot(t_step, v_step, 
-                      c=cmap.to_rgba(i_input[step_idx]))
+                      c=cmap.to_rgba(i_input[step_idx]),
+                      lw = 1)
         
         # find peaks
         idc_peaks, dict_peak = sc.signal.find_peaks(v_step, 
@@ -169,9 +193,10 @@ for step_idx in np.arange(0, n_steps, 1):
         
         # eventplot
         ax_IF[1].eventplot(t_spikes, 
-                           lineoffsets=50+(n_plotted_steps*5), 
+                           lineoffsets=55+(n_plotted_steps*5), 
                            colors = cmap.to_rgba(i_input[step_idx]), 
-                           linelengths=4.5)
+                           linelengths=4.5,
+                           linewidth = 1)
         
         n_plotted_steps += 1
 
@@ -208,9 +233,10 @@ ax_IF[1].set_xticks(ticks = np.arange(0, 1500 + 1, 50), minor = True)
 
 
 
+# save figure
+save_figures(fig_IF, f'{cell_ID}-ccIF-example_traces-color_coded', figure_dir, darkmode_bool)
 
-
-
+plt.show()
 
 
 

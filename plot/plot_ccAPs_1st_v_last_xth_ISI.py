@@ -31,6 +31,7 @@ darkmode_bool = True
 MetaData = pd.read_excel(table_file,
                       sheet_name="MetaData",
                       index_col='cell_ID')
+
 MetaData = MetaData.loc[cell_IDs, :]
 
 # %%

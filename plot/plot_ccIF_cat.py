@@ -16,7 +16,7 @@ from functions.functions_plotting import set_font_sizes, get_colors, get_figure_
 from parameters.directories_win import quant_data_dir, cell_descrip_dir, table_file, figure_dir
 
 
-# %% load data
+# load data
 
 IF_df = pd.read_excel(join(cell_descrip_dir, 'ccIF-IF.xlsx'), index_col = 'i_input')
 IF_inst_df = pd.read_excel(join(cell_descrip_dir, 'ccIF-IF_inst.xlsx'), index_col = 'i_input')
@@ -90,9 +90,10 @@ for idx, parameter in enumerate(IF_cat_df.columns):
                           x = 'Region',
                           y = parameter, 
                           ax = ax,
+                          hue = 'Region', 
+                          palette = region_colors,
                           size = 5,
                           color = colors_dict['primecolor'],
-                          palette = region_colors,
                           order = ['BAOT/MeA', 'MeA', 'BAOT'])
 
     ax.legend().set_visible(False)

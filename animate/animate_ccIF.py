@@ -5,12 +5,8 @@ Created on Wed Jan 10 19:03:13 2024
 @author: nesseler
 """
 
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 10 10:36:47 2024
-
-@author: nesseler
-"""
+import os
+os.chdir('C:/Users/nesseler/E-Phys')
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,7 +17,6 @@ from parameters.PGFs import cc_IF_parameters
 
 import pandas as pd
 from functions.functions_useful import calc_time_series, butter_filter, round_to_base
-import os
 
 from functions.functions_import import get_traceIndex_n_file
 from functions.functions_ccIF import get_IF_data
@@ -161,7 +156,7 @@ darkmode_bool = True
 color_dict, _ = get_colors(darkmode_bool)
 
 fig, ax = plt.subplots(2,1,
-                       gridspec_kw={'height_ratios': [1,4]}) 
+                      height_ratios = [1,4]) 
 
 
 ax[0].plot(t[0], i[9], 'm')
@@ -195,7 +190,7 @@ plt.show()
 fig_ani, ax_ani = plt.subplots(2, 1, 
                                figsize = get_figure_size(width=245.252),
                                sharex = 'col',
-                               gridspec_kw={'height_ratios': [1,4]})
+                               height_ratios = [1,4])
 
 # set font sizes
 set_font_sizes()

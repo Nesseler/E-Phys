@@ -121,6 +121,7 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
     delta_points = int(t_expo_fit * SR_ms)
     idc_expoFit = np.arange(pre_points, pre_points + delta_points)
     
+    
     # include time periode before step to compare volatges for R_input calculation
     idc_pre = np.arange(pre_points - delta_points, pre_points)
     idc_post = np.arange(pre_points, pre_points + delta_points)
@@ -166,6 +167,10 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
             # limit trace of first minimum
             v_step_expFit = v_step_fit[:v_step_min_idx]
 
+            # calc x
+            x_expFit = np.arange(len(v_step_expFit))
+            
+
             # vplot
             if vplot_bool:
                 # set step as subplot title
@@ -183,16 +188,19 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
                                             linestyle = '--',
                                             alpha = 0.5)
                 axs_expfit[step_idx].scatter(v_step_min_idx, v_step_min,
-                                             c = 'r',
-                                             marker = 'x',
-                                             alpha = 0.5)
+                                              c = 'r',
+                                              marker = 'x',
+                                              alpha = 0.5)
 
             try:
-                # calc x
-                x_expFit = np.arange(len(v_step_expFit))
+                # calc delta v with mini
+                v_pre = v[step_idx][idc_pre]
+                v_pre_mean = np.mean(v_pre)
+                delta_v = abs(v_step_min - v_pre_mean)
                 
                 # fit exponential curve
-                popt, pcov = sc.optimize.curve_fit(exp_func, x_expFit, v_step_expFit, p0=popt_guess, maxfev = 1000)
+                popt, pcov = sc.optimize.curve_fit(exp_func, x_expFit, v_step_expFit, p0 = [delta_v, *popt_guess[1:]], maxfev = 5000,
+                                                   bounds = ([delta_v-3, 0, -200], [delta_v+3, 1, -80]))
                 
                 r_squared = calc_rsquared_from_exp_fit(x_expFit, v_step_expFit, popt)
                 
@@ -200,9 +208,12 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
                 ### R_INPUT ###
                 #R_input = ∆U/∆I
                 #∆U = a = popt[0], ∆I = 20 (for first step)
-                v_pre = v[step_idx][idc_pre]
-                v_pre_mean = np.mean(v_pre)
+                # calc delta v
+                # v_pre = v[step_idx][idc_pre]
+                # v_pre_mean = np.mean(v_pre)
                 # delta_v = (popt[2] - v_pre_mean)
+                
+                # reverse sign for r_input calculation
                 delta_v = -popt[0]
             
                 #delta I
@@ -253,18 +264,18 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
                                               linestyle = '--',
                                               color = colors_dict['color2'])
                     
-                    axs_expfit[step_idx].set_ylim([-140, -75])
+                    axs_expfit[step_idx].set_ylim([-150, -50])
                     
                     # text field with fit info
                     axs_expfit[step_idx].text(x = -delta_points+100,
-                                              y = -140,
+                                              y = -145,
                                               s = f'{popt[0]}\n{popt[1]}\n{popt[2]}\nr^2: {r_squared}',
                                               va = 'bottom',
                                               ha = 'left',
                                               fontsize = 8)
                     
                     axs_expfit[step_idx].text(x = 0+100,
-                                              y = -140,
+                                              y = -145,
                                               s = f'r_input: {r_input}\ntau_mem: {tau_mem}',
                                               va = 'bottom',
                                               ha = 'left',
