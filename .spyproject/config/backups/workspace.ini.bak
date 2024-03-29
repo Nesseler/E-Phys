@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['plot\\plot_ccIF_onecell_traces_colorcoded.py', 'plot\\plot_ccAPs_nAPs.py', 'plot\\plot_ccAPs_1st_v_last_xth_ISI.py', 'parameters\\parameters.py', 'analysis\\analyze_ccIF.py', 'analysis\\analyze_ccsag_for_rinput_taumem.py', 'cc_IF2.py', 'functions\\functions_useful.py', 'plot\\plot_ccIF_6cells_traces_colorcoded.py', 'plot\\plot_ccIF_cat.py', 'plot\\plot_ccIF.py', 'plot\\plot_ccAPs_1st_v_last_xth_mean_APparameter.py', 'plot\\plot_ccrest_activity_n_vrest.py', 'plot\\plot_ccAPs_rfreq_v_sfreq.py', 'cellmorphology\\plot_cellmorph_parameter.py', 'getter\\get_onlyfiles_list.py']
+recent_files = ['cellmorphology\\plot_cellmorph_parameter.py', 'getter\\get_onlyfiles_list.py', 'parameters\\directories_win.py', 'plot\\plot_ccIF.py', 'cellmorphology\\plot_polar.py']
 
 [main]
 version = 0.2.0
