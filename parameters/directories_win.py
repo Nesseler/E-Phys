@@ -35,5 +35,6 @@ vplot_dir = 'C:/Users/nesseler/Desktop/local E-Phys/vplots'
 # directory for cell morphology measures (SNT traces/Measurements)
 cell_morph_measures_dir = 'Z:/n2021_MOS_AOS_Integration/cellmorphology_BAOT_MeA/SNT traces/Measurements'
 cell_morph_figures_dir = 'Z:/n2021_MOS_AOS_Integration/cellmorphology_BAOT_MeA/cellmorph_figures'
-cell_morph_traces_coordinates_dir = 'Z:/n2021_MOS_AOS_Integration/cellmorphology_BAOT_MeA/SNT traces/traces_coordinates'
+cell_morph_traces_coordinates_dir = 'Z:/n2021_MOS_AOS_Integration/cellmorphology_BAOT_MeA/SNT_traces/traces_coordinates'
 cell_morph_plots_dir = 'Z:/n2021_MOS_AOS_Integration/cellmorphology_BAOT_MeA/Plots'
+cell_morph_traces_sholl_dir = 'Z:/n2021_MOS_AOS_Integration/cellmorphology_BAOT_MeA/SNT_traces/traces_sholl_tables'

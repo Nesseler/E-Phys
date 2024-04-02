@@ -48,7 +48,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     
     # clean up dataframes
     def clean_coordinates_df(coordinates_df):
-        coordinates_df['path_ID'] = [int(s.replace("Path ", "").replace("(", "").replace(")", "").replace("-", "").replace('1 [Single Point]', '1')) for s in coordinates_df['On Path']]
+        coordinates_df['path_ID'] = [int(s.replace("Path ", "").replace("(", "").replace(")", "").replace("-", "").replace(" [axon]", "").replace(" [soma]", "").replace(" [dendrit]", "").replace(' [Single Point]', '')) for s in coordinates_df['On Path']]
         coordinates_df.drop(columns = ['On Path'], inplace = True)
     
     clean_coordinates_df(all_coordinates)
@@ -314,6 +314,8 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     terminal_path_IDs = end_coordinates['path_ID'][end_coordinates['path_ID'] != 1]
     
     for terminal_path_ID in terminal_path_IDs:
+        
+        print('terminal path: ', terminal_path_ID)
             
         # coordinates of terminal branch to reconstruct until soma
         terminal_path_coor = all_coordinates[all_coordinates['path_ID'] == terminal_path_ID]
@@ -333,6 +335,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
         parent_path_ID = terminal_path_ID
         
         while parent_path_ID != 1:
+            print(parent_path_ID)
             parent_path_ID = find_parent_path(path_ID, path_IDs, all_coordinates)
              
             # coordinates of potential parent path
@@ -349,7 +352,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
             intersect_mask = coor_mask.query('X == True & Y == True & Z == True')
             
             # get intersection index
-            intersect_index = intersect_mask.index.item()
+            intersect_index = intersect_mask.index[0].item()
             
             # get intersection coordinates
             intersect_coor = parent_path_coor.loc[intersect_index]

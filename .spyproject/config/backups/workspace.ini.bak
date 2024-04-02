@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['cellmorphology\\plot_cellmorph_parameter.py', 'getter\\get_onlyfiles_list.py', 'parameters\\directories_win.py', 'plot\\plot_ccIF.py', 'cellmorphology\\plot_polar.py']
+recent_files = ['cellmorphology\\plot_cellmorph_parameter.py', 'getter\\get_onlyfiles_list.py', 'parameters\\directories_win.py', 'plot\\plot_ccIF.py', 'cellmorphology\\plot_polar.py', 'functions\\functions_plotting.py', 'plot\\plot_ccAPs_rfreq_v_sfreq.py']
 
 [main]
 version = 0.2.0
