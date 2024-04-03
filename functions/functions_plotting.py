@@ -20,7 +20,7 @@ def get_colors(darkmode_bool=False):
         color2 = 'magenta'
         color3 = [0, 1, 0]
         cmap = mtl.colors.LinearSegmentedColormap.from_list("", ["blue","white","magenta"])
-        #plt.rcParams['axes.grid'] = False
+        plt.rcParams['axes.grid'] = False
         # plt.grid(False)
         plot_dict = {'color':primecolor, 'linewidth' : 0.5}
         seccolor = 'k'
@@ -36,7 +36,7 @@ def get_colors(darkmode_bool=False):
         color2 = 'purple'
         color3 = 'red'
         cmap = mtl.colors.LinearSegmentedColormap.from_list("", ["blue","grey","red"])
-        plt.rcParams['axes.grid'] = True
+        plt.rcParams['axes.grid'] = False
         plot_dict = {'color':primecolor, 'linewidth' : 0.5}
         seccolor = 'w'
         

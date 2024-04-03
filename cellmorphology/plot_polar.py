@@ -31,6 +31,16 @@ MetaData = pd.read_excel(table_file,
 onlyfiles_allcoor = [f for f in onlyfiles if 'all_coordinates' in f]
 onlyfiles_endcoor = [f for f in onlyfiles if 'last_coordinates' in f]
 
+vplots_bool = False
+
+cell_IDs = []
+
+
+# dataframes for exporting
+# write dataframe that contains readout from polar plot
+polar_plot_occurrances = pd.DataFrame(columns = cell_IDs, index = ['p', 'pd', 'd', 'ad', 'a', 'av', 'v', 'pv'])
+
+
 # test 
 # cell_in_files = 0
 
@@ -40,6 +50,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     
     # get cell ID from filename
     cell_ID = all_coor_filename[:5]
+    cell_IDs.append(cell_ID)
     print(f'Started: {cell_ID}')
     
     # read all coordinates file
@@ -69,56 +80,60 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     darkmode_bool = True
     colors_dict, region_colors = get_colors(darkmode_bool)
     
+    
     # %% plot cell with all branches and end points marked
     
-    ratio = 300 / 590.76
+    if vplots_bool:
     
-    fig_cell, axs_cell = plt.subplots(nrows = 2,
-                                          ncols = 2,
-                                          height_ratios= [1, ratio],
-                                          width_ratios= [1, ratio],
-                                          sharey = 'row',
-                                          sharex = 'col',
-                                          figsize = get_figure_size(width = 165.5))
-    set_font_sizes()
-    plt.subplots_adjust(wspace=0, hspace=0)
-    axs_cell = axs_cell.flatten()
-    fig_cell.delaxes(axs_cell[-1])
-    fig_cell.suptitle(cell_ID)
-    
-    # XY
-    axs_cell[0].scatter(all_coordinates['X'], all_coordinates['Y'], s = 0.5, color = colors_dict['primecolor'], label = 'cell')
-    axs_cell[0].scatter(end_coordinates['X'], end_coordinates['Y'], s = 0.75, color = 'r', label = 'end points')
-    axs_cell[0].scatter(end_coordinates['X'][0], end_coordinates['Y'][0], s = 10, color = colors_dict['color2'], label = 'soma')
-    axs_cell[0].text(x = 10, y = 10, s = 'XY', ha = 'left', va = 'top')
-    axs_cell[0].set_ylim([590.76, 0])
-    axs_cell[0].set_ylabel('Height [µm]')
-    axs_cell[0].legend(fontsize = 9)
-    
-    # ZY
-    axs_cell[1].scatter(all_coordinates['Z'], all_coordinates['Y'], s = 0.5, color = colors_dict['primecolor'])
-    axs_cell[1].scatter(end_coordinates['Z'], end_coordinates['Y'], s = 0.75, color = 'r')
-    axs_cell[1].scatter(end_coordinates['Z'][0], end_coordinates['Y'][0], s = 10, color = colors_dict['color2'])
-    axs_cell[1].text(x = 10, y = 10, s = 'ZY', ha = 'left', va = 'top')
-    axs_cell[1].set_xlim([0, 300])
-    axs_cell[1].tick_params(axis = 'y', size = 0)
-    axs_cell[1].set_xlabel('Depth [µm]')
-    
-    # XZ
-    axs_cell[2].scatter(all_coordinates['X'], all_coordinates['Z'], s = 0.5, color = colors_dict['primecolor'])
-    axs_cell[2].scatter(end_coordinates['X'], end_coordinates['Z'], s = 0.75, color = 'r')
-    axs_cell[2].scatter(end_coordinates['X'][0], end_coordinates['Z'][0], s = 10, color = colors_dict['color2'])
-    axs_cell[2].text(x = 10, y = 10, s = 'XZ', ha = 'left', va = 'top')
-    axs_cell[2].set_xlim([0, 590.76])
-    axs_cell[2].set_ylim([300, 0])
-    axs_cell[2].set_ylabel('Depth [µm]')
-    axs_cell[2].set_xlabel('Width [µm]')
-    
-    [ax.grid(False) for ax in axs_cell]
-    
-    cell_fig_dir = join(cell_morph_plots_dir, 'cell_coordinates')
-    save_figures(fig_cell, f'{cell_ID}-cell_coordinates_xyz', cell_fig_dir, darkmode_bool)
-    
+        ratio = 300 / 590.76
+        
+        fig_cell, axs_cell = plt.subplots(nrows = 2,
+                                              ncols = 2,
+                                              height_ratios= [1, ratio],
+                                              width_ratios= [1, ratio],
+                                              sharey = 'row',
+                                              sharex = 'col',
+                                              figsize = get_figure_size(width = 165.5))
+        set_font_sizes()
+        plt.subplots_adjust(wspace=0, hspace=0)
+        axs_cell = axs_cell.flatten()
+        fig_cell.delaxes(axs_cell[-1])
+        fig_cell.suptitle(cell_ID)
+        
+        # XY
+        axs_cell[0].scatter(all_coordinates['X'], all_coordinates['Y'], s = 0.5, color = colors_dict['primecolor'], label = 'cell')
+        axs_cell[0].scatter(end_coordinates['X'], end_coordinates['Y'], s = 0.75, color = 'r', label = 'end points')
+        axs_cell[0].scatter(end_coordinates['X'][0], end_coordinates['Y'][0], s = 10, color = colors_dict['color2'], label = 'soma')
+        axs_cell[0].text(x = 10, y = 10, s = 'XY', ha = 'left', va = 'top')
+        axs_cell[0].set_ylim([590.76, 0])
+        axs_cell[0].set_ylabel('Height [µm]')
+        axs_cell[0].legend(fontsize = 9)
+        
+        # ZY
+        axs_cell[1].scatter(all_coordinates['Z'], all_coordinates['Y'], s = 0.5, color = colors_dict['primecolor'])
+        axs_cell[1].scatter(end_coordinates['Z'], end_coordinates['Y'], s = 0.75, color = 'r')
+        axs_cell[1].scatter(end_coordinates['Z'][0], end_coordinates['Y'][0], s = 10, color = colors_dict['color2'])
+        axs_cell[1].text(x = 10, y = 10, s = 'ZY', ha = 'left', va = 'top')
+        axs_cell[1].set_xlim([0, 300])
+        axs_cell[1].tick_params(axis = 'y', size = 0)
+        axs_cell[1].set_xlabel('Depth [µm]')
+        
+        # XZ
+        axs_cell[2].scatter(all_coordinates['X'], all_coordinates['Z'], s = 0.5, color = colors_dict['primecolor'])
+        axs_cell[2].scatter(end_coordinates['X'], end_coordinates['Z'], s = 0.75, color = 'r')
+        axs_cell[2].scatter(end_coordinates['X'][0], end_coordinates['Z'][0], s = 10, color = colors_dict['color2'])
+        axs_cell[2].text(x = 10, y = 10, s = 'XZ', ha = 'left', va = 'top')
+        axs_cell[2].set_xlim([0, 590.76])
+        axs_cell[2].set_ylim([300, 0])
+        axs_cell[2].set_ylabel('Depth [µm]')
+        axs_cell[2].set_xlabel('Width [µm]')
+        
+        [ax.grid(False) for ax in axs_cell]
+        
+        cell_fig_dir = join(cell_morph_plots_dir, 'cell_coordinates')
+        save_figures(fig_cell, f'{cell_ID}-cell_coordinates_xyz', cell_fig_dir, darkmode_bool)
+        
+        plt.show()    
     
     ### calculate xy angle from end point ###
     
@@ -181,26 +196,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
         # write to dataframe
         terminal_branches_df = pd.concat([terminal_branches_df, terminal_branch_df], axis = 0)
         
-        
-    
-    plt.show()
-    
-    
-    # %% rough polar plot
-    
-    # fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-    
-    # fig.suptitle(cell_ID)
-    
-    # for i in terminal_branches_df.index:
-        
-    #     ax.plot([terminal_branches_df.at[i, 'angle_rad'], terminal_branches_df.at[i, 'angle_rad']], [0.1, 1], 'w', alpha = 0.5)
-    #     ax.set_rticks([1])
-    #     ax.set_xticks(np.arange(0, np.pi*2, np.pi/4))
-        
-    # ax.grid(False)
-    
-    # plt.show()
+
     
     
     # %% functions for branch reconstruction
@@ -314,8 +310,6 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     terminal_path_IDs = end_coordinates['path_ID'][end_coordinates['path_ID'] != 1]
     
     for terminal_path_ID in terminal_path_IDs:
-        
-        print('terminal path: ', terminal_path_ID)
             
         # coordinates of terminal branch to reconstruct until soma
         terminal_path_coor = all_coordinates[all_coordinates['path_ID'] == terminal_path_ID]
@@ -335,7 +329,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
         parent_path_ID = terminal_path_ID
         
         while parent_path_ID != 1:
-            print(parent_path_ID)
+
             parent_path_ID = find_parent_path(path_ID, path_IDs, all_coordinates)
              
             # coordinates of potential parent path
@@ -397,129 +391,126 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
         # write to dataframe
         terminal_branches_df.at[terminal_path_ID ,'contraction'] = terminal_branch_contraction
         
+        if vplots_bool:
         
-        ### branch verification plot ###
-        ratio = 300 / 590.76
-        
-        fig_branch, axs_branch = plt.subplots(nrows = 2,
-                                              ncols = 2,
-                                              height_ratios= [1, ratio],
-                                              width_ratios= [1, ratio],
-                                              sharey = 'row',
-                                              sharex = 'col',
-                                              figsize = get_figure_size(width = 165.5))
-        
-        
-        
-        plt.subplots_adjust(wspace=0, hspace=0)
-        
-        
-        axs_branch = axs_branch.flatten()
-        fig_branch.delaxes(axs_branch[-1])
-        
-        fig_branch.suptitle(f'{cell_ID} terminal_path_ID: {terminal_path_ID}')
-        
-        ## XY
-        # branch
-        axs_branch[0].scatter(branch_coor_terminal_to_soma['X'],
-                              branch_coor_terminal_to_soma['Y'],
-                              s = 0.5,
-                              color = colors_dict['primecolor'])
-        
-        # soma
-        axs_branch[0].scatter(end_coordinates[end_coordinates['path_ID'] == 1]['X'], 
-                              end_coordinates[end_coordinates['path_ID'] == 1]['Y'],
-                              s = 2,
-                              color = colors_dict['color2'])
-        
-        # end point
-        axs_branch[0].scatter(end_coordinates[end_coordinates['path_ID'] == terminal_path_ID]['X'], 
-                              end_coordinates[end_coordinates['path_ID'] == terminal_path_ID]['Y'],
-                              s = 2,
-                              color = 'r')
-        
-        # connection line
-        axs_branch[0].plot(line_coordinates['X'],
-                            line_coordinates['Y'],
-                            color = colors_dict['primecolor'],
-                            alpha = 0.5)
-         
-        axs_branch[0].set_xlim([0, 590.76])
-        axs_branch[0].set_ylim([590.76, 0])
-        axs_branch[0].set_ylabel('Height [µm]')
-        axs_branch[0].text(x = 10, y = 10, s = 'XY', ha = 'left', va = 'top')
-        
-        # branch measurement
-        axs_branch[0].text(x = 10, y = 590, 
-                           s = f'branch angle [deg] = {terminal_branches_df.at[terminal_path_ID ,"angle_deg"]}\n\
-branch angle [rad] = {terminal_branches_df.at[terminal_path_ID ,"angle_rad"]}\n\
-branch length [µm] = {terminal_branches_df.at[terminal_path_ID ,"length"]}\n\
-branch euclidean dist. [µm] = {terminal_branches_df.at[terminal_path_ID ,"euc_dist"]}\n\
-branch contraction = {terminal_branches_df.at[terminal_path_ID ,"contraction"]}\n', 
-                            ha = 'left', va = 'bottom',
-                            size = 6)
-           
+            ### branch verification plot ###
+            ratio = 300 / 590.76
             
-        ## YZ
-        # branch
-        axs_branch[1].scatter(branch_coor_terminal_to_soma['Z'],
-                              branch_coor_terminal_to_soma['Y'],
-                              s = 0.5,
-                              color = colors_dict['primecolor'])
+            fig_branch, axs_branch = plt.subplots(nrows = 2,
+                                                  ncols = 2,
+                                                  height_ratios= [1, ratio],
+                                                  width_ratios= [1, ratio],
+                                                  sharey = 'row',
+                                                  sharex = 'col',
+                                                  figsize = get_figure_size(width = 165.5))
+            
+            
+            
+            plt.subplots_adjust(wspace=0, hspace=0)
+            
+            
+            axs_branch = axs_branch.flatten()
+            fig_branch.delaxes(axs_branch[-1])
+            
+            fig_branch.suptitle(f'{cell_ID} terminal_path_ID: {terminal_path_ID}')
+            
+            ## XY
+            # branch
+            axs_branch[0].scatter(branch_coor_terminal_to_soma['X'],
+                                  branch_coor_terminal_to_soma['Y'],
+                                  s = 0.5,
+                                  color = colors_dict['primecolor'])
+            
+            # soma
+            axs_branch[0].scatter(end_coordinates[end_coordinates['path_ID'] == 1]['X'], 
+                                  end_coordinates[end_coordinates['path_ID'] == 1]['Y'],
+                                  s = 2,
+                                  color = colors_dict['color2'])
+            
+            # end point
+            axs_branch[0].scatter(end_coordinates[end_coordinates['path_ID'] == terminal_path_ID]['X'], 
+                                  end_coordinates[end_coordinates['path_ID'] == terminal_path_ID]['Y'],
+                                  s = 2,
+                                  color = 'r')
+            
+            # connection line
+            axs_branch[0].plot(line_coordinates['X'],
+                                line_coordinates['Y'],
+                                color = colors_dict['primecolor'],
+                                alpha = 0.5)
+             
+            axs_branch[0].set_xlim([0, 590.76])
+            axs_branch[0].set_ylim([590.76, 0])
+            axs_branch[0].set_ylabel('Height [µm]')
+            axs_branch[0].text(x = 10, y = 10, s = 'XY', ha = 'left', va = 'top')
+            
+            # branch measurement
+            axs_branch[0].text(x = 10, y = 590, 
+                               s = f'branch angle [deg] = {terminal_branches_df.at[terminal_path_ID ,"angle_deg"]}\nbranch angle [rad] = {terminal_branches_df.at[terminal_path_ID ,"angle_rad"]}\nbranch length [µm] = {terminal_branches_df.at[terminal_path_ID ,"length"]}\nbranch euclidean dist. [µm] = {terminal_branches_df.at[terminal_path_ID ,"euc_dist"]}\nbranch contraction = {terminal_branches_df.at[terminal_path_ID ,"contraction"]}\n', 
+                                ha = 'left', va = 'bottom',
+                                size = 6)
+               
+                
+            ## YZ
+            # branch
+            axs_branch[1].scatter(branch_coor_terminal_to_soma['Z'],
+                                  branch_coor_terminal_to_soma['Y'],
+                                  s = 0.5,
+                                  color = colors_dict['primecolor'])
+            
+            # soma
+            axs_branch[1].scatter(end_coordinates[end_coordinates['path_ID'] == 1]['Z'], 
+                                  end_coordinates[end_coordinates['path_ID'] == 1]['Y'],
+                                  s = 2,
+                                  color = colors_dict['color2'])
+            
+            # end point
+            axs_branch[1].scatter(end_coordinates[end_coordinates['path_ID'] == terminal_path_ID]['Z'], 
+                                  end_coordinates[end_coordinates['path_ID'] == terminal_path_ID]['Y'],
+                                  s = 2,
+                                  color = 'r')
+             
+            axs_branch[1].set_xlim([0, 300])
+            axs_branch[1].tick_params(axis = 'y', size = 0)
+            axs_branch[1].set_xlabel('Depth [µm]')
+            axs_branch[1].text(x = 10, y = 10, s = 'ZY', ha = 'left', va = 'top')
+            
+            ## XZ
+            # branch
+            axs_branch[2].scatter(branch_coor_terminal_to_soma['X'],
+                                  branch_coor_terminal_to_soma['Z'],
+                                  s = 0.5,
+                                  color = colors_dict['primecolor'])
+            
+            # soma
+            axs_branch[2].scatter(end_coordinates[end_coordinates['path_ID'] == 1]['X'], 
+                                  end_coordinates[end_coordinates['path_ID'] == 1]['Z'],
+                                  s = 2,
+                                  color = colors_dict['color2'])
+            
+            # end point
+            axs_branch[2].scatter(end_coordinates[end_coordinates['path_ID'] == terminal_path_ID]['X'], 
+                                  end_coordinates[end_coordinates['path_ID'] == terminal_path_ID]['Z'],
+                                  s = 2,
+                                  color = 'r')
+             
+            axs_branch[2].set_xlim([0, 590.76])
+            axs_branch[2].set_ylim([300, 0])
+            axs_branch[2].set_ylabel('Depth [µm]')
+            axs_branch[2].set_xlabel('Width [µm]')
         
-        # soma
-        axs_branch[1].scatter(end_coordinates[end_coordinates['path_ID'] == 1]['Z'], 
-                              end_coordinates[end_coordinates['path_ID'] == 1]['Y'],
-                              s = 2,
-                              color = colors_dict['color2'])
-        
-        # end point
-        axs_branch[1].scatter(end_coordinates[end_coordinates['path_ID'] == terminal_path_ID]['Z'], 
-                              end_coordinates[end_coordinates['path_ID'] == terminal_path_ID]['Y'],
-                              s = 2,
-                              color = 'r')
-         
-        axs_branch[1].set_xlim([0, 300])
-        axs_branch[1].tick_params(axis = 'y', size = 0)
-        axs_branch[1].set_xlabel('Depth [µm]')
-        axs_branch[1].text(x = 10, y = 10, s = 'ZY', ha = 'left', va = 'top')
-        
-        ## XZ
-        # branch
-        axs_branch[2].scatter(branch_coor_terminal_to_soma['X'],
-                              branch_coor_terminal_to_soma['Z'],
-                              s = 0.5,
-                              color = colors_dict['primecolor'])
-        
-        # soma
-        axs_branch[2].scatter(end_coordinates[end_coordinates['path_ID'] == 1]['X'], 
-                              end_coordinates[end_coordinates['path_ID'] == 1]['Z'],
-                              s = 2,
-                              color = colors_dict['color2'])
-        
-        # end point
-        axs_branch[2].scatter(end_coordinates[end_coordinates['path_ID'] == terminal_path_ID]['X'], 
-                              end_coordinates[end_coordinates['path_ID'] == terminal_path_ID]['Z'],
-                              s = 2,
-                              color = 'r')
-         
-        axs_branch[2].set_xlim([0, 590.76])
-        axs_branch[2].set_ylim([300, 0])
-        axs_branch[2].set_ylabel('Depth [µm]')
-        axs_branch[2].set_xlabel('Width [µm]')
-    
-        
-        axs_branch[2].text(x = 10, y = 10, s = 'XZ', ha = 'left', va = 'top')
-        
-        [ax.grid(False) for ax in axs_branch]
-        
-        plt.show()
-        
-        fig_branch_dir = join(cell_morph_plots_dir, 'terminal_branches', cell_ID)
-        if not exists(fig_branch_dir):
-            mkdir(fig_branch_dir)
-        
-        save_figures(fig_branch, f'{cell_ID}_{terminal_path_ID}-terminal_branch_measurements', fig_branch_dir, darkmode_bool)
+            
+            axs_branch[2].text(x = 10, y = 10, s = 'XZ', ha = 'left', va = 'top')
+            
+            [ax.grid(False) for ax in axs_branch]
+            
+            plt.show()
+            
+            fig_branch_dir = join(cell_morph_plots_dir, 'terminal_branches', cell_ID)
+            if not exists(fig_branch_dir):
+                mkdir(fig_branch_dir)
+            
+            save_figures(fig_branch, f'{cell_ID}_{terminal_path_ID}-terminal_branch_measurements', fig_branch_dir, darkmode_bool)
     
     
     # # %% 2D histogram of angle and length of terminal branches
@@ -559,7 +550,7 @@ branch contraction = {terminal_branches_df.at[terminal_path_ID ,"contraction"]}\
                                       layout = 'constrained',
                                       height_ratios= [1],
                                       width_ratios=[1],
-                                      figsize = get_figure_size(width = 165.5))
+                                      figsize = get_figure_size(width = 185.5))
     
     # ax_hist.set_theta_offset(-np.pi / 8)
     
@@ -651,6 +642,19 @@ branch contraction = {terminal_branches_df.at[terminal_path_ID ,"contraction"]}\
     polar_plots_dir = join(cell_morph_plots_dir, 'polar_plots')
     save_figures(fig_hist, f'{cell_ID}-polar_plot-terminal_branch_orientation-colorcoded_length', polar_plots_dir, darkmode_bool)
 
+
+# %% 
+
+    # write histogram to dataframe
+    polar_plot_occurrances[cell_ID] = bottom
+
+    
+    
+    
+# %%
+
+    
+    
 
 # %% todo list
 
