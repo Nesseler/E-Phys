@@ -13,11 +13,11 @@ import matplotlib as mtl
 import numpy as np
 import math
 
-from parameters.directories_win import cell_morph_traces_coordinates_dir, cell_morph_plots_dir, table_file
+from parameters.directories_win import cell_morph_traces_coordinates_dir, cell_morph_plots_dir, table_file, cell_morph_descrip_dir
 from getter.get_onlyfiles_list import get_onlyfiles_list
 
 from functions.functions_plotting import get_colors, save_figures, set_font_sizes, get_figure_size
-from functions.functions_useful import round_to_base
+from cellmorphology.functions_cellmorph import clean_OnPath_column_to_path_ID_n_label
 
 # get onlyfiles list
 onlyfiles = get_onlyfiles_list(cell_morph_traces_coordinates_dir)
@@ -41,8 +41,9 @@ cell_IDs = []
 polar_plot_occurrances = pd.DataFrame(columns = cell_IDs, index = ['p', 'pd', 'd', 'ad', 'a', 'av', 'v', 'pv'])
 
 
+
 # test 
-# cell_in_files = 0
+# onlyfiles = onlyfiles[:2]
 
 for cell_in_files in range(int(len(onlyfiles)/2)):
 
@@ -58,14 +59,8 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     end_coordinates = pd.read_csv(join(cell_morph_traces_coordinates_dir, onlyfiles_endcoor[cell_in_files])) 
     
     # clean up dataframes
-    def clean_coordinates_df(coordinates_df):
-        coordinates_df['path_ID'] = [int(s.replace("Path ", "").replace("(", "").replace(")", "").replace("-", "").replace(" [axon]", "").replace(" [soma]", "").replace(" [dendrit]", "").replace(' [Single Point]', '')) for s in coordinates_df['On Path']]
-        coordinates_df.drop(columns = ['On Path'], inplace = True)
-    
-    clean_coordinates_df(all_coordinates)
-    
-    # end_coordinates['On Path'] = end_coordinates['On Path'].replace('Path (1) [Single Point]', '1')
-    clean_coordinates_df(end_coordinates)
+    clean_OnPath_column_to_path_ID_n_label(all_coordinates)
+    clean_OnPath_column_to_path_ID_n_label(end_coordinates)
     
     # check if x coordinates need to be flipped
     if MetaData.at[cell_ID, 'to_be_x_flipped']:
@@ -166,7 +161,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
         end_point_coordinates = end_coordinates[end_coordinates['path_ID'] == path_ID_end_point]
     
         vector_coordinates = pd.concat([soma_coordinates, end_point_coordinates], axis = 0)
-        vector_coordinates.drop(columns = ['path_ID'], inplace = True)
+        vector_coordinates.drop(columns = ['path_ID', 'path_label'], inplace = True)
         
         xy_vector = vector_coordinates.drop(columns = ['Z'])
         
@@ -176,7 +171,8 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
                                            'z_end': end_point_coordinates.at[idx_end_point,'Z'],
                                            'x_diff': end_point_coordinates.at[idx_end_point, 'X'] - soma_coordinates.at[0, 'X'],
                                            'y_diff': end_point_coordinates.at[idx_end_point, 'Y'] - soma_coordinates.at[0, 'Y'],
-                                           'z_diff': end_point_coordinates.at[idx_end_point, 'Z'] - soma_coordinates.at[0, 'Z']},
+                                           'z_diff': end_point_coordinates.at[idx_end_point, 'Z'] - soma_coordinates.at[0, 'Z'],
+                                           'path_label': end_point_coordinates.at[idx_end_point,'path_label']},
                                           index = [path_ID_end_point])
         
         terminal_branch_df.index.name = 'path_ID'
@@ -191,13 +187,12 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     
         terminal_branch_df.at[path_ID_end_point, 'angle_deg'] = deg
         terminal_branch_df.at[path_ID_end_point, 'angle_rad'] = math.radians(deg)
-        
     
         # write to dataframe
         terminal_branches_df = pd.concat([terminal_branches_df, terminal_branch_df], axis = 0)
         
 
-    
+
     
     # %% functions for branch reconstruction
     
@@ -372,7 +367,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
         
         
         ### calculate length
-        terminal_branch_length = calc_length_of_branch(branch_coor_terminal_to_soma.drop(columns = ['path_ID']))
+        terminal_branch_length = calc_length_of_branch(branch_coor_terminal_to_soma.drop(columns = ['path_ID', 'path_label']))
         
         terminal_branches_df.at[terminal_path_ID ,'length'] = terminal_branch_length
            
@@ -380,7 +375,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
         ## can be calculated with same function but just two coordinates
         line_coordinates = branch_coor_terminal_to_soma.iloc[[0, -1]]
         
-        terminal_branch_euc = calc_length_of_branch(line_coordinates.drop(columns = ['path_ID']))
+        terminal_branch_euc = calc_length_of_branch(line_coordinates.drop(columns = ['path_ID', 'path_label']))
         
         # write to dataframe
         terminal_branches_df.at[terminal_path_ID ,'euc_dist'] = terminal_branch_euc
@@ -541,7 +536,52 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     # ax_hist.set_xticks(bins_angles)
     # ax_hist.set_xticklabels(np.arange(0, 360 + 1, 360 / n_bins, dtype = int), rotation = 45)
     
-    # %% 2D histogram of angle and length of terminal branches
+    # %% absolute polar plot
+    # 2D histogram of angle and length of terminal branches
+    
+    # branch categorization 
+    ### histogram ###
+    ## start with double the number of desired binsizes to end up with histogram
+    ## that doesnt split at 0
+    # initialize values for histogram
+    resul_n_bins = 8
+    resul_binsize = (2 * np.pi) / resul_n_bins
+    n_bins = resul_n_bins * 2
+    binsize = (2 * np.pi) / n_bins
+    hist_bins = np.arange(0, 2*np.pi + binsize, binsize)
+    
+    # loop through all branches to assign specific color for length
+    # skip (drop) path 1, i.e. soma
+    for branch_idx in terminal_branches_df.drop(index = 1).index.to_list():
+    
+        # get angles of branches
+        branch_angles_rad = terminal_branches_df.at[branch_idx, "angle_rad"]    
+    
+        # get histogram
+        hist_angles_occu_pre, bins_angles_pre = np.histogram(branch_angles_rad, hist_bins)
+    
+        # define empty list to populate after combining count in bins
+        hist_angles_occu = [None] * resul_n_bins
+        bins_angles = [None] * resul_n_bins
+        
+        # define bin idc to be combined
+        idc_bins = np.arange(0, n_bins)
+        idc_bins = np.roll(idc_bins, 1)
+        
+        # loop through resulting bins to combine previouse bins
+        for bin_idx in range(resul_n_bins):
+            idc_bins_resul = idc_bins[(bin_idx*2):(bin_idx*2)+1+1]
+            
+            hist_angles_occu[bin_idx] = np.sum(hist_angles_occu_pre[idc_bins_resul])
+            bins_angles[bin_idx] = bins_angles_pre[idc_bins[(bin_idx*2)]]
+    
+        # get bin_id of current branch    
+        terminal_branches_df.at[branch_idx, 'bin_id'] = np.argmax(hist_angles_occu)
+    
+    
+    
+    # %%
+    
     
     # sort dataframe of terminal branches measurements to plot histogram
     terminal_branches_df.sort_values('length', inplace = True)
@@ -558,16 +598,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     
     fig_hist.suptitle(cell_ID)
     
-    ### histogram ###
-    ## start with double the number of desired binsizes to end up with histogram
-    ## that doesnt split at 0
-    # initialize values for histogram
-    resul_n_bins = 8
-    resul_binsize = (2 * np.pi) / resul_n_bins
-    n_bins = resul_n_bins * 2
-    binsize = (2 * np.pi) / n_bins
-    hist_bins = np.arange(0, 2*np.pi + binsize, binsize)
-    
+
     ### color code for length of branches ###
     # initialise color code
     norm_min = 0
@@ -583,26 +614,17 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     bottom = [0] * resul_n_bins
     
     # loop through all branches to assign specific color for length
-    for branch_idx in terminal_branches_df.index.to_list():
+    # skip (drop) path 1, i.e. soma
+    for branch_idx in terminal_branches_df.drop(index = 1).index.to_list():
     
         # get angles of branches
         branch_angles_rad = terminal_branches_df.at[branch_idx, "angle_rad"]
         branch_length = terminal_branches_df.at[branch_idx, "length"]
+        branch_bin = terminal_branches_df.at[branch_idx, "bin_id"].astype(int)
         
-        # get histogram
-        hist_angles_occu_pre, bins_angles_pre = np.histogram(branch_angles_rad, hist_bins)
-        
-        hist_angles_occu = [None] * resul_n_bins
-        bins_angles = [None] * resul_n_bins
-        idc_bins = np.arange(0, n_bins)
-        idc_bins = np.roll(idc_bins, 1)
-        
-        for bin_idx in range(resul_n_bins):
-            idc_bins_resul = idc_bins[(bin_idx*2):(bin_idx*2)+1+1]
-            
-            hist_angles_occu[bin_idx] = np.sum(hist_angles_occu_pre[idc_bins_resul])
-            bins_angles[bin_idx] = bins_angles_pre[idc_bins[(bin_idx*2)]]
-    
+        # create empty bins and assign branch to bin
+        hist_angles_occu = [0] * resul_n_bins
+        hist_angles_occu[branch_bin] = 1
         
         # plot histogram as barplot
         ax_hist.bar(bins_angles, hist_angles_occu, bottom = bottom,
@@ -618,7 +640,6 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     # plot terminal branch lines
     for i in terminal_branches_df.index:
         ax_hist.plot([terminal_branches_df.at[i, 'angle_rad'], terminal_branches_df.at[i, 'angle_rad']], [0.5, 2.5], 'w', alpha = 0.25)
-    
     
     # x axis
     ax_hist.set_xticks(np.arange(0, np.pi*2, np.pi / 2))
@@ -639,8 +660,73 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     plt.show()    
     
     # set polar plots directory
-    polar_plots_dir = join(cell_morph_plots_dir, 'polar_plots')
-    save_figures(fig_hist, f'{cell_ID}-polar_plot-terminal_branch_orientation-colorcoded_length', polar_plots_dir, darkmode_bool)
+    polar_plots_dir = join(cell_morph_plots_dir, 'polar_plots',  'absolute_polar_plots')
+    save_figures(fig_hist, f'{cell_ID}-absolute_polar_plot-terminal_branch_orientation-colorcoded_length', polar_plots_dir, darkmode_bool)
+
+
+# %% normalised polar plot
+
+    max_hist_angles_occu = np.max(bottom)
+
+    fig_hist_norm, ax_hist_norm = plt.subplots(subplot_kw={'projection': 'polar'},
+                                                layout = 'constrained',
+                                                height_ratios= [1],
+                                                width_ratios=[1],
+                                                figsize = get_figure_size(width = 185.5))
+    # set title
+    fig_hist_norm.suptitle(cell_ID)
+    
+    # colorbar
+    fig_hist_norm.colorbar(cmap, ax = ax_hist_norm, label = 'Terminal branch length [µm]')
+    
+    # define bottom (empty bins for histogram)
+    bottom_norm = [0] * resul_n_bins
+    norm_bin_height = 1 / max_hist_angles_occu
+    
+    # loop through all branches to assign specific color for length
+    # skip (drop) path 1, i.e. soma
+    for branch_idx in terminal_branches_df.drop(index = 1).index.to_list():
+    
+        # get angles of branches
+        branch_angles_rad = terminal_branches_df.at[branch_idx, "angle_rad"]
+        branch_length = terminal_branches_df.at[branch_idx, "length"]
+        branch_bin = terminal_branches_df.at[branch_idx, "bin_id"].astype(int)
+        
+        # create empty bins and assign branch to bin
+        hist_angles_occu = [0] * resul_n_bins
+        hist_angles_occu[branch_bin] = norm_bin_height
+        
+        # plot histogram as barplot
+        ax_hist_norm.bar(bins_angles, hist_angles_occu, bottom = bottom_norm,
+                         width = resul_binsize, 
+                         align = 'edge',
+                         edgecolor = 'none',
+                         color = cmap.to_rgba(branch_length))
+            
+        # add to bottom list for next step
+        bottom_norm = np.add(bottom_norm, hist_angles_occu)
+        
+    # plot terminal branch lines
+    for i in terminal_branches_df.index:
+        ax_hist_norm.plot([terminal_branches_df.at[i, 'angle_rad'], terminal_branches_df.at[i, 'angle_rad']], [norm_bin_height*0.2, norm_bin_height*0.8], 'w', alpha = 0.25)
+
+    # x axis
+    ax_hist_norm.set_xticks(np.arange(0, np.pi*2, np.pi / 4))
+    ax_hist_norm.set_xticklabels(['p', 'pd', 'd', 'ad', 'a', 'av', 'v', 'pv'])
+
+    # grid
+    ax_hist_norm.grid(True, alpha = 0.5)
+    
+    # yaxis
+    ax_hist_norm.set_ylim([0, 1])
+    yticks = np.arange(0, 1 + norm_bin_height, norm_bin_height)
+    ax_hist_norm.set_yticks(ticks = [1.0])
+    
+    plt.show()    
+    
+    # set polar plots directory
+    norm_polar_plots_dir = join(cell_morph_plots_dir, 'polar_plots', 'normalized_polar_plots')
+    save_figures(fig_hist_norm, f'{cell_ID}-normalized_polar_plot-terminal_branch_orientation-colorcoded_length', norm_polar_plots_dir, darkmode_bool)
 
 
 # %% 
@@ -648,13 +734,17 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     # write histogram to dataframe
     polar_plot_occurrances[cell_ID] = bottom
 
-    
-    
-    
-# %%
+    # save terminal_branches_df that contains all measurements of terminal branches for each cell
+    terminal_branches_df.to_excel(join(cell_morph_descrip_dir, 'terminal_branches_measurements', f'{cell_ID}-terminal_branches.xlsx'), index_label = 'path_ID')   
 
     
-    
+# %% save dataframe
+
+# reset index with orientation angle of bins in rad
+polar_plot_occurrances.index = bins_angles
+polar_plot_occurrances.to_excel(join(cell_morph_descrip_dir, 'polar_plot_occurrances.xlsx'), index_label = 'orientation_rad')
+
+print('Finished!')
 
 # %% todo list
 
