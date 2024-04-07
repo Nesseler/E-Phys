@@ -39,8 +39,8 @@ cell_IDs = []
 # dataframes for exporting
 # write dataframe that contains readout from polar plot
 polar_plot_occurrances = pd.DataFrame(columns = cell_IDs, index = ['p', 'pd', 'd', 'ad', 'a', 'av', 'v', 'pv'])
-
-
+polar_plot_dendrites_occurrances = pd.DataFrame(columns = cell_IDs)
+polar_plot_axons_occurrances = pd.DataFrame(columns = cell_IDs)
 
 # test 
 # onlyfiles = onlyfiles[:2]
@@ -642,8 +642,8 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
         ax_hist.plot([terminal_branches_df.at[i, 'angle_rad'], terminal_branches_df.at[i, 'angle_rad']], [0.5, 2.5], 'w', alpha = 0.25)
     
     # x axis
-    ax_hist.set_xticks(np.arange(0, np.pi*2, np.pi / 2))
-    ax_hist.set_xticklabels(['p', 'd', 'a', 'v'])
+    ax_hist.set_xticks(np.arange(0, np.pi*2, np.pi / 4))
+    ax_hist.set_xticklabels(['p', 'pd', 'd', 'ad', 'a', 'av', 'v', 'pv'])
     
     # y axis
     ymax = np.ceil(max(bottom)/5)*5
@@ -729,20 +729,112 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     save_figures(fig_hist_norm, f'{cell_ID}-normalized_polar_plot-terminal_branch_orientation-colorcoded_length', norm_polar_plots_dir, darkmode_bool)
 
 
+# %% color coded dendrites and axon polar plot
+
+    max_hist_angles_occu = np.max(bottom)
+
+    fig_hist_neurites, ax_hist_neurites = plt.subplots(subplot_kw={'projection': 'polar'},
+                                                       layout = 'constrained',
+                                                       height_ratios= [1],
+                                                       width_ratios=[1],
+                                                       figsize = get_figure_size(width = 185.5))
+    
+    # set title
+    fig_hist_neurites.suptitle(cell_ID)
+  
+    # define bottom (empty bins for histogram)
+    bottom_neurites = [0] * resul_n_bins
+    occu_dendrites = [0] * resul_n_bins
+    occu_axon = [0] * resul_n_bins
+    
+    # colors for axon and dendrite
+    neurite_colors = {'dendrite' : '#ff9f03', 'axon' : '#b94e71'}
+    
+    # for neurite_type in ['dendrite', 'axon']:
+        # print(neurite_type)
+        
+    # terminal_branches_df_type = terminal_branches_df[terminal_branches_df['path_label'] == neurite_type]
+    
+    # loop through all branches to assign specific color for length
+    # skip (drop) path 1, i.e. soma
+    for branch_idx in terminal_branches_df.drop(index = 1).index.to_list():
+
+        # get angles of branches
+        branch_angles_rad = terminal_branches_df.at[branch_idx, "angle_rad"]
+        branch_length = terminal_branches_df.at[branch_idx, "length"]
+        branch_bin = terminal_branches_df.at[branch_idx, "bin_id"].astype(int)
+        neurite_type = terminal_branches_df.at[branch_idx, "path_label"]
+        
+        # create empty bins and assign branch to bin
+        hist_angles_occu = [0] * resul_n_bins
+        hist_angles_occu[branch_bin] = 1
+        
+        # plot histogram as barplot
+        ax_hist_neurites.bar(bins_angles, hist_angles_occu, bottom = bottom_neurites,
+                             width = resul_binsize, 
+                             align = 'edge',
+                             edgecolor = 'none',
+                             color = neurite_colors[neurite_type])
+            
+        # add to bottom list for next step
+        bottom_neurites = np.add(bottom_neurites, hist_angles_occu)
+        
+        if neurite_type == 'dendrite':
+            # add to occurrances list for dendrites
+            occu_dendrites = np.add(occu_dendrites, hist_angles_occu)
+        elif neurite_type == 'axon':
+            occu_axon = np.add(occu_axon, hist_angles_occu)
+    
+    # plot terminal branch lines
+    for i in terminal_branches_df.index:
+        ax_hist_neurites.plot([terminal_branches_df.at[i, 'angle_rad'], terminal_branches_df.at[i, 'angle_rad']], [0.5, 2.5], 'w', alpha = 0.25)
+    
+    # x axis
+    ax_hist_neurites.set_xticks(np.arange(0, np.pi*2, np.pi / 4))
+    ax_hist_neurites.set_xticklabels(['p', 'pd', 'd', 'ad', 'a', 'av', 'v', 'pv'])
+    
+    # y axis
+    ymax = np.ceil(max(bottom)/5)*5
+    
+    if ymax <= 15:
+        ymax = 15
+    
+    ax_hist_neurites.set_yticks(ticks = np.arange(0, ymax + 1, 5))
+    # ax_hist.set_yticks(np.arange(0, round_to_base(max(bottom)+1, 5)+1, 1), minor = True)
+    
+    
+    ax_hist_neurites.grid(True, alpha = 0.5)
+    
+    plt.show()    
+    
+    # set polar plots directory
+    neurite_polar_plots_dir = join(cell_morph_plots_dir, 'polar_plots',  'absolute_polar_plots_cc_dendrite_axon')
+    save_figures(fig_hist, f'{cell_ID}-absolute_polar_plot-terminal_branch_orientation-colorcoded_path_type', neurite_polar_plots_dir, darkmode_bool)   
+
+
 # %% 
 
     # write histogram to dataframe
     polar_plot_occurrances[cell_ID] = bottom
+    polar_plot_dendrites_occurrances[cell_ID] = occu_dendrites
+    polar_plot_axons_occurrances[cell_ID] = occu_axon
 
     # save terminal_branches_df that contains all measurements of terminal branches for each cell
     terminal_branches_df.to_excel(join(cell_morph_descrip_dir, 'terminal_branches_measurements', f'{cell_ID}-terminal_branches.xlsx'), index_label = 'path_ID')   
 
-    
+
 # %% save dataframe
 
 # reset index with orientation angle of bins in rad
 polar_plot_occurrances.index = bins_angles
 polar_plot_occurrances.to_excel(join(cell_morph_descrip_dir, 'polar_plot_occurrances.xlsx'), index_label = 'orientation_rad')
+# just dendrites
+polar_plot_dendrites_occurrances.index = bins_angles
+polar_plot_dendrites_occurrances.to_excel(join(cell_morph_descrip_dir, 'polar_plot_dendrites_occurrances.xlsx'), index_label = 'orientation_rad')
+# just axons
+polar_plot_axons_occurrances.index = bins_angles
+polar_plot_axons_occurrances.to_excel(join(cell_morph_descrip_dir, 'polar_plot_axons_occurrances.xlsx'), index_label = 'orientation_rad')
+
 
 print('Finished!')
 

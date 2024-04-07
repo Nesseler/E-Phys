@@ -21,11 +21,11 @@ def clean_OnPath_column_to_path_ID_n_label(coordinates_dataframe):
             path_ID = path_ID[-1]
         
         
-        txt_ls = txt.split()
+        # txt_ls = txt.split()
             
-        if 'axon' in txt_ls:
+        if 'axon' in txt:
             path_label = 'axon'
-        elif 'soma' in txt_ls:
+        elif 'soma' in txt:
             path_label = 'soma'
         else:
             path_label = 'dendrite'

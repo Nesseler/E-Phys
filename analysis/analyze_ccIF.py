@@ -14,7 +14,7 @@ import scipy as sc
 
 # custom directories & parameters
 from parameters.directories_win import table_file, quant_data_dir, cell_descrip_dir, vplot_dir
-from parameters.parameters import min_peak_prominence_ccIF, min_peak_distance_ccIF, min_max_peak_width_ccIF, dvdt_threshold, AP_parameters, t_expo_fit, popt_guess, r_squared_thresh
+from parameters.parameters import min_peak_prominence_ccIF, min_peak_distance_ccIF, min_max_peak_width_ccIF, dvdt_threshold, AP_parameters, t_expo_fit, popt_guess, r_squared_thresh, n_APs_initial_inst_freq
 from parameters.PGFs import cc_IF_parameters
 from getter.get_cell_IDs import get_cell_IDs_one_protocol, get_cell_IDs_all_ccAPfreqs
 
@@ -50,6 +50,7 @@ I_hold_table = pd.read_excel(table_file, sheet_name="V_or_I_hold", index_col='ce
 # create dataframe for firing frequency
 IF_df = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 400 + 1, 5))
 IF_inst_df = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 400 + 1, 5))
+IF_inst_initial_df = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 400 + 1, 5))
 
 # create dataframe for other parameters
 active_properties_df = pd.DataFrame(columns=['rheobase_abs', 'rheobase_rel', 'v_thres_rheobase_spike', 'rheobase_step_idx'], index = cell_IDs)
@@ -178,8 +179,23 @@ for cell_ID in cell_IDs:
             
             # write to dataframe
             IF_inst_df.at[i_input_step, cell_ID] = inst_freq
-
-
+            
+            # calc instant firing rate with first # APs
+            if n_spikes >= n_APs_initial_inst_freq:
+                # get only first three ISIs
+                ISIs_subset = ISIs[:3]
+            else:
+                ISIs_subset = ISIs
+                
+            # calculate average ISI
+            mean_ISI_subset = np.mean(ISIs_subset)
+            
+            # calculate the instantaneous firing frequency as inverse of the firing frequency
+            initial_inst_freq = (1 / mean_ISI_subset ) * 1e3
+            
+            # write to dataframe
+            IF_inst_initial_df.at[i_input_step, cell_ID] = initial_inst_freq
+            
     ### rheobase ###
     # get first index in number of spikes where there more than 0 spikes
     rheobase_idx = next(idx for idx, n_spike in enumerate(IF_df[cell_ID].dropna()) if n_spike > 0)
@@ -483,6 +499,7 @@ passiv_properties_df.drop(index=cells_todrop, inplace = True)
 active_properties_df.drop(index=cells_todrop, inplace = True)
 IF_df.drop(columns=cells_todrop, inplace = True)
 IF_inst_df.drop(columns=cells_todrop, inplace = True)
+IF_inst_initial_df.drop(columns=cells_todrop, inplace = True)
 fstAP_df.drop(index=cells_todrop, inplace = True)
 
 # %%
@@ -491,8 +508,9 @@ fstAP_df.drop(index=cells_todrop, inplace = True)
 passiv_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-passiv_properties.xlsx'), index_label = 'cell_ID')    
 active_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-active_properties.xlsx'), index_label = 'cell_ID')   
 IF_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF.xlsx'), index_label = 'i_input')       
-IF_inst_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF_inst.xlsx'), index_label = 'i_input')   
- 
+IF_inst_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF_inst.xlsx'), index_label = 'i_input')
+IF_inst_initial_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF_inst.xlsx'), index_label = 'i_input')  
+
 fstAP_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-fst_AP_parameters.xlsx'), index_label = 'cell_ID')
 
 # %%

@@ -49,6 +49,8 @@ bin_size_ISI_poisson = 25e-3
 
 
 # %% cc_IF
+# number of spikes to calculate the initial instant. firing rate
+n_APs_initial_inst_freq = 4
 
 t_expo_fit = 150. #ms
 
