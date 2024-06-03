@@ -50,6 +50,8 @@ all_cell_IDs = lookup_table.index.to_list()
 
 for cell_idx, cell_ID in enumerate(all_cell_IDs):
     
+    print(f'loading: {cell_ID}')
+    
     # get indices of current cell with the dataframe containing all indices    
     group_idx = int(lookup_table.at[cell_ID, 'group'])-1
     series_idx = int(lookup_table.at[cell_ID, 'cc_rest'])-1
@@ -84,6 +86,7 @@ for cell_idx, cell_ID in enumerate(all_cell_IDs):
     v_filtered_df[cell_idx] = v_filtered
     t_df[cell_idx] = t
     SR_ls.append(SR)
+    
     
 
 n_cells = len(lookup_table)
@@ -163,14 +166,14 @@ v_rest_df = pd.DataFrame({'v_rest' : v_rest},
 # save dataframe as csv file
 v_rest_path = os.path.join(figure_dir, 'v_rest.csv')
 
-v_rest_df.to_csv(v_rest_path, header = ['v_rest'])
+# v_rest_df.to_csv(v_rest_path, header = ['v_rest'])
 
 
 
 # %% V_REST mean & std
 
-v_rest_mean = np.mean(v_rest_df['v_rest'])
-v_rest_std = np.std(v_rest_df['v_rest'])
+# v_rest_mean = np.mean(v_rest_df['v_rest'])
+# v_rest_std = np.std(v_rest_df['v_rest'])
 
 
 
@@ -192,7 +195,7 @@ activity_df.to_excel(os.path.join(cell_descrip_dir, 'cc_rest-activity.xlsx'), in
 
 
 
-
+print('Finished!')
 
 
 

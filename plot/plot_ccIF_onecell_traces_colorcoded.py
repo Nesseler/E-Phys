@@ -38,7 +38,7 @@ darkmode_bool = True
 colors_dict, region_colors = get_colors(darkmode_bool)
 
 
-cell_ID = 'E-122'
+cell_ID = 'E-148'
 PGF = 'cc_IF'
 
 

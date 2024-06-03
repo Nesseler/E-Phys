@@ -81,10 +81,10 @@ for cell_idx, cell_ID in enumerate(cell_IDs):
 
 
 axs_v_rest[0].set_ylim([0-(tick_size/2), n_cells-1+(tick_size/2)])
-axs_v_rest[0].set_yticks(ticks = np.arange(5 - 1, n_cells+1, 5), 
-                         labels = np.arange(5, n_cells + 1, 5))
-axs_v_rest[0].set_yticks(ticks = np.arange(0, n_cells, 1), 
-                         minor = True)
+# axs_v_rest[0].set_yticks(ticks = np.arange(5 - 1, n_cells+1, 5), 
+#                          labels = np.arange(5, n_cells + 1, 5))
+# axs_v_rest[0].set_yticks(ticks = np.arange(0, n_cells, 1), 
+#                          minor = True)
 axs_v_rest[0].set_ylabel('Cells [#]')
 
 axs_v_rest[0].set_xlim([0, 30])

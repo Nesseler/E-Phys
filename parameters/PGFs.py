@@ -71,7 +71,8 @@ cc_sag_parameters = {'t_pre' : 250, #ms
                      't_post' : 250, #ms
                      'i_delta' : 10, #pA
                      'i_start' : -100, #pA
-                     'max_n_steps' : 21}
+                     'max_n_steps' : 21,
+                     'v_hold_pre' : -85} #mV
 
 
 

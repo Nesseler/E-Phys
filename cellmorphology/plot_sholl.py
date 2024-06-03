@@ -79,6 +79,9 @@ all_sholl_profiles_metrics['mean_intersections'] = all_sholl_profiles.mean(axis 
 all_sholl_profiles_metrics['median_intersections'] = all_sholl_profiles.median(axis = 1)
 all_sholl_profiles_metrics['std_intersections'] = all_sholl_profiles.std(axis = 1)
 
+# save dataframes to excel
+
+
 # %% plot
 
 darkmode_bool = False
@@ -457,3 +460,132 @@ for i_region, region in enumerate(regions):
     plt.show()
     
     save_figures(fig_cr_er_cc, f'Enclosing_v_critical_radius-cc_max_inters-{region}', sholl_plots_dir, darkmode_bool)
+    
+   
+# %% enclosing v crit (region, passive properity)
+
+from parameters.directories_win import cell_descrip_dir
+
+active_properties_df = pd.read_excel(join(cell_descrip_dir, 'ccIF-active_properties.xlsx'), index_col = 'cell_ID')
+passiv_properties_df = pd.read_excel(join(cell_descrip_dir, 'ccIF-passiv_properties.xlsx'), index_col = 'cell_ID')
+
+IF_df = pd.read_excel(join(cell_descrip_dir, 'ccIF-IF.xlsx'), index_col = 'i_input')
+max_freq = IF_df.max(axis = 0)
+
+# resting membrane potential
+ccrest_activity_df = pd.read_excel(join(cell_descrip_dir, 'cc_rest-activity.xlsx'), index_col = 'cell_ID')
+
+# concatenate to active properties
+active_properties_df['max_freq'] = max_freq
+ 
+cell_IDs_ePhys_properties = active_properties_df.index.to_list()
+
+# get all cell_IDs that are in morphology and ePhys
+venn_cell_IDs = [c_ID for c_ID in cell_IDs if c_ID in cell_IDs_ePhys_properties]
+    
+# limit dataframes   
+active_properties_df = active_properties_df.loc[venn_cell_IDs]
+passiv_properties_df = passiv_properties_df.loc[venn_cell_IDs] 
+ccrest_activity_df = ccrest_activity_df.loc[venn_cell_IDs] 
+ePhys_sholl_metrics =  all_sholl_metrics.loc[venn_cell_IDs] 
+
+# concatenate morph and ePhys
+combined_properties = pd.concat([ePhys_sholl_metrics, passiv_properties_df, active_properties_df, ccrest_activity_df], axis = 1)
+
+# calc delta to threshold
+combined_properties['delta_vrest_to_vrheobase'] = combined_properties['v_thres_rheobase_spike'] - combined_properties['v_rest'] 
+   
+# create figure
+fig_cr_er_ePhys, ax_cv_er_ePhys = plt.subplots(nrows = 1, 
+                                               ncols = 2,
+                                               layout = 'constrained',
+                                               figsize = get_figure_size(),
+                                               sharex = True,
+                                               sharey = True)
+
+ePhys_parameter = 'delta_vrest_to_vrheobase'
+
+### color code for length of branches ###
+# initialise color code
+
+ePhys_parameter_dict = {'max_freq': (0, 75),
+                        'r_input': (100, 1500),
+                        'tau_mem': (2, 40),
+                        'c_mem': (0, 100),
+                        'v_thres_rheobase_spike': (-40, -75),
+                        'v_rest': (-95, -65),
+                        'delta_vrest_to_vrheobase': (0, 40)}
+
+# max_freq: 0, 75
+norm_min = ePhys_parameter_dict[ePhys_parameter][0]
+norm_max = ePhys_parameter_dict[ePhys_parameter][1]
+cmap_str = 'rainbow_r'
+norm = mtl.colors.Normalize(norm_min, norm_max)
+cmap = mtl.cm.ScalarMappable(norm=norm, cmap=cmap_str)
+
+
+# colorbar
+fig_cr_er_ePhys.colorbar(cmap, ax = ax_cv_er_ePhys[-1], label = ePhys_parameter)
+
+for i_region, region in enumerate(regions):
+    # set axis
+    ax = ax_cv_er_ePhys[i_region]
+   
+    # title
+    ax.set_title(region, color = region_colors[region], size = 16)
+    
+    # # get dataframe for specified region
+    # region_sholl_metrics = all_sholl_metrics[all_sholl_metrics['Region'] == region]
+    
+    # # get cell IDs in region
+    # region_cell_IDs = region_sholl_metrics.index.to_list()
+    
+    # limit dataframe to region
+    region_combined_properties = combined_properties[combined_properties['Region'] == region]
+   
+    # scatterplot
+    ax.scatter(x = region_combined_properties['end_radius'],
+                        y = region_combined_properties['idxmax_intersections'],
+                        color = cmap.to_rgba(region_combined_properties[ePhys_parameter]),
+                        edgecolor = colors_dict['primecolor'],
+                        lw = 0.5,
+                        s = 50)
+    
+    
+    for cell_ID in region_combined_properties.index:
+        ax.text(x = region_combined_properties.at[cell_ID, 'end_radius'],
+                y = region_combined_properties.at[cell_ID, 'idxmax_intersections']-2,
+                s = cell_ID,
+                ha = 'center',
+                va = 'top',
+                fontsize = 8,
+                color = colors_dict['primecolor'])
+   
+    
+   
+# x axis
+xmin = 0
+xmax = 450
+ax.set_xlim([xmin-5, xmax+5])
+ax.set_xticks(np.arange(xmin, xmax + 1, 100))
+ax.set_xticks(np.arange(xmin, xmax + 1, 25), minor = True)
+[ax.spines['bottom'].set_bounds([xmin, xmax]) for ax in ax_cv_er_ePhys]
+[ax.set_xlabel('Enclosing radius [µm]') for ax in ax_cv_er_ePhys]
+
+# y axis
+ymin = 0
+ymax = 200
+ax.set_ylim([ymin-5, ymax+5])
+ax.set_yticks(np.arange(ymin, ymax + 1, 50))
+ax.set_yticks(np.arange(ymin, ymax + 1, 25), minor = True)
+[ax.spines['left'].set_bounds([ymin, ymax]) for ax in ax_cv_er_ePhys]
+ax_cv_er_ePhys[0].set_ylabel('Critical radius [µm]')
+
+# despine
+[ax.spines[spine].set_visible(False) for ax in ax_cv_er_ePhys for spine in ['top', 'right']]
+   
+plt.show()
+
+save_figures(fig_cr_er_ePhys, f'Enclosing_v_critical_radius-both_regions-cc_{ePhys_parameter}', sholl_plots_dir, darkmode_bool)  
+    
+   

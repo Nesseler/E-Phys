@@ -156,3 +156,22 @@ for idx, parameter in enumerate(IF_cat_df.columns):
 
 save_figures(fig_cats, 'ccIF-active_passive_properties', figure_dir, darkmode_bool)
 
+
+
+# %%
+
+
+
+sbn.jointplot(data = plt_df[plt_df['Region'] == 'MeA'], 
+              x = 'tau_mem', 
+              y = 'r_input',
+              hue = 'Region', 
+              palette = region_colors)
+
+plt.xlim([0, 60])
+plt.ylim([0, 1750])
+
+
+
+
+
