@@ -378,6 +378,10 @@ for cell_ID in cellIDs_toAnalyze.index.to_list():
             
         save_figures(fig_sag, f'{cell_ID}-sag_step', join(vplot_dir, 'cc_sag'), darkmode_bool)
 
+
+# save activity dataframe to quant data folder
+sag_df.to_excel(join(cell_descrip_dir, 'cc_sag-sagdelta.xlsx'), index_label='cell_ID')
+
         
 # %%
 

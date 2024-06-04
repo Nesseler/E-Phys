@@ -84,7 +84,7 @@ all_sholl_profiles_metrics['std_intersections'] = all_sholl_profiles.std(axis = 
 
 # %% plot
 
-darkmode_bool = False
+darkmode_bool = True
 colors_dict, region_colors = get_colors(darkmode_bool)
 set_font_sizes()
 

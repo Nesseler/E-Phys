@@ -69,9 +69,10 @@ mean_vamplitude_df = pd.DataFrame(index = frequencies)
 # %% get all AP parameters for one cell
 
 # test cell E-092
-# cell_IDs = ['E-077']
+# 'E-148', 'E-149', 'E-155', 'E-156', 'E-157', 'E-162', 'E-163', 'E-167', 'E-169', 'E-170', 'E-171', 'E-172', 'E-174', 'E-175', 'E-176', 'E-177','E-178', 'E-180',  
+cell_IDs = ['E-183', 'E-186', 'E-188', 'E-189']
 
-for cell_ID in ['E-092']:
+for cell_ID in cell_IDs:
     
     print(f'Started: {cell_ID}')
 
@@ -267,7 +268,7 @@ for cell_ID in ['E-092']:
         
         
         # opt: verification plot #
-        if vplots:  
+        if vplots_bool:  
             n_rows = 10
             n_cols = 10
             

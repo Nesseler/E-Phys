@@ -162,14 +162,14 @@ save_figures(fig_cats, 'ccIF-active_passive_properties', figure_dir, darkmode_bo
 
 
 
-sbn.jointplot(data = plt_df[plt_df['Region'] == 'MeA'], 
-              x = 'tau_mem', 
-              y = 'r_input',
+sbn.jointplot(data = plt_df[plt_df['Region'] == 'BAOT'], 
+              x = 'r_input', 
+              y = 'v_thres_rheobase_spike',
               hue = 'Region', 
               palette = region_colors)
 
-plt.xlim([0, 60])
-plt.ylim([0, 1750])
+# plt.xlim([0, 60])
+plt.xlim([0, 1750])
 
 
 

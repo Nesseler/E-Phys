@@ -220,10 +220,13 @@ for cell_ID in cell_IDs:
     # get index of first spike
     idc_rheobase_spikes = peak_idc[rheobase_idx]
     
+    # get number of spikes at rheobase
+    n_rheobase_spikes = len(idc_rheobase_spikes)
+    
     # get only first indec
-    if len(idc_rheobase_spikes) > 1:
+    if n_rheobase_spikes > 1:
         idx_rheobase_spike = [idc_rheobase_spikes[0]]
-    elif len(idc_rheobase_spikes) == 1:
+    elif n_rheobase_spikes == 1:
         idx_rheobase_spike = idc_rheobase_spikes
     else:
         raise ValueError('size of list for rheobase spike')
@@ -246,6 +249,7 @@ for cell_ID in cell_IDs:
     
     # write to active properties dataframe
     active_properties_df.at[cell_ID, 'v_thres_rheobase_spike'] = rheobase_spike_params.at[0, 'v_threshold']
+    active_properties_df.at[cell_ID, 'n_rheobasespikes'] = n_rheobase_spikes
     
     # concatenate all AP parameters of first spike to dataframe
     fstAP_df.loc[cell_ID] = rheobase_spike_params.iloc[0]
@@ -502,14 +506,18 @@ IF_inst_df.drop(columns=cells_todrop, inplace = True)
 IF_inst_initial_df.drop(columns=cells_todrop, inplace = True)
 fstAP_df.drop(index=cells_todrop, inplace = True)
 
-# %%
+# %% add max frequencies
 
-# save measurements to excel file
+active_properties_df['max_freq'] = IF_df.max(axis = 0)
+active_properties_df['max_inst_freq'] = IF_inst_df.max(axis = 0)
+active_properties_df['max_inst_initial_freq'] = IF_inst_initial_df.max(axis = 0)
+
+# %% save measurements to excel file
 passiv_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-passiv_properties.xlsx'), index_label = 'cell_ID')    
 active_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-active_properties.xlsx'), index_label = 'cell_ID')   
 IF_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF.xlsx'), index_label = 'i_input')       
 IF_inst_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF_inst.xlsx'), index_label = 'i_input')
-IF_inst_initial_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF_inst.xlsx'), index_label = 'i_input')  
+IF_inst_initial_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF_inst_initial.xlsx'), index_label = 'i_input')  
 
 fstAP_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-fst_AP_parameters.xlsx'), index_label = 'cell_ID')
 
@@ -522,8 +530,6 @@ fstAP_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-fst_AP_parameters.xlsx'),
 #     plt.plot(IF_df[cell_ID])
     
 # plt.show
-
-
 
 
 

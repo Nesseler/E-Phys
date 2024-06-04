@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-from functions.functions_plotting import get_colors, get_figure_size
+from functions.functions_plotting import get_colors, get_figure_size, save_figures
 
 darkmode_bool = True
 colors_dict, region_colors = get_colors(darkmode_bool)
@@ -172,7 +172,7 @@ plt_df = pd.concat([passiv_properties_df, MetaData], axis = 1)
 # initialize figure
 fig_comb, axs_comb = plt.subplots(nrows = 2,
                                   ncols = 1,
-                                  #figsize = get_figure_size(),
+                                  figsize = get_figure_size(width = 328.67*0.66),
                                   layout = 'constrained',
                                   sharex= True,
                                   height_ratios=[3, 6])
@@ -212,34 +212,52 @@ ax.legend().set_visible(False)
 
 
 # 1
-axs_comb[1].hlines(y = -425, xmin = 100, xmax = 150, colors = colors_dict['primecolor'], alpha = 0.5)
+axs_comb[1].hlines(y = np.arange(-440, -440 + (40 * 25), 40), 
+                   xmin = 100+3, xmax = 150-3, colors = colors_dict['primecolor'], alpha = 0.5)
 
 # 2
-axs_comb[1].hlines(y = -325, xmin = 150, xmax = 200, colors = colors_dict['primecolor'], alpha = 0.5)
+axs_comb[1].hlines(y = np.arange(-320, -320 + (40 * 20), 40), 
+                   xmin = 150+3, xmax = 200-3, colors = colors_dict['primecolor'], alpha = 0.5)
 
 # 3
-axs_comb[1].hlines(y = -250, xmin = 200, xmax = 250, colors = colors_dict['primecolor'], alpha = 0.5)
+axs_comb[1].hlines(y = np.arange(-260, -260 + (20 * 30), 20),  
+                   xmin = 200+3, xmax = 250-3, colors = colors_dict['primecolor'], alpha = 0.5)
 
 # 4
-axs_comb[1].hlines(y = -200, xmin = 250, xmax = 300, colors = colors_dict['primecolor'], alpha = 0.5)
+axs_comb[1].hlines(y = np.arange(-200, -200 + (20 * 24), 20), 
+                   xmin = 250+3, xmax = 300-3, colors = colors_dict['primecolor'], alpha = 0.5)
 
 # 5
-axs_comb[1].hlines(y = -175, xmin = 300, xmax = 350, colors = colors_dict['primecolor'], alpha = 0.5)
+axs_comb[1].hlines(y = np.arange(-160, -160 + (20 * 20), 20), 
+                   xmin = 300+3, xmax = 350-3, colors = colors_dict['primecolor'], alpha = 0.5)
 
 # 6
-axs_comb[1].hlines(y = -150, xmin = 350, xmax = 400, colors = colors_dict['primecolor'], alpha = 0.5)
+axs_comb[1].hlines(y = np.arange(-140, -140 + (20 * 18), 20), 
+                   xmin = 350+3, xmax = 400-3, colors = colors_dict['primecolor'], alpha = 0.5)
 
 # 7
-axs_comb[1].hlines(y = -125, xmin = 400, xmax = 500, colors = colors_dict['primecolor'], alpha = 0.5)
+axs_comb[1].hlines(y = np.arange(-120, -120 + (10 * 28), 10), 
+                   xmin = 400+3, xmax = 500-3, colors = colors_dict['primecolor'], alpha = 0.5)
 
 # 8
-axs_comb[1].hlines(y = -100, xmin = 500, xmax = 600, colors = colors_dict['primecolor'], alpha = 0.5)
+axs_comb[1].hlines(y = np.arange(-100, -100 + (10 * 24), 10), 
+                   xmin = 500+3, xmax = 600-3, colors = colors_dict['primecolor'], alpha = 0.5)
 
 # 9
-axs_comb[1].hlines(y = -85, xmin = 600, xmax = 700, colors = colors_dict['primecolor'], alpha = 0.5)
+axs_comb[1].hlines(y = np.arange(-80, -80 + (10 * 20), 10), 
+                   xmin = 600+3, xmax = 750-3, colors = colors_dict['primecolor'], alpha = 0.5)
 
 # 10
-axs_comb[1].hlines(y = -75, xmin = 700, xmax = 850, colors = colors_dict['primecolor'], alpha = 0.5)
+axs_comb[1].hlines(y = np.arange(-60, -60 + (10 * 16), 10), 
+                   xmin = 750+3, xmax = 1000-3, colors = colors_dict['primecolor'], alpha = 0.5)
+
+# 11
+axs_comb[1].hlines(y = np.arange(-50, -50 + (5 * 25), 5), 
+                   xmin = 1000+3, xmax = 1250-3, colors = colors_dict['primecolor'], alpha = 0.5)
+
+# 12
+axs_comb[1].hlines(y = np.arange(-40, -40 + (5 * 20), 5), 
+                   xmin = 1250+3, xmax = 1500-3, colors = colors_dict['primecolor'], alpha = 0.5)
 
 
 axs_comb[1].plot(r_inputs, deltaIs['maxx'], '-', label = f'{v_maxx} mV', c = 'r')
@@ -269,6 +287,8 @@ plt.legend()
 
 plt.show()
 
+
+save_figures(fig_comb, 'Rinput_v_Iinput_for_PGFs', figure_dir, darkmode_bool)
 
 
 

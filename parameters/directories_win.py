@@ -8,29 +8,32 @@ list of all directories on windows machine
 
 """
 
+### ePhys ###
+
+ePhys_parent = 'Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA'
+
 # directory that contains the excel file with indices and meta data
-table_dir = '//Fileserver/AG Spehr BigData/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/'
-table_file = '//Fileserver/AG Spehr BigData/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/' + 'ePhys-database.xlsx'
+table_dir = ePhys_parent + '/'
+table_file = ePhys_parent + '/ePhys-database.xlsx'
 # table_dir = 'C:/Users/nesseler/Desktop/'
 
 # directory that contains raw data
-raw_data_dir = 'C:/Users/nesseler/Desktop/local E-Phys'
+raw_data_dir = ePhys_parent + '/RAW_data'
 
 # directory for analysed values  
-quant_data_dir = 'C:/Users/nesseler/Desktop/local E-Phys/qdata/'
+quant_data_dir = ePhys_parent + '/quantified_data'
 
 # directory for analysed values that describe one cell
-cell_descrip_dir = 'C:/Users/nesseler/Desktop/local E-Phys/qdata/cell_descriptors'
-cell_descrip_file = 'C:/Users/nesseler/Desktop/local E-Phys/qdata/cell_descriptors/cell_descrips.xlsx'
+cell_descrip_dir = ePhys_parent + '/cell_descriptors'
 
 # directory for figures to be saved
-figure_dir = 'C:/Users/nesseler/Desktop/local E-Phys/figures'
+figure_dir = ePhys_parent + '/figures'
 
 # directory for verification plots to be saved
-vplot_dir = 'C:/Users/nesseler/Desktop/local E-Phys/vplots'
+vplot_dir = ePhys_parent + '/vplots'
 
 
-### remote directories ###
+### cell morphology ###
 
 # directory for cell morphology measures (SNT traces/Measurements)
 cell_morph_descrip_dir = 'Z:/n2021_MOS_AOS_Integration/cellmorphology_BAOT_MeA/SNT_traces/'
