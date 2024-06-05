@@ -61,7 +61,7 @@ fstAP_df = pd.DataFrame(columns = AP_parameters, index = cell_IDs)
 cells_todrop = []
 
 # test cell 
-# cell_IDs = ['E-092']
+cell_IDs = ['E-092']
 
 # cell_IDs = ['E-082', 'E-137', 'E-138', 'E-140']
 
@@ -232,7 +232,6 @@ for cell_ID in cell_IDs:
     else:
         raise ValueError('size of list for rheobase spike')
 
-    # %%
 
     # rheobase step verification plot
     if vplot_bool:
@@ -264,7 +263,7 @@ for cell_ID in cell_IDs:
     
     
     
-    # %% 
+    # rheobase plot with dvdt
     
     if vplot_bool:
         # calc dvdt for rheobase step
@@ -274,6 +273,8 @@ for cell_ID in cell_IDs:
                                             figsize = get_figure_size(),
                                             width_ratios= [2, 2]
                                             )
+        
+        fig_rheo_2.suptitle(f'{cell_ID} rheobase')
         
         v_range = [-100, 70]
         
@@ -365,7 +366,100 @@ for cell_ID in cell_IDs:
         vplots_path_rheobase_fstAP = os.path.join(vplot_dir, 'cc_IF', 'rheobase_1stAP')
         save_figures(fig_rheo_2, f'{cell_ID}-{PGF}-rheobase_1stAP', vplots_path_rheobase_fstAP, darkmode_bool)
 
+    # %% max freq steps
     
+    # get step indices of max firing frequencies
+    maxfreq = IF_df[cell_ID].max()
+    maxfreq_step_idx = np.nanargmax(IF_df[cell_ID].dropna().to_numpy())
+    maxfreq_iinput = IF_df.index.to_list()[np.nanargmax(IF_df[cell_ID].to_numpy())]
+    
+    maxinstfreq = IF_inst_df[cell_ID].max()
+    maxinstfreq_step_idx = np.nanargmax(IF_inst_df[cell_ID].dropna().to_numpy())
+    maxinstfreq_iinput = IF_inst_df.index.to_list()[np.nanargmax(IF_inst_df[cell_ID].to_numpy())]
+    
+    maxinstinitialfreq = IF_inst_initial_df[cell_ID].max()    
+    maxinstinitialfreq_step_idx = np.nanargmax(IF_inst_initial_df[cell_ID].dropna().to_numpy())
+    maxinstinitialfreq_iinput = IF_inst_initial_df.index.to_list()[np.nanargmax(IF_inst_initial_df[cell_ID].to_numpy())]
+    
+    
+    if vplot_bool:
+        fig_max, axs_max = plt.subplots(nrows = 3,
+                                        ncols = 2,
+                                        layout = 'constrained',
+                                        figsize = get_figure_size(),
+                                        width_ratios = [4,1],
+                                        sharex = 'col',
+                                        sharey = 'col'
+                                        )
+        
+        fig_max.suptitle(f'{cell_ID} max firing frequencies')
+        
+        
+        # max freq
+        axs_max[0][0].plot(t[0], 
+                           v[maxfreq_step_idx], 
+                           lw = 1, 
+                           c = colors_dict['primecolor'])
+    
+        axs_max[0][1].plot(v[maxfreq_step_idx], 
+                           calc_dvdt_padded(v[maxfreq_step_idx], t[0]), 
+                           lw = 1, 
+                           c = colors_dict['primecolor'])
+        
+        axs_max[0][0].text(x = 50,
+                           y = 50,
+                           s = f'{maxfreq_iinput} pA\n{maxfreq} Hz',
+                           ha = 'left', va = 'top',
+                           size = 9)
+        
+        # max inst freq
+        axs_max[1][0].plot(t[0], v[maxinstfreq_step_idx], lw = 1, c = colors_dict['primecolor'])
+    
+        axs_max[1][1].plot(v[maxinstfreq_step_idx], calc_dvdt_padded(v[maxinstfreq_step_idx], t[0]) , lw = 1, c = colors_dict['primecolor'])
+
+        axs_max[1][0].text(x = 50,
+                           y = 50,
+                           s = f'{maxinstfreq_iinput} pA\n{round(maxinstfreq, 2)} Hz',
+                           ha = 'left', va = 'top',
+                           size = 9)
+
+        # max inst initial freq
+        axs_max[2][0].plot(t[0], v[maxinstinitialfreq_step_idx], lw = 1, c = colors_dict['primecolor'])
+    
+        axs_max[2][1].plot(v[maxinstinitialfreq_step_idx], calc_dvdt_padded(v[maxinstinitialfreq_step_idx], t[0]) , lw = 1, c = colors_dict['primecolor'])
+
+        axs_max[2][0].text(x = 50,
+                           y = 50,
+                           s = f'{maxinstinitialfreq_iinput} pA\n{round(maxinstinitialfreq, 2)} Hz',
+                           ha = 'left', va = 'top',
+                           size = 9)
+
+        #x v
+        axs_max[-1][0].set_xlabel('Time [ms]')
+        axs_max[-1][0].set_xlim([0, 1500])
+        axs_max[-1][0].set_xticks(np.arange(0, 1500 + 1, 250))
+        axs_max[-1][0].set_xticks(np.arange(0, 1500 + 1, 50), minor = True)
+
+        #y v
+        axs_max[1][0].set_ylabel('Voltage [mV]')
+        axs_max[-1][0].set_ylim(v_range)
+        axs_max[-1][0].set_yticks(np.arange(v_range[0], v_range[1] + 1, 50))
+        axs_max[-1][0].set_yticks(np.arange(v_range[0], v_range[1] + 1, 10), minor = True)
+
+        #x dvdt
+        axs_max[-1][1].set_xlabel('Voltage [mV]')
+        axs_max[-1][1].set_xlim(v_range)
+        axs_max[-1][1].set_xticks(np.arange(v_range[0], v_range[1] + 1, 50))
+        axs_max[-1][1].set_xticks(np.arange(v_range[0], v_range[1] + 1, 10), minor = True)
+        #y dvdt
+        axs_max[1][1].set_ylabel('Rate of membrane potential change [mV/ms]')
+        axs_max[-1][1].set_ylim([-150, 250]) 
+        axs_max[-1][1].set_yticks(np.arange(-100, 250 + 1, 100))
+        axs_max[-1][1].set_yticks(np.arange(-150, 250 + 1, 50), minor = True)
+
+        vplots_path_maxfreq = os.path.join(vplot_dir, 'cc_IF', 'max_freq')
+        save_figures(fig_max, f'{cell_ID}-{PGF}-max_freq', vplots_path_maxfreq, darkmode_bool)
+        
     
     # %%
 
@@ -622,6 +716,8 @@ IF_inst_initial_df.drop(columns=cells_todrop, inplace = True)
 fstAP_df.drop(index=cells_todrop, inplace = True)
 
 # %% add max frequencies
+
+print(IF_df.idxmax(axis = 0))
 
 active_properties_df['max_freq'] = IF_df.max(axis = 0)
 active_properties_df['max_inst_freq'] = IF_inst_df.max(axis = 0)
