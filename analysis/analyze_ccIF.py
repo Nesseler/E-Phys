@@ -8,6 +8,7 @@ Created on Wed Feb 21 09:16:29 2024
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 import seaborn as sbn
 import numpy as np
 import scipy as sc
@@ -60,7 +61,7 @@ fstAP_df = pd.DataFrame(columns = AP_parameters, index = cell_IDs)
 cells_todrop = []
 
 # test cell 
-# cell_IDs = ['E-089']
+# cell_IDs = ['E-092']
 
 # cell_IDs = ['E-082', 'E-137', 'E-138', 'E-140']
 
@@ -214,7 +215,7 @@ for cell_ID in cell_IDs:
     # rheobase as voltage at threshold of first spike
     # get voltage trace with rheobase step
     v_rheobase = v[rheobase_idx]
-    t_rheobase = t[rheobase_idx]
+    t_rheobase = t[0]
     dvdt_rheobase = calc_dvdt_padded(v_rheobase, t_rheobase)
     
     # get index of first spike
@@ -230,6 +231,8 @@ for cell_ID in cell_IDs:
         idx_rheobase_spike = idc_rheobase_spikes
     else:
         raise ValueError('size of list for rheobase spike')
+
+    # %%
 
     # rheobase step verification plot
     if vplot_bool:
@@ -254,6 +257,117 @@ for cell_ID in cell_IDs:
     # concatenate all AP parameters of first spike to dataframe
     fstAP_df.loc[cell_ID] = rheobase_spike_params.iloc[0]
     fstAP_df.at[cell_ID, 'SR_ms'] = SR_ms
+    
+    # calc time to rheobase spike
+    t_rheobasespike = rheobase_spike_params['t_peaks']
+    t_torheobasespike = t_rheobasespike - cc_IF_parameters['t_pre']
+    
+    
+    
+    # %% 
+    
+    if vplot_bool:
+        # calc dvdt for rheobase step
+        fig_rheo_2, axs_rheo_2 = plt.subplots(nrows = 1, 
+                                            ncols = 2, 
+                                            layout = 'constrained',
+                                            figsize = get_figure_size(),
+                                            width_ratios= [2, 2]
+                                            )
+        
+        v_range = [-100, 70]
+        
+        # voltage v time
+        axs_rheo_2[0].plot(t[0], v_rheobase, lw = 1, c = colors_dict['primecolor'])
+        # axs_rheo_2[0].eventplot(t_rheobasespike, lineoffsets=60, colors = 'r', linelengths=5)
+        
+        #x
+        axs_rheo_2[0].set_xlabel('Time [ms]')
+        axs_rheo_2[0].set_xlim([0, 1500]) 
+        axs_rheo_2[0].set_xticks(np.arange(0, 1500 + 1, 250))
+        axs_rheo_2[0].set_xticks(np.arange(0, 1500 + 1, 50), minor = True)    
+        
+        #y
+        axs_rheo_2[0].set_ylabel('Voltage [mV]')
+        axs_rheo_2[0].set_ylim(v_range) 
+        axs_rheo_2[0].set_yticks(np.arange(v_range[0], v_range[1] + 1, 20))
+        axs_rheo_2[0].set_yticks(np.arange(v_range[0], v_range[1] + 1, 5), minor = True)
+        
+        
+        # inset marker
+        box_tpad_pre = rheobase_spike_params.at[0, 'FWHM'] * 3
+        box_tpad_post = rheobase_spike_params.at[0, 'FWHM'] * 20
+        box_vpad = rheobase_spike_params.at[0, 'v_amplitude'] * 0.2
+        box_ymin = rheobase_spike_params.at[0, 'v_AHP'] - box_vpad
+        box_xmin = rheobase_spike_params.at[0, 't_peaks'] - box_tpad_pre
+        box_height = rheobase_spike_params.at[0, 'v_amplitude'] + (box_vpad*2)
+        box_width = rheobase_spike_params.at[0, 'FWHM'] + box_tpad_pre + box_tpad_post
+        
+        axs_rheo_2[0].add_patch(Rectangle(xy = (box_xmin, box_ymin), 
+                                          width = box_width, 
+                                          height = box_height,
+                                          fill = False,
+                                          color = colors_dict['primecolor'],
+                                          linestyle = '--'))
+        
+        
+        # add inset
+        ## ([left, bottom, width, height]), percentages
+        ax_inset = fig_rheo_2.add_axes([0.325, 0.4, 0.15, 0.55])
+        
+        # voltage trace of spike marked within box
+        idc_fstAP_rheobase_v = np.arange(start = idx_rheobase_spike[0] - int(box_tpad_pre * SR_ms), stop = idx_rheobase_spike[0] + int(box_tpad_post * SR_ms))
+        
+        # plot marled voltage trace
+        ax_inset.plot(t_rheobase[idc_fstAP_rheobase_v], 
+                      v_rheobase[idc_fstAP_rheobase_v],
+                      c = colors_dict['primecolor'])
+        
+        # plot extracted spike shape 
+        t_extracted_spike = calc_time_series(rheobase_spike_v, SR)
+        t_extracted_spike = t_extracted_spike + rheobase_spike_params.at[0, 't_threshold']
+        ax_inset.plot(t_extracted_spike, 
+                      rheobase_spike_v,
+                      c = colors_dict['color2'])
+    
+        
+        # x
+        ax_inset.set_xticks(ticks = np.arange(0, 1500 + 1, 250), labels = [])
+        ax_inset.set_xticks(ticks = np.arange(0, 1500 + 1, 50), labels = [], minor = True)
+        ax_inset.set_xlim([box_xmin, box_xmin + box_width])
+        # y
+        ax_inset.set_yticks(ticks = np.arange(v_range[0], v_range[1] + 1, 20), labels = [])
+        ax_inset.set_yticks(ticks = np.arange(v_range[0], v_range[1] + 1, 5), labels = [], minor = True)
+        ax_inset.set_ylim([box_ymin, box_ymin + box_height])
+        
+        # dvdt v voltage
+        axs_rheo_2[1].plot(v_rheobase, dvdt_rheobase, lw = 1, c = colors_dict['primecolor'])
+        
+        # plot dvdt v v of rheobase first spike
+        axs_rheo_2[1].plot(rheobase_spike_v, calc_dvdt_padded(rheobase_spike_v, calc_time_series(rheobase_spike_v, SR)), 
+                           lw = 1, 
+                           c = colors_dict['color2'])
+           
+        # axs_rheo_2[1].set_box_aspect(1)
+        #x
+        axs_rheo_2[1].set_xlabel('Voltage [mV]')
+        axs_rheo_2[1].set_xlim(v_range)
+        axs_rheo_2[1].set_xticks(np.arange(v_range[0], v_range[1] + 1, 20))
+        axs_rheo_2[1].set_xticks(np.arange(v_range[0], v_range[1] + 1, 5), minor = True)
+        #y
+        axs_rheo_2[1].set_ylabel('Rate of membrane potential change [mV/ms]')
+        axs_rheo_2[1].set_ylim([-150, 250]) 
+        axs_rheo_2[1].set_yticks(np.arange(-150, 250 + 1, 50))
+        axs_rheo_2[1].set_yticks(np.arange(-150, 250 + 1, 10), minor = True)
+        
+        plt.show()
+    
+        vplots_path_rheobase_fstAP = os.path.join(vplot_dir, 'cc_IF', 'rheobase_1stAP')
+        save_figures(fig_rheo_2, f'{cell_ID}-{PGF}-rheobase_1stAP', vplots_path_rheobase_fstAP, darkmode_bool)
+
+    
+    
+    # %%
 
 
     ### tau_mem & R_input ###
@@ -277,6 +391,7 @@ for cell_ID in cell_IDs:
     # initialise dataframe for r_input calculation
     r_input_calc_df = pd.DataFrame(columns = ['step_idx', 'mean_v_pre', 'v_post_fitted', 'r_squared', 'delta_v', 'delta_i', 'r_input'])
     tau_mem_calc_df = pd.DataFrame(columns = ['step_idx', 'delta_v', 'delta_v_63', 'v_tau', 'tau_mem'])
+    
     
     #vplot
     if vplot_bool:
@@ -513,13 +628,16 @@ active_properties_df['max_inst_freq'] = IF_inst_df.max(axis = 0)
 active_properties_df['max_inst_initial_freq'] = IF_inst_initial_df.max(axis = 0)
 
 # %% save measurements to excel file
-passiv_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-passiv_properties.xlsx'), index_label = 'cell_ID')    
-active_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-active_properties.xlsx'), index_label = 'cell_ID')   
-IF_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF.xlsx'), index_label = 'i_input')       
-IF_inst_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF_inst.xlsx'), index_label = 'i_input')
-IF_inst_initial_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF_inst_initial.xlsx'), index_label = 'i_input')  
 
-fstAP_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-fst_AP_parameters.xlsx'), index_label = 'cell_ID')
+if False:
+
+    passiv_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-passiv_properties.xlsx'), index_label = 'cell_ID')    
+    active_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-active_properties.xlsx'), index_label = 'cell_ID')   
+    IF_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF.xlsx'), index_label = 'i_input')       
+    IF_inst_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF_inst.xlsx'), index_label = 'i_input')
+    IF_inst_initial_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF_inst_initial.xlsx'), index_label = 'i_input')  
+    
+    fstAP_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-fst_AP_parameters.xlsx'), index_label = 'cell_ID')
 
 # %%
 

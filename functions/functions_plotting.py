@@ -18,7 +18,7 @@ def get_colors(darkmode_bool=False):
         primecolor = 'w'
         color1 = 'cyan'
         color2 = 'magenta'
-        color3 = [0, 1, 0]
+        color3 = 'red'
         cmap = mtl.colors.LinearSegmentedColormap.from_list("", ["blue","white","magenta"])
         plt.rcParams['axes.grid'] = False
         # plt.grid(False)
