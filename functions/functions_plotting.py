@@ -14,6 +14,7 @@ import numpy as np
 def get_colors(darkmode_bool=False):
 
     if darkmode_bool:
+        plt.style.use('default')
         plt.style.use('dark_background')
         primecolor = 'w'
         color1 = 'cyan'
@@ -55,7 +56,7 @@ def get_colors(darkmode_bool=False):
     
     regions_c = {'BAOT' : BAOT_color,
                  'MeA' : MeA_color,
-                 'BAOT/MeA' : 'gray'}
+                 'BAOT/MeA' : BAOT_MeA_color}
         
     return colors_dict, regions_c
 

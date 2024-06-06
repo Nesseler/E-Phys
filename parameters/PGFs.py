@@ -74,8 +74,13 @@ cc_sag_parameters = {'t_pre' : 250, #ms
                      'max_n_steps' : 21,
                      'v_hold_pre' : -85} #mV
 
+# %% vc_rest_EPSC_parameters
 
-
+vc_rest_EPSC_parameters = {'t_pre' : 100, #ms
+                           't_stim' : 30000, #ms
+                           't_post' : 10, #ms
+                           'max_n_steps' : 3,
+                           'v_hold_pre' : -85} #mV
 
 
 

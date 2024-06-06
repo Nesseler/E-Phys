@@ -352,7 +352,7 @@ def get_AP_parameters(t_spiketrain, v_spiketrain, dvdt_spiketrain, idc_spikes, S
             APs_dataframe.at[i, 't_toAHP'] = t_toAHP
             
             # get AHP amplitude
-            v_AHP_amplitude = v_threshold - v_AHP
+            v_AHP_amplitude = v_AHP - v_threshold
             APs_dataframe.at[i, 'v_AHP_amplitude'] = v_AHP_amplitude
             
     else:

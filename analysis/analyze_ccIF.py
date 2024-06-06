@@ -23,7 +23,7 @@ from functions.functions_constructors import construct_current_array
 from functions.functions_ccIF import get_IF_data
 from functions.functions_import import get_traceIndex_n_file
 from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt, calc_dvdt_padded, round_to_base, exp_func, calc_rsquared_from_exp_fit
-from functions.functions_plotting import get_colors, get_figure_size, save_figures, plot_t_vs_v
+from functions.functions_plotting import get_colors, get_figure_size, save_figures, plot_t_vs_v, set_font_sizes
 from functions.functions_extractspike import get_AP_parameters
 
 from analysis.analyze_ccsag_for_rinput_taumem import get_rinput_n_taumem_from_cc_sag
@@ -61,7 +61,7 @@ fstAP_df = pd.DataFrame(columns = AP_parameters, index = cell_IDs)
 cells_todrop = []
 
 # test cell 
-cell_IDs = ['E-092']
+# cell_IDs = ['E-122']
 
 # cell_IDs = ['E-082', 'E-137', 'E-138', 'E-140']
 
@@ -235,6 +235,7 @@ for cell_ID in cell_IDs:
 
     # rheobase step verification plot
     if vplot_bool:
+        set_font_sizes()
         fig_rheobase = plt.figure()
         plt.plot(v_rheobase, linewidth = 1, c = colors_dict['primecolor'])
         plt.eventplot(idx_rheobase_spike, lineoffsets=60, colors = 'r', linelengths=5)
@@ -259,7 +260,7 @@ for cell_ID in cell_IDs:
     
     # calc time to rheobase spike
     t_rheobasespike = rheobase_spike_params['t_peaks']
-    t_torheobasespike = t_rheobasespike - cc_IF_parameters['t_pre']
+    t_torheobasespike = t_rheobasespike - (cc_IF_parameters['t_pre'] + cc_IF_parameters['t_stim'])
     
     
     
@@ -273,6 +274,8 @@ for cell_ID in cell_IDs:
                                             figsize = get_figure_size(),
                                             width_ratios= [2, 2]
                                             )
+        
+        set_font_sizes()
         
         fig_rheo_2.suptitle(f'{cell_ID} rheobase')
         
@@ -314,7 +317,7 @@ for cell_ID in cell_IDs:
         
         # add inset
         ## ([left, bottom, width, height]), percentages
-        ax_inset = fig_rheo_2.add_axes([0.325, 0.4, 0.15, 0.55])
+        ax_inset = fig_rheo_2.add_axes([0.325, 0.4, 0.15, 0.50])
         
         # voltage trace of spike marked within box
         idc_fstAP_rheobase_v = np.arange(start = idx_rheobase_spike[0] - int(box_tpad_pre * SR_ms), stop = idx_rheobase_spike[0] + int(box_tpad_post * SR_ms))
@@ -322,14 +325,16 @@ for cell_ID in cell_IDs:
         # plot marled voltage trace
         ax_inset.plot(t_rheobase[idc_fstAP_rheobase_v], 
                       v_rheobase[idc_fstAP_rheobase_v],
-                      c = colors_dict['primecolor'])
+                      c = colors_dict['primecolor'],
+                      lw = 1)
         
         # plot extracted spike shape 
         t_extracted_spike = calc_time_series(rheobase_spike_v, SR)
         t_extracted_spike = t_extracted_spike + rheobase_spike_params.at[0, 't_threshold']
         ax_inset.plot(t_extracted_spike, 
                       rheobase_spike_v,
-                      c = colors_dict['color2'])
+                      c = colors_dict['color2'],
+                      lw = 1)
     
         
         # x
@@ -391,6 +396,8 @@ for cell_ID in cell_IDs:
                                         sharex = 'col',
                                         sharey = 'col'
                                         )
+        
+        set_font_sizes()
         
         fig_max.suptitle(f'{cell_ID} max firing frequencies')
         
@@ -717,15 +724,13 @@ fstAP_df.drop(index=cells_todrop, inplace = True)
 
 # %% add max frequencies
 
-print(IF_df.idxmax(axis = 0))
-
 active_properties_df['max_freq'] = IF_df.max(axis = 0)
 active_properties_df['max_inst_freq'] = IF_inst_df.max(axis = 0)
 active_properties_df['max_inst_initial_freq'] = IF_inst_initial_df.max(axis = 0)
 
 # %% save measurements to excel file
 
-if False:
+if True:
 
     passiv_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-passiv_properties.xlsx'), index_label = 'cell_ID')    
     active_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-active_properties.xlsx'), index_label = 'cell_ID')   

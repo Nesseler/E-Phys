@@ -93,48 +93,48 @@ for idx, parameter in enumerate(parameters_to_plot):
     ax.legend().set_visible(False)
 
 
-#     if parameter == 'rheobase_abs':
-#         ax.set_ylabel('Absolute rheobase [pA]')
-#         ax.set_ylim([-52, 202])
-#         ax.spines['left'].set_bounds([-50, 200])
-#         ax.set_yticks(np.arange(-50, 200+1, 50))
-#         ax.set_yticks(np.arange(-50, 200+1, 10), minor = True)
+    if parameter == 'sag_delta':
+        ax.set_ylabel('Sag potential delta [mV]')
+        ax.set_ylim([0-1, 15 +1])
+        ax.spines['left'].set_bounds([0, 15])
+        ax.set_yticks(np.arange(0, 15+1, 5))
+        ax.set_yticks(np.arange(0, 15+1, 2.5), minor = True)
         
         
-#     elif parameter == 'rheobase_rel':
-#         ax.set_ylabel('Relative rheobase [pA]')
-#         ax.set_ylim([-52, 202])
-#         ax.spines['left'].set_bounds([-50, 200])
-#         ax.set_yticks(np.arange(-50, 200+1, 50))
-#         ax.set_yticks(np.arange(-50, 200+1, 10), minor = True)
+    elif parameter == 'n_reboundspikes':
+        ax.set_ylabel('Number of rebound spikes [#]')
+        ax.set_ylim([0-.5, 3+.5])
+        ax.spines['left'].set_bounds([0, 3])
+        ax.set_yticks(np.arange(0, 3+.5, 1))
+
      
-#     elif parameter == 'v_thres_rheobase_spike':
-#         ax.set_ylabel('Voltage at threshold\nof rheobase spike [mV]')
-#         ax.set_ylim([-87, -28])
-#         ax.spines['left'].set_bounds([-85, -30])
-#         ax.set_yticks(np.arange(-80, -30+1, 10))
-#         ax.set_yticks(np.arange(-85, -30+1, 5), minor = True)
+    elif parameter == 'reboundspike_t_peak':
+        ax.set_ylabel('Time to peak [ms]')
+        ax.set_ylim([0-5, 125+5])
+        ax.spines['left'].set_bounds([0, 125])
+        ax.set_yticks(np.arange(0, 125+1, 25))
+        ax.set_yticks(np.arange(0, 125+1, 5), minor = True)
         
-#     elif parameter == 'r_input':
-#         ax.set_ylabel(r'Input resistance [M$\Omega$]')
-#         ax.set_ylim([-20, 1820])
-#         ax.spines['left'].set_bounds([0, 1800])
-#         ax.set_yticks(np.arange(0, 1750+1, 500))
-#         ax.set_yticks(np.arange(0, 1750+1, 100), minor = True)  
+    elif parameter == 'reboundspike_v_threshold':
+        ax.set_ylabel('Membrane voltage\nat reboundspike threshold [mV]')
+        ax.set_ylim([-85-1, -55+1])
+        ax.spines['left'].set_bounds([-85, -55])
+        ax.set_yticks(np.arange(-85, -55+1, 10))
+        ax.set_yticks(np.arange(-85, -55+1, 5), minor = True)  
         
-#     elif parameter == 'tau_mem':
-#         ax.set_ylabel('Membrane time constant\n[ms]')
-#         ax.set_ylim([-2, 42])
-#         ax.spines['left'].set_bounds([0, 40])
-#         ax.set_yticks(np.arange(0, 40+1, 10))
-#         ax.set_yticks(np.arange(0, 40+1, 5), minor = True)
+    elif parameter == 'reboundspike_v_amplitude':
+        ax.set_ylabel('Reboundspike amplitude [mV]')
+        ax.set_ylim([80-1, 130+1])
+        ax.spines['left'].set_bounds([80, 130])
+        ax.set_yticks(np.arange(80, 130+1, 10))
+        ax.set_yticks(np.arange(80, 130+1, 5), minor = True)
         
-#     elif parameter == 'c_mem':
-#         ax.set_ylabel('Membrane capacitance\n[pF]')
-#         ax.set_ylim([-2, 102])
-#         ax.spines['left'].set_bounds([0, 100])
-#         ax.set_yticks(np.arange(0, 100+1, 20))
-#         ax.set_yticks(np.arange(0, 100+1, 5), minor = True)
+    elif parameter == 'reboundspike_FWHM':
+        ax.set_ylabel('Reboundspike FWHM [ms]')
+        ax.set_ylim([0.5-0.1, 2+0.1])
+        ax.spines['left'].set_bounds([0.5, 2])
+        ax.set_yticks(np.arange(0.5, 2+.1, 0.5))
+        ax.set_yticks(np.arange(0.5, 2+.1, 0.25), minor = True)
 
     
 [ax.grid(False) for ax in axs_cats]
@@ -149,7 +149,7 @@ for idx, parameter in enumerate(parameters_to_plot):
 axs_cats[1].set_xticklabels(['', '', ''])
 axs_cats[3].set_xticklabels(['', '', ''])
 
-# save_figures(fig_cats, 'ccIF-active_passive_properties', figure_dir, darkmode_bool)
+save_figures(fig_cats, 'ccsag-sagdelta_cats', figure_dir, darkmode_bool)
 
 
 

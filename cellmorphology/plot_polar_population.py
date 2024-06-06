@@ -252,12 +252,13 @@ for i_region, region in enumerate(regions):
 
 
 # x axis
-ax_hist_regions[-1].set_xticks(np.arange(0, np.pi*2, np.pi / 4))
-ax_hist_regions[-1].set_xticklabels(orientation_labels)
+ax_hist_cc_neurites_regions[-1].set_xticks(np.arange(0, np.pi*2, np.pi / 4))
+ax_hist_cc_neurites_regions[-1].set_xticklabels(orientation_labels)
 
 # yaxis
-ax_hist_regions[-1].set_ylim([0, ymax])
-ax_hist_regions[-1].set_yticks(np.arange(0, ymax + 1, 10))
+ymax = 120
+ax_hist_cc_neurites_regions[-1].set_ylim([0, ymax])
+ax_hist_cc_neurites_regions[-1].set_yticks(np.arange(0, ymax + 1, 10))
 
 plt.show()
 

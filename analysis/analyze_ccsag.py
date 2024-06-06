@@ -21,12 +21,12 @@ from functions.functions_import import get_traceIndex_n_file
 from functions.functions_ccIF import get_IF_data
 from functions.functions_constructors import construct_current_array
 from functions.functions_extractspike import get_AP_parameters
-from functions.functions_plotting import get_colors, save_figures
+from functions.functions_plotting import get_colors, save_figures, get_figure_size, set_font_sizes
 
 from getter.get_cell_IDs import get_cell_IDs_one_protocol, get_cell_IDs_all_ccAPfreqs
 
 vplot_bool = True
-darkmode_bool = False
+darkmode_bool = True
 colors_dict, region_colors = get_colors(darkmode_bool)
 
 
@@ -269,36 +269,42 @@ for cell_ID in cellIDs_toAnalyze.index.to_list():
     if vplot_bool:
         from matplotlib.patches import Rectangle
     
-        fig_sag, ax_sag = plt.subplots()
+        fig_sag, ax_sag = plt.subplots(figsize = get_figure_size(width = 247.75), 
+                                       layout = 'constrained')
+        
+        set_font_sizes()
         
         ax_sag.set_title(cell_ID)
         
         # entire step
-        ax_sag.plot(t_step, v_step_sag, c = colors_dict['primecolor'])
+        ax_sag.plot(t_step, v_step_sag, c = colors_dict['primecolor'], lw = 1)
         
         # period to look for min
-        ax_sag.plot(t_stim[:n_points_thirtypercent], v_first_thirtypercent, c = colors_dict['color2'])
+        ax_sag.plot(t_stim[:n_points_thirtypercent], v_first_thirtypercent, c = colors_dict['color2'], lw = 1)
         
         # steady state for mean
-        ax_sag.plot(t_stim[-n_points_tenpercent:], v_last_tenpercent, c = colors_dict['color2'])
+        ax_sag.plot(t_stim[-n_points_tenpercent:], v_last_tenpercent, c = colors_dict['color2'], lw = 1)
         
         # horizontal line
         ax_sag.hlines(y = v_step_min, 
                       xmin = PGF_parameters['t_pre'] + t_step_min, 
                       xmax = (PGF_parameters['t_pre'] + PGF_parameters['t_stim']), 
-                      colors=colors_dict['color3'])
+                      colors=colors_dict['color3'],
+                      lw = 1)
         
         # steady state horizontal line
         ax_sag.hlines(y = v_mean_last_tenpercent, 
                       xmin = PGF_parameters['t_pre'] + PGF_parameters['t_stim'] * 0.9, 
                       xmax = (PGF_parameters['t_pre'] + PGF_parameters['t_stim']), 
-                      colors=colors_dict['color3'])
+                      colors=colors_dict['color3'],
+                      lw = 1)
         
         # vertical line
         ax_sag.vlines(x = PGF_parameters['t_pre'] + PGF_parameters['t_stim'] * 0.95,
                       ymin = v_step_min,
                       ymax = v_mean_last_tenpercent,
-                      colors=colors_dict['color3'])
+                      colors=colors_dict['color3'],
+                      lw = 1)
         
         # spike events
         ax_sag.eventplot(t_peaks, lineoffsets=50, colors = 'r', linelengths=5)
@@ -332,13 +338,13 @@ for cell_ID in cellIDs_toAnalyze.index.to_list():
         ax_inset = fig_sag.add_axes([0.175, 0.4, 0.55, 0.45])
     
         # plot stimulation period
-        ax_inset.plot(t_step, v_step_sag, c = colors_dict['primecolor'])
+        ax_inset.plot(t_step, v_step_sag, c = colors_dict['primecolor'], lw = 1)
         
         # period to look for min
-        ax_inset.plot(t_stim[:n_points_thirtypercent], v_first_thirtypercent, c = colors_dict['color2'])
+        ax_inset.plot(t_stim[:n_points_thirtypercent], v_first_thirtypercent, c = colors_dict['color2'], lw = 1)
         
         # steady state for mean
-        ax_inset.plot(t_stim[-n_points_tenpercent:], v_last_tenpercent, c = colors_dict['color2'])
+        ax_inset.plot(t_stim[-n_points_tenpercent:], v_last_tenpercent, c = colors_dict['color2'], lw = 1)
         
         # set y ticks and y limits
         ax_inset.set_yticks(ticks = np.arange(-140, -100+1, 5), labels = [])
@@ -353,26 +359,29 @@ for cell_ID in cellIDs_toAnalyze.index.to_list():
         ax_inset.vlines(x = PGF_parameters['t_pre'] + PGF_parameters['t_stim'] * 0.95,
                         ymin = v_step_min,
                         ymax = v_mean_last_tenpercent,
-                        colors=colors_dict['color3'])
+                        colors=colors_dict['color3'], 
+                        lw = 1)
         
         # horizontal line
         ax_inset.hlines(y = v_step_min, 
                         xmin = PGF_parameters['t_pre'] + t_step_min, 
                         xmax = (PGF_parameters['t_pre'] + PGF_parameters['t_stim']), 
-                        colors=colors_dict['color3'])
+                        colors=colors_dict['color3'],
+                        lw = 1)
         
         # steady state horizontal line
         ax_inset.hlines(y = v_mean_last_tenpercent, 
                         xmin = PGF_parameters['t_pre'] + PGF_parameters['t_stim'] * 0.9, 
                         xmax = (PGF_parameters['t_pre'] + PGF_parameters['t_stim']), 
-                        colors=colors_dict['color3'])
+                        colors=colors_dict['color3'],
+                        lw = 1)
         
         # text
         ax_inset.text(x = PGF_parameters['t_pre'] + PGF_parameters['t_stim'] * 0.90, 
                       y = v_step_min + sag_delta / 2, 
                       s = f'Δsag = {round(sag_delta, 3)} mV', 
                       ha = 'right', va = 'center',
-                      size = 7)
+                      size = 9)
         
         plt.show()
             

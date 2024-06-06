@@ -70,7 +70,7 @@ mean_vamplitude_df = pd.DataFrame(index = frequencies)
 
 # test cell E-092
 # 'E-148', 'E-149', 'E-155', 'E-156', 'E-157', 'E-162', 'E-163', 'E-167', 'E-169', 'E-170', 'E-171', 'E-172', 'E-174', 'E-175', 'E-176', 'E-177','E-178', 'E-180',  
-cell_IDs = ['E-183', 'E-186', 'E-188', 'E-189']
+# cell_IDs = ['E-183', 'E-186', 'E-188', 'E-189']
 
 for cell_ID in cell_IDs:
     
@@ -468,19 +468,19 @@ for cell_ID in cell_IDs:
 
 # %% write dataframes to cell description folder
 
-# mean_nAPs_df = pd.DataFrame({'mean_APs' : nAPs_df.mean(axis=0)})
-# std_nAPs_df = pd.DataFrame({'std_APs' : nAPs_df.std(axis=0)})
-# mean_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_nAPs.xlsx'), index_label = 'frequencies')
-# std_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-std_nAPs.xlsx'), index_label = 'frequencies')
+mean_nAPs_df = pd.DataFrame({'mean_APs' : nAPs_df.mean(axis=0)})
+std_nAPs_df = pd.DataFrame({'std_APs' : nAPs_df.std(axis=0)})
+mean_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_nAPs.xlsx'), index_label = 'frequencies')
+std_nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-std_nAPs.xlsx'), index_label = 'frequencies')
 
-# # save measurements to excel file
-# nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-nAPs.xlsx'), index_label = 'frequencies')
-# mean_ISIs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_ISIs.xlsx'), index_label = 'frequencies')
-# resul_freq_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-resul_freq.xlsx'), index_label = 'frequencies')
+# save measurements to excel file
+nAPs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-nAPs.xlsx'), index_label = 'frequencies')
+mean_ISIs_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_ISIs.xlsx'), index_label = 'frequencies')
+resul_freq_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-resul_freq.xlsx'), index_label = 'frequencies')
 
-# mean_FWHM_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_FWHM.xlsx'), index_label = 'frequencies')
-# mean_tpeaks_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_tpeaks.xlsx'), index_label = 'frequencies')
-# mean_vamplitude_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_vamplitude.xlsx'), index_label = 'frequencies')
+mean_FWHM_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_FWHM.xlsx'), index_label = 'frequencies')
+mean_tpeaks_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_tpeaks.xlsx'), index_label = 'frequencies')
+mean_vamplitude_df.to_excel(os.path.join(cell_descrip_dir, 'ccAPs-mean_vamplitude.xlsx'), index_label = 'frequencies')
 
 
 

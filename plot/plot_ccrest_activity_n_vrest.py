@@ -184,8 +184,12 @@ for idx_region, region in enumerate(regions):
     
     # set y axis for each subplot  
     axs_regions[ax_keys[idx_region]].set_ylim([0-(tick_size/2), n_cells_region-1+(tick_size/2)])
-    axs_regions[ax_keys[idx_region]].set_yticks(ticks = np.arange(5 - 1, n_cells_region+1, 5), 
-                                                labels = np.arange(5, n_cells_region + 1, 5))
+    
+    n_cells_stepsize = 10
+    ticks = np.arange(n_cells_stepsize - 1, n_cells_region, n_cells_stepsize)
+    labels = ticks + 1
+    axs_regions[ax_keys[idx_region]].set_yticks(ticks = ticks, 
+                                                labels = labels)
     axs_regions[ax_keys[idx_region]].set_yticks(ticks = np.arange(0, n_cells_region, 1), 
                                                 minor = True)
     axs_regions[ax_keys[idx_region]].set_ylabel('Cells [#]')

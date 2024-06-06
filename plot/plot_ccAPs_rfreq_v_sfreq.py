@@ -219,18 +219,19 @@ for idx_region, region in enumerate(regions):
     # set axis 
     ax = axs_regions[ax_keys[idx_region]]
     
+    # add unity line
+    ax.axline(xy1 = (0,0), slope = 1, 
+                       c = 'gray', 
+                       linestyle = '--')
+    
     for idx_cell, cell_ID in enumerate(cell_IDs_region):
-
-        # add unity line
-        ax.axline(xy1 = (0,0), slope = 1, 
-                           c = 'gray', 
-                           linestyle = '--')
-
         # plot resulted frequency vs stimulated frequency with colorcode
         # for cell_ID in cell_IDs_region:
         ax.plot(freqs_int, resul_freq_df[cell_ID],
                 marker = 'o',
-                c = region_colors[MetaData.at[cell_ID, 'Region']])
+                c = region_colors[MetaData.at[cell_ID, 'Region']],
+                markersize = 4,
+                lw = 1)
 
     ax.set_xlim([0, 80])
     ax.set_xticks(freqs_int)
@@ -271,13 +272,15 @@ swarms = sbn.swarmplot(data = max_resul_freq_n_metadata_df,
                        y = 'max_resul_freq',
                        x  = 'Region', 
                        ax = axs_regions['D'], 
-                       size = 8,
+                       size = 6,
                        hue = 'Region',
-                       palette = region_colors)
+                       palette = region_colors,
+                       order = ['BAOT/MeA', 'MeA', 'BAOT'])
 
 # axs_freq[1].set_xticks([])
 axs_regions['D'].set_ylim([0,80])
 axs_regions['D'].set_ylabel('Maximal resulting frequency [Hz]')
+axs_regions['D'].set_xticklabels(['BAOT/MeA', 'MeA', 'BAOT'])
 
 # limit spines
 axs_regions['D'].spines['left'].set_bounds([0, 80])

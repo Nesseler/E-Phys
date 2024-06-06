@@ -1,0 +1,10 @@
+analyze_sag README
+
+This script was written to analyse the sag delta. 
+This is first calculated using the cc_IF protocol and if the current step fail to reach the desired potential the cc_sag protocol is used.
+
+The analyze_ccIF.py script must be run before to calculate the passive membran properties of that cell.
+
+
+
+1. load cc_IF

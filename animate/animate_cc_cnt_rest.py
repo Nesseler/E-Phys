@@ -12,7 +12,7 @@ from copy import copy
 from os.path import join, exists
 from os import mkdir
 
-from parameters.directories_win import table_dir, quant_data_dir, vplot_dir, table_file
+from parameters.directories_win import table_dir, quant_data_dir, vplot_dir, table_file, figure_dir
 from parameters.PGFs import cc_cntrest_parameters
 
 
@@ -56,7 +56,7 @@ autocorr_bool = False
 
 colors_dict, _ = get_colors(darkmode_bool)
 
-cell_ID = 'E-122'
+cell_ID = 'E-176'
 
 
 # vplot_dir_cell = join(vplot_dir, PGF, cell_ID)
@@ -210,7 +210,7 @@ writer = animation.FFMpegWriter(fps=anim_fps, bitrate=3000,
                                 codec="h264",  extra_args=extra_args)
  
 # Save path
-anim.save(f'C:/Users/nesseler/Desktop/local E-Phys/figures/{cell_ID}-{PGF}-animation-realtime.mp4', writer = writer)
+anim.save(f'{figure_dir}/{cell_ID}-{PGF}-animation-realtime.mp4', writer = writer)
 
 # anim.save('C:/Users/nesseler/Desktop/local E-Phys/figures/video.mp4', writer=writer)
  

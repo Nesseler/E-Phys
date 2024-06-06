@@ -12,7 +12,7 @@ import pandas as pd
 from os.path import join
 import numpy as np
 
-from parameters.directories_win import cell_morph_traces_sholl_dir, table_file, cell_morph_plots_dir
+from parameters.directories_win import cell_morph_traces_sholl_dir, table_file, cell_morph_plots_dir, cell_morph_descrip_dir
 
 from getter.get_onlyfiles_list import get_onlyfiles_list
 
@@ -80,7 +80,11 @@ all_sholl_profiles_metrics['median_intersections'] = all_sholl_profiles.median(a
 all_sholl_profiles_metrics['std_intersections'] = all_sholl_profiles.std(axis = 1)
 
 # save dataframes to excel
+all_sholl_metrics.rename(columns = {'end_radius' : 'enclosing_radius',
+                                    'idxmax_intersections' : 'critical_radius'},
+                         inplace = True)
 
+all_sholl_metrics.to_excel(join(cell_morph_descrip_dir, 'sholl_metrics.xlsx'), index_label = 'cell_ID')
 
 # %% plot
 

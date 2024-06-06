@@ -45,7 +45,9 @@ polar_plot_axons_occurrances = pd.DataFrame(columns = cell_IDs)
 # test 
 # onlyfiles = onlyfiles[8]
 
-for cell_in_files in range(int(len(onlyfiles)/2)):
+# %%
+
+for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
     
     try:
 
@@ -858,7 +860,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)):
     except UnboundLocalError:
         print('Skipping: ' + cell_ID + ' terminal branch no.: ' + str(terminal_path_ID))
         
-
+ 
 # %% save dataframe
 
 # reset index with orientation angle of bins in rad
