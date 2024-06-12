@@ -54,9 +54,11 @@ IF_inst_df = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 400 + 1, 5))
 IF_inst_initial_df = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 400 + 1, 5))
 
 # create dataframe for other parameters
-active_properties_df = pd.DataFrame(columns=['rheobase_abs', 'rheobase_rel', 'v_thres_rheobase_spike', 'rheobase_step_idx'], index = cell_IDs)
+active_properties_df = pd.DataFrame(columns=['rheobase_abs', 'rheobase_rel', 'v_thres_rheobase_spike'], index = cell_IDs)
 passiv_properties_df = pd.DataFrame(columns=['r_input', 'tau_mem'], index = cell_IDs)
 fstAP_df = pd.DataFrame(columns = AP_parameters, index = cell_IDs)
+step_idx_df = pd.DataFrame(columns=['rheobase_step_idx', 'maxfreq_step_idx', 'maxinstfreq_step_idx', 'maxinstinitialfreq_step_idx'], index = cell_IDs)
+
 
 cells_todrop = []
 
@@ -210,7 +212,7 @@ for cell_ID in cell_IDs:
     # populate dataframe
     active_properties_df.at[cell_ID, 'rheobase_abs'] = rheobase
     active_properties_df.at[cell_ID, 'rheobase_rel'] = rheobase_rel
-    active_properties_df.at[cell_ID, 'rheobase_step_idx'] = rheobase_idx
+    step_idx_df.at[cell_ID, 'rheobase_step_idx'] = rheobase_idx
     
     # rheobase as voltage at threshold of first spike
     # get voltage trace with rheobase step
@@ -386,6 +388,9 @@ for cell_ID in cell_IDs:
     maxinstinitialfreq_step_idx = np.nanargmax(IF_inst_initial_df[cell_ID].dropna().to_numpy())
     maxinstinitialfreq_iinput = IF_inst_initial_df.index.to_list()[np.nanargmax(IF_inst_initial_df[cell_ID].to_numpy())]
     
+    step_idx_df.at[cell_ID, 'maxfreq_step_idx'] = maxfreq_step_idx
+    step_idx_df.at[cell_ID, 'maxinstfreq_step_idx'] = maxinstfreq_step_idx
+    step_idx_df.at[cell_ID, 'maxinstinitialfreq_step_idx'] = maxinstinitialfreq_step_idx
     
     if vplot_bool:
         fig_max, axs_max = plt.subplots(nrows = 3,
@@ -739,6 +744,8 @@ if True:
     IF_inst_initial_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-IF_inst_initial.xlsx'), index_label = 'i_input')  
     
     fstAP_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-fst_AP_parameters.xlsx'), index_label = 'cell_ID')
+    
+    step_idx_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-step_indices.xlsx'), index_label = 'cell_ID')
 
 # %%
 

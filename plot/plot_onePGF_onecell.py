@@ -18,8 +18,8 @@ from functions.functions_import import get_traceIndex_n_file
 from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt, calc_dvdt_padded, round_to_base
 
 
-cell_ID = 'E-183'
-PGF = 'vc_rest_EPSC'
+cell_ID = 'E-137'
+PGF = 'cc_IF'
 
 from parameters.PGFs import cc_th1Ap_parameters, cc_IF_parameters, cc_sag_parameters, vc_rest_EPSC_parameters
 
@@ -102,7 +102,7 @@ fig, axs = plt.subplots(nrows = 2,
 
 fig.subplots_adjust(hspace = 0.06)
 
-for step_idx in np.arange(0, n_steps, 1):
+for step_idx in np.arange(0, n_steps, 20):
     axs[0].plot(i[step_idx], lw = 1, c = 'gray')
     axs[1].plot(v[step_idx], lw = 1, c = 'gray')
 
