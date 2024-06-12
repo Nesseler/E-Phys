@@ -182,6 +182,7 @@ ax = axs_comb[0]
 violin = sbn.violinplot(data = plt_df,
                         y = 'Region',
                         x = 'r_input',
+                        bw = 0.25,
                         inner = 'quart',
                         linewidth = 1,
                         ax = ax,
@@ -262,13 +263,13 @@ axs_comb[1].hlines(y = np.arange(-40, -40 + (5 * 20), 5),
 
 axs_comb[1].plot(r_inputs, deltaIs['maxx'], '-', label = f'{v_maxx} mV', c = 'r')
 
-axs_comb[1].plot(r_inputs, deltaIs['max'], '-', label = f'{v_max} mV (~max AP freq.)', c = colors_dict['color1'], linestyle = 'dashed')
+axs_comb[1].plot(r_inputs, deltaIs['max'], label = f'{v_max} mV (~max AP freq.)', c = colors_dict['color1'], linestyle = 'dashed')
 
-axs_comb[1].plot(r_inputs, deltaIs['thres'], '-', label = f'{v_thres} mV (~threshold)', c = colors_dict['color1'], linestyle = 'solid')
+axs_comb[1].plot(r_inputs, deltaIs['thres'], label = f'{v_thres} mV (~threshold)', c = colors_dict['color1'], linestyle = 'solid')
 
 axs_comb[1].axhline(y = 0, color = colors_dict['color2'], lw = 1, label = '-85 mV (holding)')
 
-axs_comb[1].plot(r_inputs, deltaIs['sag'], '-', label = f'{v_sag} mV (sag potential)', c = colors_dict['color1'], linestyle = 'dashed')
+axs_comb[1].plot(r_inputs, deltaIs['sag'], label = f'{v_sag} mV (sag potential)', c = colors_dict['color1'], linestyle = 'dashed')
 
 axs_comb[1].plot(r_inputs, deltaIs['sagx'], '-', label = f'{v_sagx} mV', c = 'r')
 

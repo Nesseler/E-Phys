@@ -31,7 +31,7 @@ fstAP_df.drop(columns = todrop, inplace = True)
 
 # concatenate active and passive properties
 IF_cat_df = pd.concat([passiv_properties_df, active_properties_df], axis = 1)
-IF_cat_df.drop(columns = 'rheobase_step_idx', inplace = True)
+# IF_cat_df.drop(columns = 'rheobase_step_idx', inplace = True)
 
 # get cell IDs
 cell_IDs = IF_cat_df.index.to_list()
@@ -73,6 +73,7 @@ for idx, parameter in enumerate(IF_cat_df.columns):
     violin = sbn.violinplot(data = plt_df,
                             x = 'Region',
                             y = parameter,
+                            bw = 0.3,
                             inner = 'quart',
                             linewidth = 1,
                             ax = ax,
