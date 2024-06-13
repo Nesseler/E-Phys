@@ -61,6 +61,6 @@ popt_guess = [50, 0.01, -100]
 r_squared_thresh = 0.9
 
 # set parameters to find peaks
-min_peak_prominence_ccIF = 20 #(mV)
+min_peak_prominence_ccIF = 30 #(mV)
 min_peak_distance_ccIF = 1 #ms
 min_max_peak_width_ccIF = [0.5, 10]

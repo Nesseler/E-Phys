@@ -165,6 +165,14 @@ def double_gaussian(x, amp1, cen1, sigma1, amp2, cen2, sigma2):
 def round_to_base(number, base):
     return base * round(number/base)  
 
+
+def round_up_to_base(number, base):
+    return base * np.ceil(number/base)  
+
+
+def round_down_to_base(number, base):
+    return base * np.floor(number/base)
+
     
 # define function of exponential fit
 def exp_func(x, a, b, c):

@@ -25,7 +25,6 @@ activity_df = pd.read_excel(join(cell_descrip_dir, 'cc_rest-activity.xlsx'), ind
 
 # cc_IF
 active_properties_df = pd.read_excel(join(cell_descrip_dir, 'ccIF-active_properties.xlsx'), index_col = 'cell_ID')
-active_properties_df.drop(columns = 'rheobase_step_idx', inplace = True)
 passiv_properties_df = pd.read_excel(join(cell_descrip_dir, 'ccIF-passiv_properties.xlsx'), index_col = 'cell_ID')
 fstAP_df = pd.read_excel(join(cell_descrip_dir, 'ccIF-fst_AP_parameters.xlsx'), index_col = 'cell_ID')
 IF_df = pd.read_excel(join(cell_descrip_dir, 'ccIF-IF.xlsx'), index_col = 'i_input')
@@ -68,7 +67,7 @@ celldescriptors_df['delta_vrest_to_vthres_rheobasespike'] = celldescriptors_df['
 celldescriptors_df = pd.concat([celldescriptors_df, fstAP_df[['v_amplitude', 'FWHM', 't_toPeak', 't_rise', 'v_AHP_amplitude', 't_to_AHP']]], axis = 1)
 
 # add cc_sag
-celldescriptors_df = pd.concat([celldescriptors_df, sag_df[['sag_delta', 'n_reboundspikes']]], axis = 1)
+### celldescriptors_df = pd.concat([celldescriptors_df, sag_df[['sag_delta', 'n_reboundspikes']]], axis = 1)
 # celldescriptors_df = pd.concat([celldescriptors_df, sag_df[['sag_delta', 'n_reboundspikes', 'reboundspike_v_threshold', 'reboundspike_v_amplitude', 'reboundspike_t_toPeak', 'reboundspike_t_rise', 'reboundspike_FWHM']]], axis = 1)
 
 # recalculation
@@ -90,12 +89,12 @@ celldescriptors_df.rename(columns = {'n_spikes' : 'n_restspikes',
                           inplace = True)
 
 # add resulting freqs
-for cell_ID in result_freqs_df.columns.to_list():
-    for freq in result_freqs_df.index.to_list():
-        celldescriptors_df.at[cell_ID, f'{freq}_resultfreq'] = result_freqs_df.at[freq, cell_ID]
+### for cell_ID in result_freqs_df.columns.to_list():
+###     for freq in result_freqs_df.index.to_list():
+###         celldescriptors_df.at[cell_ID, f'{freq}_resultfreq'] = result_freqs_df.at[freq, cell_ID]
 
 # cell morphology
-celldescriptors_df = pd.concat([celldescriptors_df, sholl_metrics_df[['max_intersections', 'critical_radius', 'enclosing_radius']]], axis = 1)
+###celldescriptors_df = pd.concat([celldescriptors_df, sholl_metrics_df[['max_intersections', 'critical_radius', 'enclosing_radius']]], axis = 1)
 
 # add MetaData
 MetaData = MetaData.loc[celldescriptors_df.index.to_list(), :]
@@ -156,7 +155,7 @@ save_figures(fig_heat, 'heatmap_allregions', figure_dir, darkmode_bool)
 
 norm_celldesc_df.drop(columns = ['Region'], inplace = True)
 
-for idx, region in enumerate(['MeA', 'BAOT']):
+for idx, region in enumerate(['BAOT', 'MeA']):
     
     region_cellIDs = MetaData[MetaData['Region'] == region].index.to_list()
     
@@ -194,13 +193,24 @@ for idx, region in enumerate(['MeA', 'BAOT']):
 
 
 
+# %% first try of clustering
+
+# from sklearn.preprocessing import StandardScaler
+
+# data_scaler = StandardScaler()
+
+# # celldescriptors_df.drop(columns = 'Region', inplace = True)
+
+# scaled_celldescript = data_scaler.fit_transform(celldescriptors_df)
 
 
+# from scipy.cluster.hierarchy import linkage, dendrogram
 
+# complete_clustering = linkage(region_norm_celldesc_df, method="complete", metric="euclidean")
 
-
-
-
+# dendrogram(complete_clustering)
+# plt.show()
+# # 
 
 
 

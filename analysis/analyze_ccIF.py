@@ -63,7 +63,7 @@ step_idx_df = pd.DataFrame(columns=['rheobase_step_idx', 'maxfreq_step_idx', 'ma
 cells_todrop = []
 
 # test cell 
-# cell_IDs = ['E-122']
+cell_IDs = ['E-122']
 
 # cell_IDs = ['E-082', 'E-137', 'E-138', 'E-140']
 
@@ -735,7 +735,7 @@ active_properties_df['max_inst_initial_freq'] = IF_inst_initial_df.max(axis = 0)
 
 # %% save measurements to excel file
 
-if True:
+if False:
 
     passiv_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-passiv_properties.xlsx'), index_label = 'cell_ID')    
     active_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-active_properties.xlsx'), index_label = 'cell_ID')   

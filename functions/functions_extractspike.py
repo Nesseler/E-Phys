@@ -247,6 +247,8 @@ def get_AP_parameters(t_spiketrain, v_spiketrain, dvdt_spiketrain, idc_spikes, S
         
         # set spikes indices
         APs_dataframe['idx_peak_in_spiketrain'] = np.arange(len(idc_spikes))
+        
+        spike_vs = [None] * len(idc_spikes)
      
         # loop through spikes in list of peaks
         for i, idx_peak in enumerate(idc_spikes):
@@ -355,6 +357,12 @@ def get_AP_parameters(t_spiketrain, v_spiketrain, dvdt_spiketrain, idc_spikes, S
             v_AHP_amplitude = v_AHP - v_threshold
             APs_dataframe.at[i, 'v_AHP_amplitude'] = v_AHP_amplitude
             
+            if len(idc_spikes) > 1:
+                spike_vs[i] = spike_v
+    
+    if len(idc_spikes) > 1:
+        spike_v = spike_vs
+    
     else:
         APs_dataframe = pd.DataFrame(np.nan, index = [0], columns = keys_ls)
         spike_v = pd.Series([], dtype = float)
