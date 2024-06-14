@@ -101,7 +101,7 @@ MetaData = MetaData.loc[celldescriptors_df.index.to_list(), :]
 # celldescriptors_df = pd.concat([celldescriptors_df, MetaData[['Region', 'Hemisphere', 'Sex', 'Stage', 'reconstructed']]], axis = 1)
 celldescriptors_df = pd.concat([celldescriptors_df, MetaData['Region']], axis = 1)
 
-celldescriptors_df.sort_values(['Region', 'r_input'], inplace = True, ascending=[False, False])
+# celldescriptors_df.sort_values(['Region', 'r_input'], inplace = True, ascending=[False, False])
 
 # celldescriptors_df.drop(columns = ['Region'], inplace = True)
 
@@ -153,9 +153,9 @@ save_figures(fig_heat, 'heatmap_allregions', figure_dir, darkmode_bool)
 
 ###
 
-norm_celldesc_df.drop(columns = ['Region'], inplace = True)
+# norm_celldesc_df.drop(columns = ['Region'], inplace = True)
 
-for idx, region in enumerate(['BAOT', 'MeA']):
+for idx, region in enumerate(['MeA', 'BAOT']):
     
     region_cellIDs = MetaData[MetaData['Region'] == region].index.to_list()
     
@@ -165,7 +165,7 @@ for idx, region in enumerate(['BAOT', 'MeA']):
 
     region_norm_celldesc_df = norm_celldesc_df.loc[region_cellIDs, :]
     
-    region_norm_celldesc_df.sort_values('r_input', inplace = True, ascending = False)
+    # region_norm_celldesc_df.sort_values('r_input', inplace = True, ascending = False)
     
     colors_dict, region_colors = get_colors(darkmode_bool)
 
@@ -189,33 +189,75 @@ for idx, region in enumerate(['BAOT', 'MeA']):
 
     save_figures(fig_heat_region, f'heatmap_{region}', figure_dir, darkmode_bool)
 
+# %%
 
+norm_celldesc_df = norm_celldesc_df[norm_celldesc_df['Region'] != 0.5]
 
 
 
 # %% first try of clustering
 
-# from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler
 
-# data_scaler = StandardScaler()
+data_scaler = StandardScaler()
 
-# # celldescriptors_df.drop(columns = 'Region', inplace = True)
+# celldescriptors_df.drop(columns = 'Region', inplace = True)
+
+# norm_celldesc_df.drop(columns = 'Region', inplace = True)
 
 # scaled_celldescript = data_scaler.fit_transform(celldescriptors_df)
 
 
-# from scipy.cluster.hierarchy import linkage, dendrogram
+from scipy.cluster.hierarchy import linkage, dendrogram
 
-# complete_clustering = linkage(region_norm_celldesc_df, method="complete", metric="euclidean")
+complete_clustering = linkage(norm_celldesc_df, method="ward", metric="euclidean")
 
-# dendrogram(complete_clustering)
-# plt.show()
+index_cellIDs = region_norm_celldesc_df.index.to_list()
+
+dendro = plt.figure(figsize = get_figure_size())
+
+dendrogram = dendrogram(complete_clustering, labels = norm_celldesc_df.index, leaf_font_size= 8, color_threshold=2.8)
+
+# leave_idc = 
+
+leave_cell_IDs = dendrogram['ivl']
+
+# dendrogram.set_xticks(labels = leave_cell_IDs)
+
+plt.show()
+
+
 # # 
+save_figures(dendro, 'dendrogram', figure_dir, darkmode_bool)
 
 
 
+# %% 
+
+norm_celldesc_df = norm_celldesc_df.reindex(leave_cell_IDs)
+
+# norm_celldesc_df = pd.concat([norm_celldesc_df, MetaData['Region']], axis = 1)
+
+# norm_celldesc_df['Region'] = celldescriptors_df['Region'].replace({'MeA': 1, 'BAOT/MeA' : 0.5, 'BAOT' : 0})
+
+fig_heat, axs_heat = plt.subplots(nrows = 1,
+                                  ncols = 1,
+                                  layout = 'constrained',
+                                  figsize = get_figure_size(width = 300))
+
+set_font_sizes()
+
+sbn.heatmap(norm_celldesc_df,
+            vmin = 0,
+            vmax = 1,
+            square = False, 
+            ax = axs_heat, 
+            cmap="flare_r", 
+            yticklabels=False,
+            linewidth = 0)    
 
 
+plt.show()
 
 
-
+save_figures(fig_heat, 'heatmap_allregions-post_heri_clustering', figure_dir, darkmode_bool)
