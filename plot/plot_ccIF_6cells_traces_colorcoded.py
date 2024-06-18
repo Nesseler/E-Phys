@@ -29,7 +29,7 @@ from functions.functions_useful import calc_time_series, butter_filter, calc_dvd
 from functions.functions_plotting import get_colors, get_figure_size, save_figures, plot_t_vs_v, set_font_sizes
 from functions.functions_extractspike import get_AP_parameters
 
-
+IF_step_idc = pd.read_excel(join(cell_descrip_dir, 'ccIF-step_indices.xlsx'), index_col='cell_ID')
 
 # %% settings
 
@@ -44,7 +44,7 @@ PGF = 'cc_IF'
 
 
 #BAOT
-cell_IDs = ['E-067', 'E-121', 'E-100', 'E-120', 'E-089', 'E-137']
+cell_IDs = ['E-130', 'E-089', 'E-152', 'E-109', 'E-112', 'E-186']
 
 # load data
 # active membrane properties for rheobase step idx
@@ -71,7 +71,7 @@ subfigs = subfigs.flatten()
 
 for idx_cell, cell_ID in enumerate(cell_IDs):
     
-    rheobase_step_idx = active_properties_df.at[cell_ID, 'rheobase_step_idx']
+    rheobase_step_idx = IF_step_idc.at[cell_ID, 'rheobase_step_idx']
 
     # get the traceIndex and the file path string for data import functions
     traceIndex, file_path = get_traceIndex_n_file(PGF, cell_ID)
@@ -192,7 +192,7 @@ for idx_cell, cell_ID in enumerate(cell_IDs):
     
     
             # plot each step
-            ax_IF[0].plot(t_step[:-1], i_step, 
+            ax_IF[0].plot(t_step, i_step, 
                           c=cmap.to_rgba(i_input[step_idx]),
                           lw = 1)
             

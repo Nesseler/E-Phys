@@ -18,7 +18,7 @@ from functions.functions_import import get_traceIndex_n_file
 from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt, calc_dvdt_padded, round_to_base
 
 
-cell_ID = 'E-182'
+cell_ID = 'E-122'
 PGF = 'cc_IF'
 
 from parameters.PGFs import cc_th1Ap_parameters, cc_IF_parameters, cc_sag_parameters, vc_rest_EPSC_parameters
@@ -79,17 +79,17 @@ t = calc_time_series(v[0], SR)
 
 
 # ### construct current dataframe
-# i_hold = I_hold_table[PGF]
+i_hold = I_hold_table[PGF]
 
 # # calculate current steps relative to I_hold
 # ## rounded to nearest 5
 # i_hold_rounded = round_to_base(i_hold, 5)
 
-# # get current arrays and list of input current relative to i_hold
-# i_cons, i_input = construct_current_array(i_hold = i_hold,
-#                                           n_steps = n_steps,
-#                                           parameters_dict = PGF_parameters,
-#                                           SR_ms = SR_ms)
+# get current arrays and list of input current relative to i_hold
+i_cons, i_input = construct_current_array(i_hold = i_hold,
+                                          n_steps = n_steps,
+                                          parameters_dict = PGF_parameters,
+                                          SR_ms = SR_ms)
 
 
 # %% figure
@@ -102,14 +102,14 @@ fig, axs = plt.subplots(nrows = 2,
 
 fig.subplots_adjust(hspace = 0.06)
 
-for step_idx in np.arange(0, n_steps, 20):
-    axs[0].plot(i[step_idx], lw = 1, c = 'gray')
+for step_idx in np.arange(0, n_steps, 5):
+    axs[0].plot(i_cons[step_idx], lw = 1, c = 'gray')
     axs[1].plot(v[step_idx], lw = 1, c = 'gray')
 
 
-add_stepidx = 0
+add_stepidx = 27
 
-axs[0].plot(i[add_stepidx], lw = 1, c = colors_dict['primecolor'])
+axs[0].plot(i_cons[add_stepidx], lw = 1, c = colors_dict['primecolor'])
 axs[1].plot(v[add_stepidx], lw = 1, c = colors_dict['primecolor'])
 
 
@@ -138,7 +138,7 @@ axs[1].plot(v[add_stepidx], lw = 1, c = colors_dict['primecolor'])
 
 # plt.show()
 
-# save_figures(fig, f'example_trace-{cell_ID}_{PGF}', figure_dir, darkmode_bool)
+save_figures(fig, f'example_trace-{cell_ID}_{PGF}', figure_dir, darkmode_bool)
 
 
 

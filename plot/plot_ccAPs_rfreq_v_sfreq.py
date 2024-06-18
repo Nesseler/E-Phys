@@ -51,11 +51,11 @@ darkmode_bool = True
 
 colors_dict, region_colors = get_colors(darkmode_bool)
 
-set_font_sizes()
+set_font_sizes(small_font_size=12)
 
 fig_freq, axs_freq = plt.subplots(1,2,
                                   layout = 'constrained',
-                                  figsize = get_figure_size(),
+                                  figsize = get_figure_size(width = 277.25, height = 139.607),
                                   gridspec_kw = {'width_ratios': [6,2]})
 
 
@@ -94,6 +94,7 @@ axs_freq[0].set_ylabel('Resulting frequency [Hz]')
 
 # max frequency
 violin = sbn.violinplot(data = max_resul_freq_df,
+                        bw  = 0.3,
                         width = .8,
                         inner = 'quart',
                         linewidth = 1.5,
@@ -110,7 +111,7 @@ sbn.swarmplot(data = max_resul_freq_df,
               cmap = cmap_str, 
               norm = norm,
               ax = axs_freq[1], 
-              size = 8)
+              size = 3)
 
 axs_freq[1].set_xticks([])
 axs_freq[1].set_ylim([0,80])
@@ -200,11 +201,11 @@ regions = ['BAOT/MeA', 'MeA', 'BAOT']
 
 fig_regions, axs_regions = plt.subplot_mosaic('AD;BD;CD', 
                                               layout = 'constrained',
-                                              figsize = get_figure_size(),
-                                              width_ratios = [1.5, 1],
+                                              figsize = get_figure_size(width = 277.25, height = 137.607),
+                                              width_ratios = [2.5, 1],
                                               dpi = 600)
 
-set_font_sizes()
+set_font_sizes(small_font_size=12)
 
 # sfreq vs rfreq
 
@@ -219,10 +220,14 @@ for idx_region, region in enumerate(regions):
     # set axis 
     ax = axs_regions[ax_keys[idx_region]]
     
+    # set region name as title
+    ax.set_title(region, fontsize = 18)
+    
     # add unity line
-    ax.axline(xy1 = (0,0), slope = 1, 
-                       c = 'gray', 
-                       linestyle = '--')
+    ax.plot([1, 75], [1, 75],
+            c = 'gray', 
+            linestyle = '--',
+            lw = 1.5)
     
     for idx_cell, cell_ID in enumerate(cell_IDs_region):
         # plot resulted frequency vs stimulated frequency with colorcode
@@ -230,22 +235,30 @@ for idx_region, region in enumerate(regions):
         ax.plot(freqs_int, resul_freq_df[cell_ID],
                 marker = 'o',
                 c = region_colors[MetaData.at[cell_ID, 'Region']],
-                markersize = 4,
-                lw = 1)
+                markersize = 3,
+                lw = .5)
 
-    ax.set_xlim([0, 80])
-    ax.set_xticks(freqs_int)
+    ax.set_xlim([-1, 80])
+    ax.set_xticks(ticks = freqs_int,
+                  labels = freqs_int)
     
-    ax.set_ylim([0, 80])
-    ax.set_yticks(ticks = np.arange(0, 80, 25), 
-                  labels = np.arange(0, 80, 25))
-    ax.set_yticks(np.arange(0, 80, 5), minor = True)
+    ax.set_ylim([-1, 80])
+    ax.set_yticks(ticks = np.arange(0, 75+1, 25), 
+                  labels = np.arange(0, 75+1, 25))
+    ax.set_yticks(np.arange(0, 75+1, 5), minor = True)
+    
+    # limit spines
+    ax.spines['left'].set_bounds([1, 75])
+    ax.spines['bottom'].set_bounds([1, 75])
+
+    # despine
+    [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
 
 
 
 # remove ticks between first two activity plots
 for i in ['A', 'B']:
-    axs_regions[i].set_xticks(ticks = [], labels = [])
+    axs_regions[i].set_xticks(ticks = freqs_int, labels = [])
     
 axs_regions['C'].set_xlabel('Stimulated frequency [Hz]')  
 
@@ -256,6 +269,7 @@ violins = sbn.violinplot(data = max_resul_freq_n_metadata_df,
                         y = 'max_resul_freq',
                         x  = 'Region',
                         width = .9,
+                        bw = 0.5,
                         inner = 'quart',
                         linewidth = 1.5,
                         color = colors_dict['seccolor'],
@@ -278,12 +292,17 @@ swarms = sbn.swarmplot(data = max_resul_freq_n_metadata_df,
                        order = ['BAOT/MeA', 'MeA', 'BAOT'])
 
 # axs_freq[1].set_xticks([])
-axs_regions['D'].set_ylim([0,80])
+axs_regions['D'].set_ylim([0,75])
 axs_regions['D'].set_ylabel('Maximal resulting frequency [Hz]')
-axs_regions['D'].set_xticklabels(['BAOT/MeA', 'MeA', 'BAOT'])
+axs_regions['D'].set_yticks(np.arange(0, 75+1, 25))
+axs_regions['D'].set_yticks(np.arange(0, 75+1, 5), minor = True)
+axs_regions['D'].set_xticklabels(['BAOT/\nMeA', 'MeA', 'BAOT'])
+
+axs_regions['D'].set_xlabel('')
+fig_regions.align_labels() 
 
 # limit spines
-axs_regions['D'].spines['left'].set_bounds([0, 80])
+axs_regions['D'].spines['left'].set_bounds([0, 75])
 axs_regions['D'].spines['bottom'].set_bounds([0, 2])
 
 # despine
@@ -291,7 +310,7 @@ axs_regions['D'].spines['bottom'].set_bounds([0, 2])
 
 [axs_regions[ax_keys].grid(False) for ax_keys in axs_regions]
 
-
+axs_regions['D'].get_legend().remove()
 
 plt.show()
 

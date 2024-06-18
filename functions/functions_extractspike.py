@@ -359,13 +359,13 @@ def get_AP_parameters(t_spiketrain, v_spiketrain, dvdt_spiketrain, idc_spikes, S
             
             if len(idc_spikes) > 1:
                 spike_vs[i] = spike_v
-    
-    if len(idc_spikes) > 1:
-        spike_v = spike_vs
-    
+       
     else:
         APs_dataframe = pd.DataFrame(np.nan, index = [0], columns = keys_ls)
         spike_v = pd.Series([], dtype = float)
+        
+    if len(idc_spikes) > 1:
+        spike_v = spike_vs
 
     return APs_dataframe, spike_v
 

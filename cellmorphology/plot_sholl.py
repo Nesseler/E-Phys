@@ -65,9 +65,9 @@ all_sholl_profiles.index.name = 'Radius'
 all_sholl_metrics = pd.DataFrame(index = all_sholl_profiles.columns.to_list())
 
 all_sholl_metrics['max_intersections'] = all_sholl_profiles.max(axis = 0)
-all_sholl_metrics['idxmax_intersections'] = all_sholl_profiles.idxmax(axis = 0)
+all_sholl_metrics['critical_radius'] = all_sholl_profiles.idxmax(axis = 0)
 
-all_sholl_metrics['end_radius'] = [len(all_sholl_profiles[c][all_sholl_profiles[c].notnull()])-1 for c in all_sholl_profiles.columns]
+all_sholl_metrics['enclosing_radius'] = [len(all_sholl_profiles[c][all_sholl_profiles[c].notnull()])-1 for c in all_sholl_profiles.columns]
 
 # concatenate metadata with all_sholl_metrics
 all_sholl_metrics = pd.concat([all_sholl_metrics, MetaData.loc[cell_IDs, 'Region']], axis = 1)
@@ -80,8 +80,8 @@ all_sholl_profiles_metrics['median_intersections'] = all_sholl_profiles.median(a
 all_sholl_profiles_metrics['std_intersections'] = all_sholl_profiles.std(axis = 1)
 
 # save dataframes to excel
-all_sholl_metrics.rename(columns = {'end_radius' : 'enclosing_radius',
-                                    'idxmax_intersections' : 'critical_radius'},
+all_sholl_metrics.rename(columns = {'enclosing_radius' : 'enclosing_radius',
+                                    'critical_radius' : 'critical_radius'},
                          inplace = True)
 
 all_sholl_metrics.to_excel(join(cell_morph_descrip_dir, 'sholl_metrics.xlsx'), index_label = 'cell_ID')
@@ -128,7 +128,7 @@ axs_sholl[0].set_yticks(np.arange(0, 40 + 1, 5), minor = True)
 axs_sholl[1].text(x = 450, y = -0.5, s = 'Critical radius', ha = 'right', va = 'top', fontsize = 8)
 
 violin = sbn.violinplot(data = all_sholl_metrics,
-                        x = 'idxmax_intersections',
+                        x = 'critical_radius',
                         ax = axs_sholl[1],
                         inner = 'quart',
                         linewidth = 1)
@@ -141,7 +141,7 @@ for violin in violin.collections:
     violin.set_facecolor('None')
 
 swarm = sbn.swarmplot(data = all_sholl_metrics,
-                      x = 'idxmax_intersections',
+                      x = 'critical_radius',
                       ax = axs_sholl[1], 
                       color = 'gray',
                       size = 4)
@@ -153,7 +153,7 @@ axs_sholl[1].set_xlabel('')
 axs_sholl[2].text(x = 450, y = -0.5, s = 'Enclosing radius', ha = 'right', va = 'top', fontsize = 8)
 
 violin = sbn.violinplot(data = all_sholl_metrics,
-                        x = 'end_radius',
+                        x = 'enclosing_radius',
                         ax = axs_sholl[2],
                         inner = 'quart',
                         linewidth = 1)
@@ -165,7 +165,7 @@ for violin in violin.collections:
     violin.set_edgecolor(colors_dict['primecolor'])
     violin.set_facecolor('None')
 
-swarm = sbn.swarmplot(x = all_sholl_metrics['end_radius'], 
+swarm = sbn.swarmplot(x = all_sholl_metrics['enclosing_radius'], 
                       ax = axs_sholl[2],
                       color = 'gray',
                       size = 4)
@@ -194,16 +194,19 @@ save_figures(fig_sholl, 'Sholl_profiles_figure-all', sholl_plots_dir, darkmode_b
 
 fig_cc, axs_cc = plt.subplots(nrows = 4, 
                               ncols = 1,
-                              height_ratios = [3, 3, 1, 1],
+                              height_ratios = [3, 3, 1.5, 1.5],
                               sharex = True,
                               layout = 'constrained',
-                              figsize = get_figure_size(width = 165.5))
+                              figsize = get_figure_size(width = 277.25, height = 190.653))
 
-set_font_sizes()
+set_font_sizes(small_font_size=12)
 
 # sholl profiles
 
 regions = ['MeA', 'BAOT']
+
+# remove non-classified cells
+all_sholl_metrics = all_sholl_metrics[all_sholl_metrics['Region'] != 'BAOT/MeA']
 
 for i_region, region in enumerate(regions):
     
@@ -226,12 +229,13 @@ for i_region, region in enumerate(regions):
     # define axis
     ax = axs_cc[i_region]
     
-    ax.set_title(region)
+    ax.set_title(region, fontsize = 18)
 
     lines = ax.plot(region_sholl_profils, 
                               c = region_colors[region], 
                               zorder = 0, 
-                              label = 'Sholl profiles')
+                              label = 'Sholl profiles',
+                              lw = 1)
 
     std_shade = ax.fill_between(x = region_sholl_profil_metrics.index.to_list(), 
                                           y1 = region_sholl_profil_metrics['mean_intersections'] - region_sholl_profil_metrics['std_intersections'],
@@ -246,7 +250,7 @@ for i_region, region in enumerate(regions):
 
     mean_line = ax.plot(region_sholl_profil_metrics.index.to_list(), region_sholl_profil_metrics['mean_intersections'],
                                   color = colors_dict['primecolor'],
-                                  linewidth = 1,
+                                  linewidth = 1.5,
                                   label = 'mean')
 
     ax.legend(handles = [lines[0], std_shade, mean_line[0]], prop={'size': 8})
@@ -255,13 +259,16 @@ for i_region, region in enumerate(regions):
     ax.set_ylim([0, 40])
     ax.set_yticks(np.arange(0, 40 + 1, 10))
     ax.set_yticks(np.arange(0, 40 + 1, 5), minor = True)
+    ax.set_ylabel('Number of\nintersections [#]')
+    
+    ax.get_legend().remove()
 
 
 # radius of max
-axs_cc[2].text(x = 450, y = -0.5, s = 'Critical radius', ha = 'right', va = 'top', fontsize = 8)
+axs_cc[2].text(x = 450, y = -0.75, s = 'Critical radius', ha = 'right', va = 'top', fontsize = 12)
 
 violin = sbn.violinplot(data = all_sholl_metrics,
-                        x = 'idxmax_intersections',
+                        x = 'critical_radius',
                         y = 'Region',
                         ax = axs_cc[2],
                         inner = 'quart',
@@ -275,7 +282,7 @@ for violin in violin.collections:
     violin.set_facecolor('None')
 
 swarm = sbn.swarmplot(data = all_sholl_metrics,
-                      x = 'idxmax_intersections',
+                      x = 'critical_radius',
                       y = 'Region',
                       hue = 'Region',
                       ax = axs_cc[2], 
@@ -289,10 +296,10 @@ axs_cc[2].legend().set_visible(False)
 
 
 # end radius
-axs_cc[3].text(x = 450, y = -0.5, s = 'Enclosing radius', ha = 'right', va = 'top', fontsize = 8)
+axs_cc[3].text(x = 450, y = -0.75, s = 'Enclosing radius', ha = 'right', va = 'top', fontsize = 12)
 
 violin = sbn.violinplot(data = all_sholl_metrics,
-                        x = 'end_radius',
+                        x = 'enclosing_radius',
                         y = 'Region',
                         ax = axs_cc[3],
                         inner = 'quart',
@@ -306,7 +313,7 @@ for violin in violin.collections:
     violin.set_facecolor('None')
 
 swarm = sbn.swarmplot(data = all_sholl_metrics,
-                      x = 'end_radius',
+                      x = 'enclosing_radius',
                       y = 'Region',
                       hue = 'Region',
                       ax = axs_cc[3],
@@ -334,6 +341,8 @@ for ax in axs_cc:
     [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
     
     ax.spines['bottom'].set_bounds([xmin, xmax])
+    
+fig_cc.align_labels()
 
 # save figure
 save_figures(fig_cc, 'Sholl_profiles_figure-cc_regions', sholl_plots_dir, darkmode_bool)
@@ -350,8 +359,8 @@ fig_cr_er_c_com, ax_cv_er_com = plt.subplots(nrows = 1,
 
 
 sbn.scatterplot(data = all_sholl_metrics,
-                x = 'end_radius',
-                y = 'idxmax_intersections',
+                x = 'enclosing_radius',
+                y = 'critical_radius',
                 hue = 'Region', 
                 palette = region_colors,
                 ax = ax_cv_er_com)
@@ -362,8 +371,8 @@ sbn.scatterplot(data = all_sholl_metrics,
 
 for cell_ID in all_sholl_metrics.index:
 
-    ax_cv_er_com.text(x = all_sholl_metrics.at[cell_ID, 'end_radius'],
-                      y = all_sholl_metrics.at[cell_ID, 'idxmax_intersections']-2,
+    ax_cv_er_com.text(x = all_sholl_metrics.at[cell_ID, 'enclosing_radius'],
+                      y = all_sholl_metrics.at[cell_ID, 'critical_radius']-2,
                       s = cell_ID,
                       ha = 'center',
                       va = 'top',
@@ -419,8 +428,8 @@ for i_region, region in enumerate(regions):
     # colorbar
     fig_cr_er_cc.colorbar(cmap, ax = ax_cv_er_cc, label = 'Max. number of intersections')
     
-    ax_cv_er_cc.scatter(x = region_sholl_metrics['end_radius'],
-                        y = region_sholl_metrics['idxmax_intersections'],
+    ax_cv_er_cc.scatter(x = region_sholl_metrics['enclosing_radius'],
+                        y = region_sholl_metrics['critical_radius'],
                         color = cmap.to_rgba(region_sholl_metrics['max_intersections']),
                         edgecolor = colors_dict['primecolor'],
                         lw = 0.5,
@@ -429,8 +438,8 @@ for i_region, region in enumerate(regions):
     
     for cell_ID in region_sholl_metrics.index:
     
-        ax_cv_er_cc.text(x = region_sholl_metrics.at[cell_ID, 'end_radius'],
-                          y = region_sholl_metrics.at[cell_ID, 'idxmax_intersections']-2,
+        ax_cv_er_cc.text(x = region_sholl_metrics.at[cell_ID, 'enclosing_radius'],
+                          y = region_sholl_metrics.at[cell_ID, 'critical_radius']-2,
                           s = cell_ID,
                           ha = 'center',
                           va = 'top',
@@ -548,8 +557,8 @@ for i_region, region in enumerate(regions):
     region_combined_properties = combined_properties[combined_properties['Region'] == region]
    
     # scatterplot
-    ax.scatter(x = region_combined_properties['end_radius'],
-                        y = region_combined_properties['idxmax_intersections'],
+    ax.scatter(x = region_combined_properties['enclosing_radius'],
+                        y = region_combined_properties['critical_radius'],
                         color = cmap.to_rgba(region_combined_properties[ePhys_parameter]),
                         edgecolor = colors_dict['primecolor'],
                         lw = 0.5,
@@ -557,8 +566,8 @@ for i_region, region in enumerate(regions):
     
     
     for cell_ID in region_combined_properties.index:
-        ax.text(x = region_combined_properties.at[cell_ID, 'end_radius'],
-                y = region_combined_properties.at[cell_ID, 'idxmax_intersections']-2,
+        ax.text(x = region_combined_properties.at[cell_ID, 'enclosing_radius'],
+                y = region_combined_properties.at[cell_ID, 'critical_radius']-2,
                 s = cell_ID,
                 ha = 'center',
                 va = 'top',

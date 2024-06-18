@@ -139,11 +139,23 @@ ax_keys = ['A', 'B', 'C', 'D']
 
 fig_regions, axs_regions = plt.subplot_mosaic('AD;BD;CD', 
                                               layout = 'constrained',
-                                              figsize = get_figure_size(),
-                                              width_ratios = [1, 1],
+                                              figsize = get_figure_size(width = 277.25, height= 120),
+                                              width_ratios = [2, 1],
                                               height_ratios = cells_of_region_perc)
 
-set_font_sizes()
+# set_font_sizes()
+
+small_font_size = 12
+
+plt.rc('font', size = small_font_size)
+plt.rc('axes', titlesize = small_font_size, 
+               labelsize = small_font_size,
+               linewidth = 0.5)
+plt.rc('xtick', labelsize = small_font_size)
+plt.rc('ytick', labelsize = small_font_size)
+plt.rc('lines', linewidth = 1)
+
+
 
 # eventplot
 
@@ -175,7 +187,7 @@ for idx_region, region in enumerate(regions):
                                                    color = region_colors[MetaData.at[cell_ID, 'Region']])
     
     # set title
-    axs_regions[ax_keys[idx_region]].set_title(region)
+    axs_regions[ax_keys[idx_region]].set_title(region, fontsize = 18)
     
     # set shared x axis
     axs_regions[ax_keys[idx_region]].set_xlim([0, 30])
@@ -192,7 +204,7 @@ for idx_region, region in enumerate(regions):
                                                 labels = labels)
     axs_regions[ax_keys[idx_region]].set_yticks(ticks = np.arange(0, n_cells_region, 1), 
                                                 minor = True)
-    axs_regions[ax_keys[idx_region]].set_ylabel('Cells [#]')
+    axs_regions[ax_keys[idx_region]].set_ylabel('Cells\n[#]')
 
 
 # set eventplots x axes
@@ -208,6 +220,7 @@ axs_regions['C'].set_xlabel('Time [s]')
 violins = sbn.violinplot(data = activity_df, 
                          x = "activity", 
                          y = "v_rest",
+                         bw = 0.35,
                          inner = 'quart',
                          hue = 'Region',
                          palette = ['k', 'k', 'k'],
@@ -219,7 +232,7 @@ swarms = sbn.swarmplot(data = activity_df,
                        y = "v_rest",
                        hue = 'Region',
                        palette = region_colors,
-                       size = 6, 
+                       size = 4, 
                        ax = axs_regions['D'], 
                        color = colors_dict['primecolor'],
                        dodge = True)
@@ -245,6 +258,8 @@ axs_regions['D'].spines['bottom'].set_bounds([0, 1])
 
 # set grid as False for all subplots
 [axs_regions[ax].grid(False) for ax in axs_regions]
+
+fig_regions.align_labels()
 
 plt.show()
 
