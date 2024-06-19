@@ -205,7 +205,7 @@ fig_regions, axs_regions = plt.subplot_mosaic('AD;BD;CD',
                                               width_ratios = [2.5, 1],
                                               dpi = 600)
 
-set_font_sizes(small_font_size=12)
+# set_font_sizes(small_font_size=12)
 
 # sfreq vs rfreq
 
@@ -262,7 +262,7 @@ for i in ['A', 'B']:
     
 axs_regions['C'].set_xlabel('Stimulated frequency [Hz]')  
 
-fig_regions.supylabel('Resulting frequency [Hz]')
+fig_regions.supylabel('Resulting frequency [Hz]', fontsize = 12)
     
 # max frequency
 violins = sbn.violinplot(data = max_resul_freq_n_metadata_df,
@@ -299,7 +299,7 @@ axs_regions['D'].set_yticks(np.arange(0, 75+1, 5), minor = True)
 axs_regions['D'].set_xticklabels(['BAOT/\nMeA', 'MeA', 'BAOT'])
 
 axs_regions['D'].set_xlabel('')
-fig_regions.align_labels() 
+
 
 # limit spines
 axs_regions['D'].spines['left'].set_bounds([0, 75])
@@ -311,6 +311,20 @@ axs_regions['D'].spines['bottom'].set_bounds([0, 2])
 [axs_regions[ax_keys].grid(False) for ax_keys in axs_regions]
 
 axs_regions['D'].get_legend().remove()
+
+# set font sizes
+small_font_size = 12
+
+plt.rc('font', size = small_font_size)
+plt.rc('axes', titlesize = small_font_size, 
+               labelsize = small_font_size,
+               linewidth = 1)
+plt.rc('xtick', labelsize = small_font_size)
+plt.rc('ytick', labelsize = small_font_size)
+plt.rc('lines', linewidth = 1)
+
+fig_regions.align_labels() 
+
 
 plt.show()
 

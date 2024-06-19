@@ -57,7 +57,7 @@ activity_df = activity_df.loc[passiv_properties_df.index.to_list(), :]
 sag_df = sag_df.loc[passiv_properties_df.index.to_list(), :]
 # celldescriptors_df = pd.concat([celldescriptors_df, MetaData[['Region', 'Hemisphere', 'Sex', 'Stage', 'reconstructed']]], axis = 1)
 
-
+fstAP_df['t_peaks'] = fstAP_df['t_peaks'] - 250 #ms (start of step)
 
 # concatenate all dataframes
 plt_df = pd.concat([active_properties_df, 
@@ -70,6 +70,8 @@ plt_df = pd.concat([active_properties_df,
 
 # params_toplot = ['r_input', 'tau_mem', 'c_mem',
 #                  'rheobase_rel']
+
+# params_toplot['']
 
 params_toplot = {'1':'r_input', 
                  '2' : 'tau_mem', 
@@ -112,17 +114,6 @@ fig_cats, axs_cats = plt.subplots(nrows = 5,
                                   figsize = get_figure_size(width=277.25, height = 315.165),
                                   layout = 'constrained',
                                   sharex = True)
-
-# set font sizes
-small_font_size = 12
-
-plt.rc('font', size = small_font_size)
-plt.rc('axes', titlesize = small_font_size, 
-               labelsize = small_font_size,
-               linewidth = 0.5)
-plt.rc('xtick', labelsize = small_font_size)
-plt.rc('ytick', labelsize = small_font_size)
-plt.rc('lines', linewidth = 1)
 
 
 # flatten numpy array of axis for easier handling
@@ -169,8 +160,8 @@ for key, parameter in params_toplot.items():
         ax.set_ylabel('Input resistance\n' + r'[M$\Omega$]') 
         ax.set_ylim([-20, 1820])
         ax.spines['left'].set_bounds([0, 1800])
-        ax.set_yticks(np.arange(0, 1750+1, 500))
-        ax.set_yticks(np.arange(0, 1750+1, 100), minor = True)  
+        ax.set_yticks(np.arange(0, 1800+1, 500))
+        ax.set_yticks(np.arange(0, 1800+1, 100), minor = True)  
         
     elif parameter == 'tau_mem':
         ax.set_ylabel('Membrane time constant\n[ms]')
@@ -209,17 +200,17 @@ for key, parameter in params_toplot.items():
 
     elif parameter == 'n_rheobasespikes':
         ax.set_ylabel('Number of\nrheobase spikes [#]')
-        ax.set_ylim([0-0.1, 10+0.1])
-        ax.spines['left'].set_bounds([0, 10])
-        ax.set_yticks(np.arange(0,10+1, 5))
-        ax.set_yticks(np.arange(0,10+1, 2), minor = True)
+        ax.set_ylim([0-0.1, 13+0.1])
+        ax.spines['left'].set_bounds([0, 13])
+        ax.set_yticks(np.arange(0,13+1, 5))
+        ax.set_yticks(np.arange(0,13+1, 1), minor = True)
 
     elif parameter == 't_peaks':
         ax.set_ylabel('Time to rheobase spike\n[ms]')
-        ax.set_ylim([0-10, 700+10])
-        ax.spines['left'].set_bounds([0, 700])
-        ax.set_yticks(np.arange(0,700+1, 100))
-        ax.set_yticks(np.arange(0,700+1, 50), minor = True)
+        ax.set_ylim([0-10, 800+10])
+        ax.spines['left'].set_bounds([0, 800])
+        ax.set_yticks(np.arange(0,800+1, 200))
+        ax.set_yticks(np.arange(0,800+1, 50), minor = True)
 
     elif parameter == 'v_threshold':
         ax.set_ylabel('Voltage at threshold\nof rheobase spike [mV]')
@@ -229,7 +220,7 @@ for key, parameter in params_toplot.items():
         ax.set_yticks(np.arange(-80, -35+1, 5), minor = True)
         
     elif parameter == 'v_AHP_amplitude':
-        ax.set_ylabel('Voltage delta to AHP\n[mV]')
+        ax.set_ylabel('Rheobase spike\nthreshold to AHP [mV]')
         ax.set_ylim([-20-4, 20+4])
         ax.spines['left'].set_bounds([-20, 20])
         ax.set_yticks(np.arange(-20, 20+4, 10))
@@ -252,10 +243,10 @@ for key, parameter in params_toplot.items():
         
     elif parameter == 'sag_delta':
         ax.set_ylabel('Sag potential\ndelta [mV]')
-        ax.set_ylim([0-1, 15 +1])
-        ax.spines['left'].set_bounds([0, 15])
-        ax.set_yticks(np.arange(0, 15+1, 5))
-        ax.set_yticks(np.arange(0, 15+1, 2.5), minor = True)     
+        ax.set_ylim([0-1, 17.5 +1])
+        ax.spines['left'].set_bounds([0, 17.5])
+        ax.set_yticks(np.arange(0, 17.5+1, 5))
+        ax.set_yticks(np.arange(0, 17.5+1, 2.5), minor = True)     
         
     elif parameter == 'n_reboundspikes':
         ax.set_ylabel('Number of\nrebound spikes [#]')
@@ -328,6 +319,20 @@ for key, parameter in params_toplot.items():
 [ax.set_xlabel('') for ax in axs_cats]
 [ax.set_xticklabels(['BAOT/\nMeA', 'MeA', 'BAOT'], rotation = 0) for ax in axs_cats[:-4]]
 # [ax.set_xticklabels(['', '', '']) for ax in axs_cats[:-4]]
+
+
+# set font sizes
+small_font_size = 12
+
+plt.rc('font', size = small_font_size)
+plt.rc('axes', titlesize = small_font_size, 
+               labelsize = small_font_size,
+               linewidth = 0.5)
+plt.rc('xtick', labelsize = small_font_size)
+plt.rc('ytick', labelsize = small_font_size)
+plt.rc('lines', linewidth = 1)
+
+
 
 fig_cats.align_labels() 
 

@@ -143,20 +143,6 @@ fig_regions, axs_regions = plt.subplot_mosaic('AD;BD;CD',
                                               width_ratios = [2, 1],
                                               height_ratios = cells_of_region_perc)
 
-# set_font_sizes()
-
-small_font_size = 12
-
-plt.rc('font', size = small_font_size)
-plt.rc('axes', titlesize = small_font_size, 
-               labelsize = small_font_size,
-               linewidth = 0.5)
-plt.rc('xtick', labelsize = small_font_size)
-plt.rc('ytick', labelsize = small_font_size)
-plt.rc('lines', linewidth = 1)
-
-
-
 # eventplot
 
 for idx_region, region in enumerate(regions):
@@ -258,6 +244,18 @@ axs_regions['D'].spines['bottom'].set_bounds([0, 1])
 
 # set grid as False for all subplots
 [axs_regions[ax].grid(False) for ax in axs_regions]
+
+
+small_font_size = 12
+
+plt.rc('font', size = small_font_size)
+plt.rc('axes', titlesize = small_font_size, 
+               labelsize = small_font_size,
+               linewidth = 0.5)
+plt.rc('xtick', labelsize = small_font_size)
+plt.rc('ytick', labelsize = small_font_size)
+plt.rc('lines', linewidth = 1)
+
 
 fig_regions.align_labels()
 
