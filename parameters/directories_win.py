@@ -10,8 +10,8 @@ list of all directories on windows machine
 
 ### ePhys ###
 
-ePhys_parent = 'Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA'
-# ePhys_parent = '/Users/moritznesseler/ePhys-BAOT_MeA'
+# ePhys_parent = 'Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA'
+ePhys_parent = '/Users/moritznesseler/ePhys-BAOT_MeA'
 
 # directory that contains the excel file with indices and meta data
 table_dir = ePhys_parent + '/'

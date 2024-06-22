@@ -105,18 +105,61 @@ def remove_x_ticks_between(axes, n_layers):
     for i in range(1,n_layers):
         axes[i].tick_params(axis = 'y', size = 0)
         
+
+
+
 #saving the figure
-def save_figures(figure, figure_name, save_dir, darkmode_bool):
+def save_figures(figure, figure_name, save_dir, 
+                 darkmode_bool = None, figure_format = 'png', saving_feedback = False):
+    '''
+    Function to save figures.
+    Parameters:
+        figure (obj) : matplotlib figure object
+        figure_name  (str): Name of figure as string. Will be used as filename.
+        save_dir (str): Directory to save figure in. Str
+        darkmode_bool (bool): Boolean to add descriptor in filename that specifies light- or darkmode. 
+        Default is None type.
+        figure_format (str): Choice of how to save figure. Default is png. (png or svg)
+    '''
     
-    import os.path
+    # lazy load join and normpath
+    from os.path import join, normpath
     
+    # add descriptor to figure name if light or darkmode is specified.
     if darkmode_bool == True:
         figure_name += " dark"
-    else:
+    elif darkmode_bool == False:
         figure_name += " light"
-    
-    figure.savefig(os.path.join(save_dir, os.path.normpath(figure_name + ".png")), format = 'png')
-    figure.savefig(os.path.join(save_dir, os.path.normpath(figure_name + ".svg")), format = 'svg')
+        
+        
+    # saving figure in different formats
+    if figure_format == 'png':
+        figure_name = figure_name + ".png"
+        
+        figure.savefig(join(save_dir, normpath(figure_name)), format = 'png')
+        
+        if saving_feedback:
+            print(f'"{figure_name}" saved at {save_dir}.')
+        
+    elif figure_format == 'svg':
+        figure_name = figure_name + ".svg"
+        
+        figure.savefig(join(save_dir, normpath(figure_name)), format = 'svg')
+        
+        if saving_feedback:
+            print(f'"{figure_name}" saved at {save_dir}.')
+            
+    elif figure_format == 'both':
+        figure.savefig(join(save_dir, normpath(figure_name + ".png")), format = 'png')
+        figure.savefig(join(save_dir, normpath(figure_name + ".svg")), format = 'svg')
+     
+        if saving_feedback:
+            print(f'"{figure_name}" saved at {save_dir}.')
+            
+    else:
+        raise Warning(f'"{figure_name}" not saved. Figure format not specified correctly!')
+
+     
     
     
 def set_font_sizes(small_font_size = 14, large_font_size = 16):
@@ -134,6 +177,7 @@ def set_font_sizes(small_font_size = 14, large_font_size = 16):
     plt.rc('xtick', labelsize = small_font_size)
     plt.rc('ytick', labelsize = small_font_size)
     plt.rc('lines', linewidth = 2)
+
 
 
 def return_segments(x, ys):
@@ -155,25 +199,6 @@ def return_segments(x, ys):
 
 
 
-def plot_t_vs_v(t, v, scale = 'ms'):
-
-    v_range = [-100, 60]    
-
-    fig_v, ax_v = plt.subplots(nrows = 1,
-                               ncols = 1,
-                               figsize = get_figure_size(),
-                               layout = 'constrained')
-    
-    ax_v.plot(t, v)
-    
-    ax_v.set_ylim(v_range)
-    ax_v.set_ylabel('Voltage [mV]')
-    
-    ax_v.set_xlabel(f'Time [{scale}]')
-    ax_v.set_xlim([t[0], t[-1]])
-    ax_v.set_xticks(np.linspace(t[0], t[-1], 5))
-    
-    plt.show()
 
     
     

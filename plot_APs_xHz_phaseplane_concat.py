@@ -13,18 +13,18 @@ import os
 import scipy as sc
 
 # custom directories & parameters
-import directories_win as directories
-import parameters
-from PGFs import cc_APs_parameters, cc_th1Ap_parameters
+import parameters.directories_win as directories
+from parameters.parameters import min_peak_prominence_ccIF, min_peak_distance_ccIF
+from parameters.PGFs import cc_APs_parameters, cc_th1Ap_parameters
 
-from functions_ccIF import get_IF_data
-from functions_useful import calc_time_series, butter_filter, calc_dvdt
-from functions_plotting import get_colors, save_figures, get_figure_size, set_font_sizes
-from functions_spiketrains import get_colorcode
+from functions.functions_ccIF import get_IF_data
+from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt
+from functions.functions_plotting import get_colors, save_figures, get_figure_size, set_font_sizes
+from functions.functions_spiketrains import get_colorcode
 
 # %%
 
-lookup_table = pd.read_excel(directories.table_dir + 'InVitro_Database.xlsx',
+lookup_table = pd.read_excel(directories.table_file,
                              sheet_name="PGFs",
                              index_col='cell_ID')
 
@@ -83,8 +83,8 @@ vf = butter_filter(v_concat,
 # %% find peaks
 
 idx_peaks, dict_peak = sc.signal.find_peaks(vf, 
-                                            prominence = parameters.min_peak_prominence, 
-                                            distance = parameters.min_peak_distance * (SR_ms))
+                                            prominence = min_peak_prominence_ccIF, 
+                                            distance = min_peak_distance_ccIF * (SR_ms))
 
 
 
@@ -165,7 +165,7 @@ dvdt = dvdt[200:]
 
 darkmode_bool = True
 
-color_dict = get_colors(darkmode_bool)
+color_dict, _ = get_colors(darkmode_bool)
 
 cmap = 'viridis_r'
 
@@ -181,6 +181,18 @@ cc_phaseplane, cc_ppaxs = plt.subplots(2,2,
 cc_phaseplane.delaxes(cc_ppaxs[0][1])
 
 set_font_sizes()
+
+
+
+# function to colorcode time of timeseries
+
+
+
+
+
+
+
+
 
 # norm = mtl.colors.Normalize(0, data_fc.max())
 norm = mtl.colors.Normalize(0, total_dur)

@@ -195,6 +195,9 @@ def calc_rsquared_from_exp_fit(x_data, y_data, popt):
     return r_squared
 
 
+# define function of liner fit
+def linear_func(x, a, b):
+    return a * x + b
 
 
     

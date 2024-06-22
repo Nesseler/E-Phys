@@ -23,7 +23,7 @@ from functions.functions_constructors import construct_current_array
 from functions.functions_ccIF import get_IF_data
 from functions.functions_import import get_traceIndex_n_file
 from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt, calc_dvdt_padded, round_to_base, exp_func, calc_rsquared_from_exp_fit
-from functions.functions_plotting import get_colors, get_figure_size, save_figures, plot_t_vs_v, set_font_sizes
+from functions.functions_plotting import get_colors, get_figure_size, save_figures, set_font_sizes
 from functions.functions_extractspike import get_AP_parameters
 
 from analysis.analyze_ccsag_for_rinput_taumem import get_rinput_n_taumem_from_cc_sag
@@ -63,7 +63,9 @@ step_idx_df = pd.DataFrame(columns=['rheobase_step_idx', 'maxfreq_step_idx', 'ma
 cells_todrop = []
 
 # test cell 
-cell_IDs = ['E-122']
+# cell_IDs = ['E-185']
+
+cell_IDs.reverse()
 
 # cell_IDs = ['E-082', 'E-137', 'E-138', 'E-140']
 
@@ -187,17 +189,15 @@ for cell_ID in cell_IDs:
             if n_spikes >= n_APs_initial_inst_freq:
                 # get only first three ISIs
                 ISIs_subset = ISIs[:3]
-            else:
-                ISIs_subset = ISIs
                 
-            # calculate average ISI
-            mean_ISI_subset = np.mean(ISIs_subset)
+                # calculate average ISI
+                mean_ISI_subset = np.mean(ISIs_subset)
             
-            # calculate the instantaneous firing frequency as inverse of the firing frequency
-            initial_inst_freq = (1 / mean_ISI_subset ) * 1e3
+                # calculate the instantaneous firing frequency as inverse of the firing frequency
+                initial_inst_freq = (1 / mean_ISI_subset ) * 1e3
             
-            # write to dataframe
-            IF_inst_initial_df.at[i_input_step, cell_ID] = initial_inst_freq
+                # write to dataframe
+                IF_inst_initial_df.at[i_input_step, cell_ID] = initial_inst_freq
             
     ### rheobase ###
     # get first index in number of spikes where there more than 0 spikes
@@ -246,7 +246,8 @@ for cell_ID in cell_IDs:
         plt.grid(False)
         plt.show()
         vplots_path_rheobase = os.path.join(vplot_dir, 'cc_IF', 'rheobase')
-        save_figures(fig_rheobase, f'{cell_ID}-{PGF}-rheobase_step', vplots_path_rheobase, darkmode_bool)
+        save_figures(fig_rheobase, f'{cell_ID}-{PGF}-rheobase_step', vplots_path_rheobase, darkmode_bool,
+                     figure_format = 'png')
         
     
     # get AP parameters of first spike
@@ -371,23 +372,45 @@ for cell_ID in cell_IDs:
         plt.show()
     
         vplots_path_rheobase_fstAP = os.path.join(vplot_dir, 'cc_IF', 'rheobase_1stAP')
-        save_figures(fig_rheo_2, f'{cell_ID}-{PGF}-rheobase_1stAP', vplots_path_rheobase_fstAP, darkmode_bool)
+        save_figures(fig_rheo_2, f'{cell_ID}-{PGF}-rheobase_1stAP', vplots_path_rheobase_fstAP, darkmode_bool,
+                     figure_format = 'png')
 
     # %% max freq steps
     
+    # beware of the difference between the index in the dataframe and the 
+    # step index
+    
     # get step indices of max firing frequencies
+    
+    # max frequency (number of APs)
+    # get max freq    
     maxfreq = IF_df[cell_ID].max()
+    # get index of max freq in df & step index
     maxfreq_step_idx = np.nanargmax(IF_df[cell_ID].dropna().to_numpy())
+    # get input current for max freq
     maxfreq_iinput = IF_df.index.to_list()[np.nanargmax(IF_df[cell_ID].to_numpy())]
     
+    # max inst. frequency
+    # get max freq
     maxinstfreq = IF_inst_df[cell_ID].max()
-    maxinstfreq_step_idx = np.nanargmax(IF_inst_df[cell_ID].dropna().to_numpy())
-    maxinstfreq_iinput = IF_inst_df.index.to_list()[np.nanargmax(IF_inst_df[cell_ID].to_numpy())]
+    # get index of max freq in df
+    maxinstfreq_df_idx = np.nanargmax(IF_inst_df[cell_ID].dropna().to_numpy())
+    # get input current for max freq
+    maxinstfreq_iinput = IF_inst_df.index.to_list()[np.nanargmax(IF_inst_df[cell_ID].to_numpy())]    
+    # get step index
+    maxinstfreq_step_idx = IF_df[cell_ID].dropna().index.to_list().index(maxinstfreq_iinput)
+     
+    # max inst. inital frequency
+    # get max freq
+    maxinstinitialfreq = IF_inst_initial_df[cell_ID].max()
+    # get index of max freq in df
+    maxinstinitialfreq_df_idx = np.nanargmax(IF_inst_initial_df[cell_ID].dropna().to_numpy())
+    # get input current for max freq
+    maxinstinitialfreq_iinput = IF_inst_initial_df.index.to_list()[np.nanargmax(IF_inst_initial_df[cell_ID].to_numpy())]    
+    # get step index
+    maxinstinitialfreq_step_idx = IF_df[cell_ID].dropna().index.to_list().index(maxinstinitialfreq_iinput)
     
-    maxinstinitialfreq = IF_inst_initial_df[cell_ID].max()    
-    maxinstinitialfreq_step_idx = np.nanargmax(IF_inst_initial_df[cell_ID].dropna().to_numpy())
-    maxinstinitialfreq_iinput = IF_inst_initial_df.index.to_list()[np.nanargmax(IF_inst_initial_df[cell_ID].to_numpy())]
-    
+    # write to dataframe
     step_idx_df.at[cell_ID, 'maxfreq_step_idx'] = maxfreq_step_idx
     step_idx_df.at[cell_ID, 'maxinstfreq_step_idx'] = maxinstfreq_step_idx
     step_idx_df.at[cell_ID, 'maxinstinitialfreq_step_idx'] = maxinstinitialfreq_step_idx
@@ -470,7 +493,8 @@ for cell_ID in cell_IDs:
         axs_max[-1][1].set_yticks(np.arange(-150, 250 + 1, 50), minor = True)
 
         vplots_path_maxfreq = os.path.join(vplot_dir, 'cc_IF', 'max_freq')
-        save_figures(fig_max, f'{cell_ID}-{PGF}-max_freq', vplots_path_maxfreq, darkmode_bool)
+        save_figures(fig_max, f'{cell_ID}-{PGF}-max_freq', vplots_path_maxfreq, darkmode_bool,
+                     figure_format = 'png')
         
     
     # %%
@@ -683,7 +707,8 @@ for cell_ID in cell_IDs:
         # save figure
         vplots_path_passive_properties = os.path.join(vplot_dir, 'cc_IF', 'passive_properties')
         
-        save_figures(fig_expfit, f'{cell_ID}-ccIF-expon_fit', vplots_path_passive_properties, darkmode_bool)
+        save_figures(fig_expfit, f'{cell_ID}-ccIF-expon_fit', vplots_path_passive_properties, darkmode_bool,
+                     figure_format = 'png')
         
     
     ### break out if fitting to first steps of IF is not successful ###
@@ -735,7 +760,7 @@ active_properties_df['max_inst_initial_freq'] = IF_inst_initial_df.max(axis = 0)
 
 # %% save measurements to excel file
 
-if False:
+if True:
 
     passiv_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-passiv_properties.xlsx'), index_label = 'cell_ID')    
     active_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-active_properties.xlsx'), index_label = 'cell_ID')   

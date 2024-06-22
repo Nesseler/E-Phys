@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['parameters\\directories_win.py', 'analysis\\analyze_ccsag.py', 'analysis\\analyze_ccIF.py', 'analysis\\analyze_ccIF_adaptation.py', 'plot\\plot_ccIF.py', 'plot\\plot_onePGF_onecell.py', 'loadingroutinetest.py', 'functions\\functions_useful.py', 'parameters\\parameters.py', 'functions\\functions_plotting.py', 'plot\\plot_ccrest_activity_n_vrest.py', 'plot_poster_cats.py', 'plot\\plot_ccIF_rheobase_cat.py', 'cell_descriptors_matrix.py', 'plot\\plot_ccIF_maxfreq_cat.py', 'plot\\plot_ccIF_cat.py', 'plot\\plot_ccsag_cat.py', 'plot\\plot_ccAPs_rfreq_v_sfreq.py', 'plot\\plot_ccIF_6cells_traces_colorcoded.py', 'cellmorphology\\plot_sholl.py']
+recent_files = ['loadingroutinetest.py', 'plot_poster_cats.py', 'cell_descriptors_matrix.py', 'cellmorphology/plot_polar.py']
 
 [main]
 version = 0.2.0
