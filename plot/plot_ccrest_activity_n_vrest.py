@@ -261,6 +261,10 @@ fig_regions.align_labels()
 
 plt.show()
 
-save_figures(fig_regions, 'Resting_n_eventplot_nspikes+Regions', figure_dir, darkmode_bool)
+save_figures(fig_regions, 'Resting_n_eventplot_nspikes+Regions', figure_dir, darkmode_bool,
+             figure_format= 'both',
+             dataframe_to_save = activity_df, index_label = 'cell_ID', add_measures = True, axis_for_calcs = 0,
+             groups_bool= True, groups= ['BAOT/MeA', 'MeA', 'BAOT'], groups_name= 'Region')
+
 
 

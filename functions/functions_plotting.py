@@ -107,10 +107,31 @@ def remove_x_ticks_between(axes, n_layers):
         
 
 
+def add_measures_to_dataframe(dataframe_to_save, axis_for_calcs):
+    '''
+    Function to add parameters to the end of a DataFrame.
+    Parameters:
+        dataframe_to_save (Pandas DataFrame): DataFrame that includes all data plotted in the figure.
+        axis_for_calcs (int): Axis along calculations in dataframe are made. Default is 0.
+    Returns:
+        dataframe_to_save (Pandas DataFrame): Modified DataFrame with included measurements.
+    '''
+    dataframe_to_save.loc['mean'] = dataframe_to_save.mean(axis = axis_for_calcs, numeric_only = True)
+    dataframe_to_save.loc['median'] = dataframe_to_save.median(axis = axis_for_calcs, numeric_only = True)
+    dataframe_to_save.loc['std'] = dataframe_to_save.std(axis = axis_for_calcs, numeric_only = True)
+    dataframe_to_save.loc['quantile_0p25'] = dataframe_to_save.quantile(q = 0.25, axis = axis_for_calcs, numeric_only = True)
+    dataframe_to_save.loc['quantile_0p50'] = dataframe_to_save.quantile(q = 0.50, axis = axis_for_calcs, numeric_only = True)
+    dataframe_to_save.loc['quantile_0p75'] = dataframe_to_save.quantile(q = 0.75, axis = axis_for_calcs, numeric_only = True)
+
+    return dataframe_to_save
+
+
 
 #saving the figure
 def save_figures(figure, figure_name, save_dir, 
-                 darkmode_bool = None, figure_format = 'png', saving_feedback = False):
+                 darkmode_bool = None, figure_format = 'png', saving_feedback = False,
+                 dataframe_to_save = None, index_label = 'cell_ID', add_measures = True, axis_for_calcs = 0,
+                 groups_bool = False, groups = ['BAOT/MeA', 'MeA', 'BAOT'], groups_name = 'Region'):
     '''
     Function to save figures.
     Parameters:
@@ -120,6 +141,14 @@ def save_figures(figure, figure_name, save_dir,
         darkmode_bool (bool): Boolean to add descriptor in filename that specifies light- or darkmode. 
         Default is None type.
         figure_format (str): Choice of how to save figure. Default is png. (png or svg)
+        dataframe_to_save (Pandas DataFrame): DataFrame that includes all data plotted in the figure. Default is None type.
+        index_label (str): Label for index column in dataframe.
+        add_measures (bool): Boolean to add or omit creation of the dataframe measurements. Default is True.
+        axis_for_calcs (int): Axis along calculations in dataframe are made. Default is 0.
+        groups_bool (bool): Boolean to save and calculate the DataFrame by different groups. Default is False.
+        groups (list (of strings)): List of keys that can be provided to divided the dataframe into groups. Default is list of regions.
+        groups_name (str): String of column label that should be used for division of dataframe into groups. Dafault is 'Region' key.
+        
     '''
     
     # lazy load join and normpath
@@ -158,6 +187,49 @@ def save_figures(figure, figure_name, save_dir,
             
     else:
         raise Warning(f'"{figure_name}" not saved. Figure format not specified correctly!')
+        
+        
+
+    if dataframe_to_save is not None:
+        # check for strings in groups list that are not compatible with paths
+        for i, group in enumerate(groups):
+            if '/' in group:
+                groups[i] = groups[i].replace('/', '_')
+    
+        # start saving the dataframe
+        if not groups_bool:
+            if add_measures:
+                # add mean, median, stdev, quartiles
+                export_dataframe = add_measures_to_dataframe(dataframe_to_save, axis_for_calcs)
+            elif not add_measures:
+                export_dataframe = dataframe_to_save
+            
+            # save dataframe
+            export_dataframe.to_excel(join(save_dir, figure_name + '.xlsx'), index_label = index_label)  
+            
+            if saving_feedback:
+                print(f'"{figure_name}" dataframe saved at {save_dir}.')
+            
+        elif groups_bool:  
+            # loop through groups
+            for group in groups:
+                # limit dataframe
+                group_df = dataframe_to_save[dataframe_to_save[groups_name] == group]
+                    
+                if add_measures:
+                    # add mean, median, stdev, quartiles
+                    export_dataframe = add_measures_to_dataframe(group_df, axis_for_calcs)
+                elif not add_measures:
+                    export_dataframe = dataframe_to_save
+                
+                # save dataframe per group
+                export_dataframe.to_excel(join(save_dir, figure_name + f'-{group}.xlsx'), index_label = index_label)    
+
+                if saving_feedback:
+                    print(f'"{figure_name}-{group}" dataframe saved at {save_dir}.')
+            
+    
+    
 
      
     

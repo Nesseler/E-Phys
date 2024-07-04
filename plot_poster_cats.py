@@ -345,6 +345,15 @@ fig_cats.delaxes(axs_cats[16])
 
 plt.show()
 
-save_figures(fig_cats, 'Poster_all_cats', figure_dir, darkmode_bool)
+save_figures(fig_cats, 'Poster_all_cats', figure_dir, darkmode_bool,
+             figure_format= 'both',
+             dataframe_to_save = plt_df, index_label = 'cell_ID', add_measures = True, axis_for_calcs = 0,
+             groups_bool= True, groups= ['BAOT/MeA', 'MeA', 'BAOT'], groups_name= 'Region')
+
+
+
+
+
+
 
 

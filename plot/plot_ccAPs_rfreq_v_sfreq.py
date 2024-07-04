@@ -43,7 +43,7 @@ MetaData = pd.read_excel(table_file,
 
 MetaData = MetaData.loc[cell_IDs, :]
 
-max_resul_freq_n_metadata_df = pd.concat([max_resul_freq_df, MetaData], axis = 1)
+max_resul_freq_n_metadata_df = pd.concat([max_resul_freq_df, MetaData['Region']], axis = 1)
 
 # %% plotting
 
@@ -328,12 +328,13 @@ fig_regions.align_labels()
 
 plt.show()
 
-save_figures(fig_regions, 'rfreq_v_sfreq+sep_regions', figure_dir, darkmode_bool)
+save_figures(fig_regions, 'rfreq_v_sfreq+sep_regions', figure_dir, darkmode_bool,
+             figure_format= 'both',
+             dataframe_to_save = max_resul_freq_n_metadata_df, index_label = 'cell_ID', add_measures = True, axis_for_calcs = 0,
+             groups_bool= True, groups= ['BAOT/MeA', 'MeA', 'BAOT'], groups_name= 'Region')
 
 
-
-
-
+resul_freq_df.to_excel(os.path.join(figure_dir, 'rfreq_v_sfreq.xlsx'), index_label = 'cell_ID')  
 
 
 
