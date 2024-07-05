@@ -43,7 +43,7 @@ polar_plot_dendrites_occurrances = pd.DataFrame(columns = cell_IDs)
 polar_plot_axons_occurrances = pd.DataFrame(columns = cell_IDs)
 
 # test 
-# onlyfiles = onlyfiles[8]
+onlyfiles = onlyfiles[:4]
 
 # %%
 
@@ -847,6 +847,144 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
         neurite_polar_plots_dir = join(cell_morph_plots_dir, 'polar_plots',  'absolute_polar_plots_cc_dendrite_axon')
         save_figures(fig_hist_neurites, f'{cell_ID}-absolute_polar_plot-terminal_branch_orientation-colorcoded_path_type', neurite_polar_plots_dir, darkmode_bool)   
         
+        
+        # %% combined figure for one cell
+        
+        fig_all, ax_all = plt.subplots(nrows = 2,
+                                       ncols = 2,
+                                       layout = 'constrained',
+                                       height_ratios = [1, 1],
+                                       width_ratios = [1,1],
+                                       figsize = get_figure_size(width = 185.5))
+        
+        # set figure title
+        fig_all.suptitle(cell_ID)
+        
+        # define function to change projection type of subplot specific subplot
+        def change_projection(fig, axs, ax_tochange, projection = 'polar'):
+        
+            rows, cols, start, stop = ax_tochange.get_subplotspec().get_geometry()
+        
+            axs.flat[start].remove()
+            axs.flat[start] = fig.add_subplot(rows, cols, start+1, projection=projection)
+        
+        # change projection of subplots
+        # change_projection(fig_all, ax_all, ax_all.flat[0], '3d')
+        [change_projection(fig_all, ax_all, ax, 'polar') for ax in ax_all.flat[1:]]
+        
+        
+        ### subplot 1: XY coordinates ###
+        
+        # loop through path
+        for path_ID in path_IDs:
+            
+            # get all coordinates
+            path_all_coordinates = all_coordinates[all_coordinates['path_ID'] == path_ID]
+            path_end_coordinates = end_coordinates[end_coordinates['path_ID'] == path_ID]           
+        
+            # get label of current path
+            cur_path_label = path_all_coordinates['path_label'].iloc[0]
+            
+            # set colors for paths
+            path_color_dict = {'dendrite' : {'path_color' : colors_dict['primecolor'], 'end_color' : 'r'},
+                               'axon' :     {'path_color' : 'gray', 'end_color' : 'lightcoral'},
+                               'soma' :     {'path_color' : colors_dict['color2'], 'end_color' : colors_dict['color2']}}
+        
+            path_color = path_color_dict[cur_path_label]['path_color']
+            end_color = path_color_dict[cur_path_label]['end_color']
+        
+    
+            
+            ax_all.flat[0].scatter(path_all_coordinates['X'], path_all_coordinates['Y'],
+                                   s = 0.5, c = path_color, label = 'cell')
+                
+            ax_all.flat[0].scatter(path_end_coordinates['X'], path_end_coordinates['Y'], 
+                                    s = 0.75, c = end_color, label = 'end points')
+            
+        ax_all.flat[0].scatter(soma_coordinates['X'], soma_coordinates['Y'], s = 10, color = colors_dict['color2'], label = 'soma')
+        ax_all.flat[0].text(x = 10, y = 10, s = 'XY', ha = 'left', va = 'top')
+        ax_all.flat[0].set_xlim([0, 590.76])
+        ax_all.flat[0].set_ylim([590.76, 0])
+        
+        ax_all.flat[0].set_xticks(np.arange(0, 590, 200))
+        ax_all.flat[0].set_yticks(np.arange(0, 590, 200))
+
+        
+        ### all polar plot ### 
+        ### color code for length of branches ###
+        # initialise color code
+        norm_min = 0
+        norm_max = 1000
+        cmap_str = 'plasma'
+        norm = mtl.colors.Normalize(norm_min, norm_max)
+        cmap = mtl.cm.ScalarMappable(norm=norm, cmap=cmap_str)
+        
+        # colorbar
+        fig_all.colorbar(cmap, ax = ax_all.flat[1], label = 'Terminal branch length [µm]')
+        
+        
+        def plot_colorcoded_polar(polar_occurances_df, ax):
+        
+            # define array with number of previouse numbers of branches in bin
+            bottom = [0] * resul_n_bins
+            
+            # skip (drop) path 1, i.e. soma
+            if 1 in polar_occurances_df.index.to_list():
+                branch_idc = polar_occurances_df.drop(index = 1).index.to_list()
+            else:
+                branch_idc = polar_occurances_df.index.to_list()
+            
+            # loop through all branches to assign specific color for length            
+            for branch_idx in branch_idc:
+            
+                # get angles of branches
+                branch_length = polar_occurances_df.at[branch_idx, "length"]
+                branch_bin = polar_occurances_df.at[branch_idx, "bin_id"].astype(int)
+                
+                # create empty bins and assign branch to bin
+                hist_angles_occu = [0] * resul_n_bins
+                hist_angles_occu[branch_bin] = 1
+                
+                # plot histogram as barplot
+                ax.bar(bins_angles, hist_angles_occu, bottom = bottom,
+                       width = resul_binsize, 
+                       align = 'edge',
+                       edgecolor = 'none',
+                       color = cmap.to_rgba(branch_length))
+                    
+                # add to bottom list for next step
+                bottom = np.add(bottom, hist_angles_occu)
+        
+        
+        # plot all
+        plot_colorcoded_polar(terminal_branches_df, ax_all.flat[1])
+        
+        # plot dendrites
+        plot_colorcoded_polar(terminal_branches_df[terminal_branches_df['path_label'] == 'dendrite'], ax_all.flat[2])        
+        
+        # plot dendrites
+        plot_colorcoded_polar(terminal_branches_df[terminal_branches_df['path_label'] == 'axon'], ax_all.flat[3])           
+        
+        # axis for polar plots
+        
+        for ax in ax_all.flat[1:]:
+            
+            # x axis
+            ax.set_xticks(np.arange(0, np.pi*2, np.pi / 4))
+            ax.set_xticklabels(['p', 'pd', 'd', 'ad', 'a', 'av', 'v', 'pv'])
+            
+            # y axis          
+            ax.set_yticks(ticks = np.arange(0, 15 + 1, 5))
+            # ax.set_yticks(np.arange(0, round_to_base(max(bottom)+1, 5)+1, 1), minor = True)
+            
+            ax.grid(True, alpha = 0.5)
+            
+        
+        plt.show()
+        
+        
+        
+        
         # %% 
         
         # write histogram to dataframe
@@ -863,16 +1001,18 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
  
 # %% save dataframe
 
-# reset index with orientation angle of bins in rad
-polar_plot_occurrances.index = bins_angles
-polar_plot_occurrances.to_excel(join(cell_morph_descrip_dir, 'polar_plot_occurrances.xlsx'), index_label = 'orientation_rad')
-# just dendrites
-polar_plot_dendrites_occurrances.index = bins_angles
-polar_plot_dendrites_occurrances.to_excel(join(cell_morph_descrip_dir, 'polar_plot_dendrites_occurrances.xlsx'), index_label = 'orientation_rad')
-# just axons
-polar_plot_axons_occurrances.index = bins_angles
-polar_plot_axons_occurrances.to_excel(join(cell_morph_descrip_dir, 'polar_plot_axons_occurrances.xlsx'), index_label = 'orientation_rad')
+if False:
 
+    # reset index with orientation angle of bins in rad
+    polar_plot_occurrances.index = bins_angles
+    polar_plot_occurrances.to_excel(join(cell_morph_descrip_dir, 'polar_plot_occurrances.xlsx'), index_label = 'orientation_rad')
+    # just dendrites
+    polar_plot_dendrites_occurrances.index = bins_angles
+    polar_plot_dendrites_occurrances.to_excel(join(cell_morph_descrip_dir, 'polar_plot_dendrites_occurrances.xlsx'), index_label = 'orientation_rad')
+    # just axons
+    polar_plot_axons_occurrances.index = bins_angles
+    polar_plot_axons_occurrances.to_excel(join(cell_morph_descrip_dir, 'polar_plot_axons_occurrances.xlsx'), index_label = 'orientation_rad')
+    
 
 print('Finished!')
 
