@@ -33,6 +33,10 @@ onlyfiles_endcoor = [f for f in onlyfiles if 'last_coordinates' in f]
 
 vplots_bool = True
 
+# get colors
+darkmode_bool = False
+colors_dict, region_colors = get_colors(darkmode_bool)
+
 cell_IDs = []
 
 
@@ -43,7 +47,7 @@ polar_plot_dendrites_occurrances = pd.DataFrame(columns = cell_IDs)
 polar_plot_axons_occurrances = pd.DataFrame(columns = cell_IDs)
 
 # test 
-onlyfiles = onlyfiles[:4]
+# onlyfiles = onlyfiles[:4]
 
 # %%
 
@@ -76,9 +80,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
         # get soma coordinates
         soma_coordinates = end_coordinates[end_coordinates['path_ID'] == 1]
             
-        # get colors
-        darkmode_bool = True
-        colors_dict, region_colors = get_colors(darkmode_bool)
+
         
         
         # plot cell with all branches and end points marked
@@ -94,7 +96,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
                                                   width_ratios= [1, ratio],
                                                   sharey = 'row',
                                                   sharex = 'col',
-                                                  figsize = get_figure_size(width = 165.5))
+                                                  figsize = get_figure_size(width = 77.1, height = 77.1))
             set_font_sizes()
             plt.subplots_adjust(wspace=0, hspace=0)
             axs_cell = axs_cell.flatten()
@@ -118,34 +120,45 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
                     path_color = colors_dict['color2']
                     end_color = colors_dict['color2']
             
-                axs_cell[0].scatter(path_all_coordinates['X'], path_all_coordinates['Y'], s = 0.5, c = path_color, label = 'cell')
-                axs_cell[0].scatter(path_end_coordinates['X'], path_end_coordinates['Y'], s = 0.75, c = end_color, label = 'end points')
+                p_size = 0.01
+                P_end_size = 0.2
+                marker = '.'
+                lw = 1.25
+            
+                axs_cell[0].plot(path_all_coordinates['X'], path_all_coordinates['Y'], 
+                                    lw = lw, c = path_color, label = 'cell')
+                axs_cell[0].scatter(path_end_coordinates['X'], path_end_coordinates['Y'], 
+                                    s = P_end_size, c = end_color, label = 'end points')
                 
                 # ZY
-                axs_cell[1].scatter(path_all_coordinates['Z'], path_all_coordinates['Y'], s = 0.5, color = path_color)
-                axs_cell[1].scatter(path_end_coordinates['Z'], path_end_coordinates['Y'], s = 0.75, color = end_color)
+                axs_cell[1].plot(path_all_coordinates['Z'], path_all_coordinates['Y'], 
+                                    lw = 1, color = path_color)
+                axs_cell[1].scatter(path_end_coordinates['Z'], path_end_coordinates['Y'], 
+                                    s = P_end_size, marker = marker, color = end_color)
                 
                 # XZ
-                axs_cell[2].scatter(path_all_coordinates['X'], path_all_coordinates['Z'], s = 0.5, color = path_color)
-                axs_cell[2].scatter(path_end_coordinates['X'], path_end_coordinates['Z'], s = 0.75, color = end_color)
+                axs_cell[2].plot(path_all_coordinates['X'], path_all_coordinates['Z'], 
+                                    lw = 1, color = path_color)
+                axs_cell[2].scatter(path_end_coordinates['X'], path_end_coordinates['Z'], 
+                                    s = P_end_size, marker = marker, color = end_color)
                 
-            axs_cell[0].scatter(soma_coordinates['X'], soma_coordinates['Y'], s = 10, color = colors_dict['color2'], label = 'soma')
-            axs_cell[0].text(x = 10, y = 10, s = 'XY', ha = 'left', va = 'top')
+            axs_cell[0].scatter(soma_coordinates['X'], soma_coordinates['Y'], s = 2, marker = marker, color = colors_dict['color2'], label = 'soma')
+            axs_cell[0].text(x = 10, y = 10, s = 'XY', ha = 'left', va = 'top', fontsize = 9)
             axs_cell[0].set_ylim([590.76, 0])
             axs_cell[0].set_ylabel('Height [µm]')
             # axs_cell[0].legend(fontsize = 9)
             
             # ZY
-            axs_cell[1].scatter(soma_coordinates['Z'], soma_coordinates['Y'], s = 10, color = colors_dict['color2'])
-            axs_cell[1].text(x = 10, y = 10, s = 'ZY', ha = 'left', va = 'top')
+            axs_cell[1].scatter(soma_coordinates['Z'], soma_coordinates['Y'], s = 2, color = colors_dict['color2'])
+            axs_cell[1].text(x = 10, y = 10, s = 'ZY', ha = 'left', va = 'top', fontsize = 9)
             axs_cell[1].set_xlim([0, 300])
             axs_cell[1].set_xticks(ticks = np.arange(0, 300+1, 100))
             axs_cell[1].tick_params(axis = 'y', size = 0)
             axs_cell[1].set_xlabel('Depth [µm]')
             
             # XZ
-            axs_cell[2].scatter(soma_coordinates['X'], soma_coordinates['Z'], s = 10, color = colors_dict['color2'])
-            axs_cell[2].text(x = 10, y = 10, s = 'XZ', ha = 'left', va = 'top')
+            axs_cell[2].scatter(soma_coordinates['X'], soma_coordinates['Z'], s = 2, color = colors_dict['color2'])
+            axs_cell[2].text(x = 10, y = 10, s = 'XZ', ha = 'left', va = 'top', fontsize = 9)
             axs_cell[2].set_xlim([0, 590.76])
             axs_cell[2].set_ylim([300, 0])
             axs_cell[1].set_xticks(np.arange(0, 590, 200))
@@ -154,8 +167,26 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
             
             [ax.grid(False) for ax in axs_cell]
             
+            
+            # font sizes
+            small_font_size = 9
+
+            plt.rc('font', size = small_font_size)
+            plt.rc('axes', titlesize = small_font_size, 
+                           labelsize = small_font_size,
+                           linewidth = 0.5)
+            plt.rc('xtick', labelsize = small_font_size)
+            plt.rc('ytick', labelsize = small_font_size)
+            plt.rc('lines', linewidth = 1)
+
+
+
+            fig_cell.align_labels() 
+            
+            
             cell_fig_dir = join(cell_morph_plots_dir, 'cell_coordinates')
-            save_figures(fig_cell, f'{cell_ID}-cell_coordinates_xyz', cell_fig_dir, darkmode_bool)
+            save_figures(fig_cell, f'{cell_ID}-cell_coordinates_xyz', cell_fig_dir, darkmode_bool,
+                         figure_format = 'both')
             
             plt.show()    
         
@@ -421,7 +452,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
                                                       width_ratios= [1, ratio],
                                                       sharey = 'row',
                                                       sharex = 'col',
-                                                      figsize = get_figure_size(width = 165.5))
+                                                      figsize = get_figure_size(width = 77.1, height = 77.1))
                 
                 
                 
@@ -447,9 +478,9 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
                 
                 ## XY
                 # branch
-                axs_branch[0].scatter(branch_coor_terminal_to_soma['X'],
+                axs_branch[0].plot(branch_coor_terminal_to_soma['X'],
                                       branch_coor_terminal_to_soma['Y'],
-                                      s = 0.5,
+                                      lw = lw,
                                       color = path_color)
                 
                 # soma
@@ -473,7 +504,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
                 axs_branch[0].set_xlim([0, 590.76])
                 axs_branch[0].set_ylim([590.76, 0])
                 axs_branch[0].set_ylabel('Height [µm]')
-                axs_branch[0].text(x = 10, y = 10, s = 'XY', ha = 'left', va = 'top')
+                axs_branch[0].text(x = 10, y = 10, s = 'XY', ha = 'left', va = 'top', fontsize = 9)
                 
                 # branch measurement
                 axs_branch[0].text(x = 10, y = 590, 
@@ -484,9 +515,9 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
                     
                 ## YZ
                 # branch
-                axs_branch[1].scatter(branch_coor_terminal_to_soma['Z'],
+                axs_branch[1].plot(branch_coor_terminal_to_soma['Z'],
                                       branch_coor_terminal_to_soma['Y'],
-                                      s = 0.5,
+                                      lw = lw,
                                       color = path_color)
                 
                 # soma
@@ -504,13 +535,13 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
                 axs_branch[1].set_xlim([0, 300])
                 axs_branch[1].tick_params(axis = 'y', size = 0)
                 axs_branch[1].set_xlabel('Depth [µm]')
-                axs_branch[1].text(x = 10, y = 10, s = 'ZY', ha = 'left', va = 'top')
+                axs_branch[1].text(x = 10, y = 10, s = 'ZY', ha = 'left', va = 'top', fontsize = 9)
                 
                 ## XZ
                 # branch
-                axs_branch[2].scatter(branch_coor_terminal_to_soma['X'],
+                axs_branch[2].plot(branch_coor_terminal_to_soma['X'],
                                       branch_coor_terminal_to_soma['Z'],
-                                      s = 0.5,
+                                      lw = lw,
                                       color = path_color)
                 
                 # soma
@@ -531,7 +562,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
                 axs_branch[2].set_xlabel('Width [µm]')
             
                 
-                axs_branch[2].text(x = 10, y = 10, s = 'XZ', ha = 'left', va = 'top')
+                axs_branch[2].text(x = 10, y = 10, s = 'XZ', ha = 'left', va = 'top', fontsize = 9)
                 
                 [ax.grid(False) for ax in axs_branch]
                 
@@ -541,7 +572,8 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
                 if not exists(fig_branch_dir):
                     mkdir(fig_branch_dir)
                 
-                save_figures(fig_branch, f'{cell_ID}_{terminal_path_ID}-terminal_branch_measurements', fig_branch_dir, darkmode_bool)
+                save_figures(fig_branch, f'{cell_ID}_{terminal_path_ID}-terminal_branch_measurements', fig_branch_dir, darkmode_bool,
+                             figure_format= 'both')
         
         
         # # %% 2D histogram of angle and length of terminal branches
@@ -626,7 +658,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
                                           layout = 'constrained',
                                           height_ratios= [1],
                                           width_ratios=[1],
-                                          figsize = get_figure_size(width = 185.5))
+                                          figsize = get_figure_size(height = 77.1, width = 77.1))
         
         # ax_hist.set_theta_offset(-np.pi / 8)
         
@@ -639,7 +671,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
         # initialise color code
         norm_min = 0
         norm_max = 1000
-        cmap_str = 'plasma'
+        cmap_str = 'viridis'
         norm = mtl.colors.Normalize(norm_min, norm_max)
         cmap = mtl.cm.ScalarMappable(norm=norm, cmap=cmap_str)
         
@@ -697,7 +729,8 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
         
         # set polar plots directory
         polar_plots_dir = join(cell_morph_plots_dir, 'polar_plots',  'absolute_polar_plots')
-        save_figures(fig_hist, f'{cell_ID}-absolute_polar_plot-terminal_branch_orientation-colorcoded_length', polar_plots_dir, darkmode_bool)
+        save_figures(fig_hist, f'{cell_ID}-absolute_polar_plot-terminal_branch_orientation-colorcoded_length', polar_plots_dir, 
+                     darkmode_bool, figure_format = 'both')
         
         
         # %% normalised polar plot
@@ -708,7 +741,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
                                                     layout = 'constrained',
                                                     height_ratios= [1],
                                                     width_ratios=[1],
-                                                    figsize = get_figure_size(width = 185.5))
+                                                    figsize = get_figure_size(height = 77.1, width = 77.1))
         # set title
         fig_hist_norm.suptitle(cell_ID)
         
@@ -762,7 +795,8 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
         
         # set polar plots directory
         norm_polar_plots_dir = join(cell_morph_plots_dir, 'polar_plots', 'normalized_polar_plots')
-        save_figures(fig_hist_norm, f'{cell_ID}-normalized_polar_plot-terminal_branch_orientation-colorcoded_length', norm_polar_plots_dir, darkmode_bool)
+        save_figures(fig_hist_norm, f'{cell_ID}-normalized_polar_plot-terminal_branch_orientation-colorcoded_length', norm_polar_plots_dir, 
+                     darkmode_bool, figure_format = 'both')
         
         
         # %% color coded dendrites and axon polar plot
@@ -773,7 +807,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
                                                            layout = 'constrained',
                                                            height_ratios= [1],
                                                            width_ratios=[1],
-                                                           figsize = get_figure_size(width = 185.5))
+                                                           figsize = get_figure_size(height = 77.1, width = 77.1))
         
         # set title
         fig_hist_neurites.suptitle(cell_ID)
@@ -845,144 +879,10 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
         
         # set polar plots directory
         neurite_polar_plots_dir = join(cell_morph_plots_dir, 'polar_plots',  'absolute_polar_plots_cc_dendrite_axon')
-        save_figures(fig_hist_neurites, f'{cell_ID}-absolute_polar_plot-terminal_branch_orientation-colorcoded_path_type', neurite_polar_plots_dir, darkmode_bool)   
+        save_figures(fig_hist_neurites, f'{cell_ID}-absolute_polar_plot-terminal_branch_orientation-colorcoded_path_type', neurite_polar_plots_dir, darkmode_bool,
+                     figure_format= 'both')   
         
-        
-        # %% combined figure for one cell
-        
-        fig_all, ax_all = plt.subplots(nrows = 2,
-                                       ncols = 2,
-                                       layout = 'constrained',
-                                       height_ratios = [1, 1],
-                                       width_ratios = [1,1],
-                                       figsize = get_figure_size(width = 185.5))
-        
-        # set figure title
-        fig_all.suptitle(cell_ID)
-        
-        # define function to change projection type of subplot specific subplot
-        def change_projection(fig, axs, ax_tochange, projection = 'polar'):
-        
-            rows, cols, start, stop = ax_tochange.get_subplotspec().get_geometry()
-        
-            axs.flat[start].remove()
-            axs.flat[start] = fig.add_subplot(rows, cols, start+1, projection=projection)
-        
-        # change projection of subplots
-        # change_projection(fig_all, ax_all, ax_all.flat[0], '3d')
-        [change_projection(fig_all, ax_all, ax, 'polar') for ax in ax_all.flat[1:]]
-        
-        
-        ### subplot 1: XY coordinates ###
-        
-        # loop through path
-        for path_ID in path_IDs:
-            
-            # get all coordinates
-            path_all_coordinates = all_coordinates[all_coordinates['path_ID'] == path_ID]
-            path_end_coordinates = end_coordinates[end_coordinates['path_ID'] == path_ID]           
-        
-            # get label of current path
-            cur_path_label = path_all_coordinates['path_label'].iloc[0]
-            
-            # set colors for paths
-            path_color_dict = {'dendrite' : {'path_color' : colors_dict['primecolor'], 'end_color' : 'r'},
-                               'axon' :     {'path_color' : 'gray', 'end_color' : 'lightcoral'},
-                               'soma' :     {'path_color' : colors_dict['color2'], 'end_color' : colors_dict['color2']}}
-        
-            path_color = path_color_dict[cur_path_label]['path_color']
-            end_color = path_color_dict[cur_path_label]['end_color']
-        
-    
-            
-            ax_all.flat[0].scatter(path_all_coordinates['X'], path_all_coordinates['Y'],
-                                   s = 0.5, c = path_color, label = 'cell')
                 
-            ax_all.flat[0].scatter(path_end_coordinates['X'], path_end_coordinates['Y'], 
-                                    s = 0.75, c = end_color, label = 'end points')
-            
-        ax_all.flat[0].scatter(soma_coordinates['X'], soma_coordinates['Y'], s = 10, color = colors_dict['color2'], label = 'soma')
-        ax_all.flat[0].text(x = 10, y = 10, s = 'XY', ha = 'left', va = 'top')
-        ax_all.flat[0].set_xlim([0, 590.76])
-        ax_all.flat[0].set_ylim([590.76, 0])
-        
-        ax_all.flat[0].set_xticks(np.arange(0, 590, 200))
-        ax_all.flat[0].set_yticks(np.arange(0, 590, 200))
-
-        
-        ### all polar plot ### 
-        ### color code for length of branches ###
-        # initialise color code
-        norm_min = 0
-        norm_max = 1000
-        cmap_str = 'plasma'
-        norm = mtl.colors.Normalize(norm_min, norm_max)
-        cmap = mtl.cm.ScalarMappable(norm=norm, cmap=cmap_str)
-        
-        # colorbar
-        fig_all.colorbar(cmap, ax = ax_all.flat[1], label = 'Terminal branch length [µm]')
-        
-        
-        def plot_colorcoded_polar(polar_occurances_df, ax):
-        
-            # define array with number of previouse numbers of branches in bin
-            bottom = [0] * resul_n_bins
-            
-            # skip (drop) path 1, i.e. soma
-            if 1 in polar_occurances_df.index.to_list():
-                branch_idc = polar_occurances_df.drop(index = 1).index.to_list()
-            else:
-                branch_idc = polar_occurances_df.index.to_list()
-            
-            # loop through all branches to assign specific color for length            
-            for branch_idx in branch_idc:
-            
-                # get angles of branches
-                branch_length = polar_occurances_df.at[branch_idx, "length"]
-                branch_bin = polar_occurances_df.at[branch_idx, "bin_id"].astype(int)
-                
-                # create empty bins and assign branch to bin
-                hist_angles_occu = [0] * resul_n_bins
-                hist_angles_occu[branch_bin] = 1
-                
-                # plot histogram as barplot
-                ax.bar(bins_angles, hist_angles_occu, bottom = bottom,
-                       width = resul_binsize, 
-                       align = 'edge',
-                       edgecolor = 'none',
-                       color = cmap.to_rgba(branch_length))
-                    
-                # add to bottom list for next step
-                bottom = np.add(bottom, hist_angles_occu)
-        
-        
-        # plot all
-        plot_colorcoded_polar(terminal_branches_df, ax_all.flat[1])
-        
-        # plot dendrites
-        plot_colorcoded_polar(terminal_branches_df[terminal_branches_df['path_label'] == 'dendrite'], ax_all.flat[2])        
-        
-        # plot dendrites
-        plot_colorcoded_polar(terminal_branches_df[terminal_branches_df['path_label'] == 'axon'], ax_all.flat[3])           
-        
-        # axis for polar plots
-        
-        for ax in ax_all.flat[1:]:
-            
-            # x axis
-            ax.set_xticks(np.arange(0, np.pi*2, np.pi / 4))
-            ax.set_xticklabels(['p', 'pd', 'd', 'ad', 'a', 'av', 'v', 'pv'])
-            
-            # y axis          
-            ax.set_yticks(ticks = np.arange(0, 15 + 1, 5))
-            # ax.set_yticks(np.arange(0, round_to_base(max(bottom)+1, 5)+1, 1), minor = True)
-            
-            ax.grid(True, alpha = 0.5)
-            
-        
-        plt.show()
-        
-        
         
         
         # %% 
@@ -1001,7 +901,7 @@ for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
  
 # %% save dataframe
 
-if False:
+if True:
 
     # reset index with orientation angle of bins in rad
     polar_plot_occurrances.index = bins_angles
