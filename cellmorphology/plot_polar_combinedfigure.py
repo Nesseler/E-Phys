@@ -17,7 +17,7 @@ import numpy as np
 from parameters.directories_win import table_file, cell_morph_descrip_dir, cell_morph_traces_coordinates_dir
 
 from functions.functions_plotting import get_figure_size, get_colors
-from cellmorphology.functions_cellmorph import clean_OnPath_column_to_path_ID_n_label
+from cellmorphology.functions_cellmorph import clean_OnPath_column_to_path_ID_n_label, calc_polar_histo_binangles
 
 # settings
 # get colors
@@ -33,7 +33,7 @@ MetaData = pd.read_excel(table_file,
 
 # %%
 
-cell_ID = 'E-137'
+cell_ID = 'E-163'
 
 
 # load dataframes
@@ -103,7 +103,7 @@ for path_ID in path_IDs:
     
     # set colors for paths
     path_color_dict = {'dendrite' : {'path_color' : colors_dict['primecolor'], 'end_color' : 'r'},
-                        'axon' :     {'path_color' : 'gray', 'end_color' : 'lightcoral'},
+                        'axon' :     {'path_color' : 'b', 'end_color' : 'lightcoral'},
                         'soma' :     {'path_color' : colors_dict['color2'], 'end_color' : colors_dict['color2']}}
 
     path_color = path_color_dict[cur_path_label]['path_color']
@@ -141,6 +141,67 @@ def change_projection(fig, axs, ax_tochange, projection = 'polar'):
 
 
 ### all polar plot ### 
+
+
+# set colors
+neurite_colordict = {'axon' : 'b', 'dendrite' : colors_dict['primecolor']}
+
+# initilize polar histogram
+n_bins = 8
+binsize = (2 * np.pi) / n_bins
+bins_angles = calc_polar_histo_binangles(n_bins)
+
+# get max number of neurites in bin
+max_n_neurites = terminal_branches_df.groupby('bin_id').size().max()
+
+
+# axons & dendrites
+
+
+# define array with number of previouse numbers of branches in bin
+bottom = [0] * n_bins
+
+# skip (drop) path 1, i.e. soma
+branch_idc = terminal_branches_df.drop(index = 1).index.to_list()
+
+# loop through all branches to assign specific color for length            
+for branch_idx in branch_idc:
+
+    # get angles of branches
+    branch_length = terminal_branches_df.at[branch_idx, "length"]
+    branch_bin = terminal_branches_df.at[branch_idx, "bin_id"].astype(int)
+    branch_label = terminal_branches_df.at[branch_idx, "path_label"]
+    
+    # create empty bins and assign branch to bin
+    hist_angles_occu = [0] * n_bins
+    hist_angles_occu[branch_bin] = 1 / max_n_neurites
+    
+    # plot histogram as barplot
+    ax_all.flat[1].bar(bins_angles, hist_angles_occu, bottom = bottom,
+                       width = binsize, 
+                       align = 'edge',
+                       edgecolor = 'none',
+                       color = neurite_colordict[branch_label])
+        
+    # add to bottom list for next step
+    bottom = np.add(bottom, hist_angles_occu)
+    
+
+# x axis
+ax_all.flat[1].set_xticks(np.arange(0, np.pi*2, np.pi / 4))
+ax_all.flat[1].set_xticklabels(['p', 'pd', 'd', 'ad', 'a', 'av', 'v', 'pv'])
+
+# grid
+ax_all.flat[1].grid(True, alpha = 0.5)
+
+# yaxis
+ax_all.flat[1].set_ylim([0, 1])
+ax_all.flat[1].set_yticks(ticks = [1.0])
+
+
+# colorcoded dendrites or axons
+
+
 ### color code for length of branches ###
 # initialise color code
 norm_min = 0
@@ -153,43 +214,10 @@ cmap = mtl.cm.ScalarMappable(norm=norm, cmap=cmap_str)
 fig_all.colorbar(cmap, ax = ax_all.flat[3], label = 'Terminal branch length [µm]')
 
 
-# initilize polar histogram
-resul_n_bins = 8
-binsize = (2 * np.pi) / resul_n_bins
-
-
-def calc_polar_histo_binangles(n_bins):
-    
-    # step size is set bin number of resulting bins and 2*pi
-    bin_stepsize = (2 * np.pi) / n_bins
-    
-    # start point: half of step size
-    # because of rotated polar bins
-    bin_start = bin_stepsize / 2
-    
-    # calc bin borders
-    bin_angles = np.arange(bin_start, np.pi * 2, bin_stepsize)
-
-    # roll bin borders
-    bin_angles = np.roll(bin_angles, 1)    
-
-    return bin_angles
-
-bins_angles = calc_polar_histo_binangles(resul_n_bins)
-
-
-            
-                
-                
-                
-                
-                
-
-
-def plot_colorcoded_polar(polar_occurances_df, ax):
+def plot_colorcoded_polar_normed(polar_occurances_df, max_n_neurites, ax):
 
     # define array with number of previouse numbers of branches in bin
-    bottom = [0] * resul_n_bins
+    bottom = [0] * n_bins
     
     # skip (drop) path 1, i.e. soma
     if 1 in polar_occurances_df.index.to_list():
@@ -205,8 +233,8 @@ def plot_colorcoded_polar(polar_occurances_df, ax):
         branch_bin = polar_occurances_df.at[branch_idx, "bin_id"].astype(int)
         
         # create empty bins and assign branch to bin
-        hist_angles_occu = [0] * resul_n_bins
-        hist_angles_occu[branch_bin] = 1
+        hist_angles_occu = [0] * n_bins
+        hist_angles_occu[branch_bin] = 1 / max_n_neurites
         
         # plot histogram as barplot
         ax.bar(bins_angles, hist_angles_occu, bottom = bottom,
@@ -219,14 +247,14 @@ def plot_colorcoded_polar(polar_occurances_df, ax):
         bottom = np.add(bottom, hist_angles_occu)
 
 
-# plot all
-plot_colorcoded_polar(terminal_branches_df, ax_all.flat[1])
 
 # plot dendrites
-plot_colorcoded_polar(terminal_branches_df[terminal_branches_df['path_label'] == 'dendrite'], ax_all.flat[2])        
+plot_colorcoded_polar_normed(terminal_branches_df[terminal_branches_df['path_label'] == 'dendrite'], 
+                             max_n_neurites= max_n_neurites, ax = ax_all.flat[2])        
 
 # plot dendrites
-plot_colorcoded_polar(terminal_branches_df[terminal_branches_df['path_label'] == 'axon'], ax_all.flat[3])           
+plot_colorcoded_polar_normed(terminal_branches_df[terminal_branches_df['path_label'] == 'axon'], 
+                             max_n_neurites= max_n_neurites, ax = ax_all.flat[3])           
 
 # axis for polar plots
 
@@ -237,10 +265,12 @@ for ax in ax_all.flat[1:]:
     ax.set_xticklabels(['p', 'pd', 'd', 'ad', 'a', 'av', 'v', 'pv'])
     
     # y axis          
-    ax.set_yticks(ticks = np.arange(0, 15 + 1, 5))
-    # ax.set_yticks(np.arange(0, round_to_base(max(bottom)+1, 5)+1, 1), minor = True)
+    ax.set_ylim([0, 1])
+    ax.set_yticks(ticks = [1.0])
     
     ax.grid(True, alpha = 0.5)
     
+
+fig_all.align_labels()
 
 plt.show()

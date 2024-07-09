@@ -41,6 +41,31 @@ def clean_OnPath_column_to_path_ID_n_label(coordinates_dataframe):
     return coordinates_dataframe
 
 
+import numpy as np
+
+def calc_polar_histo_binangles(n_bins = 8):
+    '''
+    Function calculates border angles of bins in rad for the polar plot histogram.
+    Parameters: 
+        n_bins (int): Number of bins in polar histogram. Default is 8.
+    Returns:
+        bin_angles (list): List of border angles in rad.
+    '''
+    
+    # step size is set bin number of resulting bins and 2*pi
+    bin_stepsize = (2 * np.pi) / n_bins
+    
+    # start point: half of step size
+    # because of rotated polar bins
+    bin_start = bin_stepsize / 2
+    
+    # calc bin borders
+    bin_angles = np.arange(bin_start, np.pi * 2, bin_stepsize)
+
+    # roll bin borders
+    bin_angles = np.roll(bin_angles, 1)    
+
+    return bin_angles
     
     
     

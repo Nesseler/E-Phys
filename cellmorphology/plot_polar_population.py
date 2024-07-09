@@ -36,7 +36,7 @@ bins_angles = polar_plot_occurrances.index.to_list()
 resul_binsize = np.diff(bins_angles)[-1]
 
 # get colors
-darkmode_bool = True
+darkmode_bool = False
 colors_dict, region_colors = get_colors(darkmode_bool)
 
 # define directory
@@ -71,7 +71,7 @@ ax_hist.set_xticklabels(orientation_labels)
 # yaxis
 ymax = np.ceil(polar_plot_occurrances_sum.max()/10)*10
 ax_hist.set_ylim([0, ymax])
-ax_hist.set_yticks(np.arange(0, ymax + 1, 20))
+ax_hist.set_yticks(np.arange(0, ymax + 1, 50))
 
 # grid
 ax_hist.grid(True, alpha = 0.5)
@@ -80,6 +80,11 @@ plt.show()
 
 # save figures
 save_figures(fig_hist, 'population_polar_plot-all_cells', cell_morph_plots_polar_pop_dir, darkmode_bool)
+
+
+
+
+
 
 # %% separated regions
 
@@ -140,7 +145,7 @@ ax_hist_regions[-1].set_xticklabels(orientation_labels)
 # yaxis
 ymax = np.ceil(ymax/10)*10
 ax_hist_regions[-1].set_ylim([0, ymax])
-ax_hist_regions[-1].set_yticks(np.arange(0, ymax + 1, 10))
+ax_hist_regions[-1].set_yticks(np.arange(0, ymax + 1, 50))
 
 plt.show()
 
@@ -185,7 +190,7 @@ ax_hist_cc_neurites.set_xticklabels(orientation_labels)
 # yaxis
 ymax = np.ceil(polar_plot_occurrances_sum.max()/10)*10
 ax_hist_cc_neurites.set_ylim([0, ymax])
-ax_hist_cc_neurites.set_yticks(np.arange(0, ymax + 1, 20))
+ax_hist_cc_neurites.set_yticks(np.arange(0, ymax + 1, 50))
 
 # grid
 ax_hist_cc_neurites.grid(True, alpha = 0.5)
@@ -258,10 +263,82 @@ ax_hist_cc_neurites_regions[-1].set_xticklabels(orientation_labels)
 # yaxis
 ymax = 120
 ax_hist_cc_neurites_regions[-1].set_ylim([0, ymax])
-ax_hist_cc_neurites_regions[-1].set_yticks(np.arange(0, ymax + 1, 10))
+ax_hist_cc_neurites_regions[-1].set_yticks(np.arange(0, ymax + 1, 50))
 
 plt.show()
 
 # save figures
 save_figures(fig_hist_cc_neurites_regions, 'population_polar_plot-regions-cc_neurites', cell_morph_plots_polar_pop_dir, darkmode_bool)
+
+
+
+
+# %% normalised version
+
+### normalize polar occurances
+# all
+polar_plot_occurrances_normed = polar_plot_occurrances.div(polar_plot_occurrances.max(), axis = 1)
+
+# dendrites
+polar_plot_dendrites_occurrances_normed = polar_plot_dendrites_occurrances.div(polar_plot_dendrites_occurrances.max(), axis = 1)
+
+# axons
+polar_plot_axons_occurrances_normed = polar_plot_axons_occurrances.div(polar_plot_axons_occurrances.max(), axis = 1)
+
+
+### create average per bin
+# all
+polar_plot_occurrances_normed_mean = polar_plot_occurrances_normed.mean(axis = 1)
+
+# dendrites
+polar_plot_dendrites_occurrances_normed_mean = polar_plot_dendrites_occurrances_normed.mean(axis = 1)
+
+# axons
+polar_plot_axons_occurrances_normed_mean = polar_plot_axons_occurrances_normed.mean(axis = 1)
+
+
+# normed figure
+
+# polar histogram 
+fig_norm, ax_norm = plt.subplots(subplot_kw={'projection': 'polar'},
+                                  layout = 'constrained',
+                                  height_ratios= [1],
+                                  width_ratios=[1],
+                                  figsize = get_figure_size(width = 328.67/2))
+
+# # set title
+# fig_hist.suptitle('Terminal branch orientation\nall cells')
+
+# plot histogram as barplot
+ax_norm.bar(bins_angles, polar_plot_axons_occurrances_normed_mean,
+            width = resul_binsize, 
+            align = 'edge',
+            edgecolor = 'none',
+            color = 'gray')
+
+
+
+
+
+ax_norm.set_ylim([0, 1])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
