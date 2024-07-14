@@ -33,7 +33,7 @@ MetaData = pd.read_excel(table_file,
 
 # %%
 
-cell_ID = 'E-163'
+cell_ID = 'E-182'
 
 
 # load dataframes
