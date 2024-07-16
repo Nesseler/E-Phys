@@ -41,9 +41,13 @@ def get_colors(darkmode_bool=False):
         plot_dict = {'color':primecolor, 'linewidth' : 0.5}
         seccolor = 'w'
         
-        BAOT_color = '#43388a'
-        MeA_color = '#ff7d00'
+        BAOT_color = '#7a66fc' 
+        MeA_color =  '#ff8d00'
         BAOT_MeA_color = 'gray'
+        
+        # BAOT_color = '#43388a'
+        # MeA_color = '#ff7d00'
+        # BAOT_MeA_color = 'gray'
         
         
     colors_dict = {'primecolor': primecolor,
@@ -52,7 +56,9 @@ def get_colors(darkmode_bool=False):
                    'color3': color3,
                    'cmap': cmap,
                    'plot_dict': plot_dict,
-                   'seccolor' : seccolor}
+                   'seccolor' : seccolor,
+                   'BAOT_lighter' : '#cac2fe',
+                   'MeA_lighter' : '#ffd199'}
     
     regions_c = {'BAOT' : BAOT_color,
                  'MeA' : MeA_color,

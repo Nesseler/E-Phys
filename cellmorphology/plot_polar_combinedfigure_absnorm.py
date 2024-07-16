@@ -33,7 +33,7 @@ MetaData = pd.read_excel(table_file,
 
 # %%
 
-cell_ID = 'E-137'
+cell_ID = 'E-096'
 
 
 # load dataframes
@@ -76,12 +76,12 @@ path_IDs = cell_allcoordinates['path_ID'].drop_duplicates().astype(int).to_list(
 
 # %% combined figure for one cell
 
-fig_all, ax_all = plt.subplots(nrows = 2,
-                                ncols = 2,
-                                layout = 'constrained',
-                                height_ratios = [1, 1],
-                                width_ratios = [1,1],
-                                figsize = get_figure_size(width = 150, height= 150))
+fig_all, ax_all = plt.subplots(nrows = 4,
+                               ncols = 1,
+                               layout = 'constrained',
+                               height_ratios = [1, 1, 1, 1],
+                               width_ratios = [1],
+                               figsize = get_figure_size(width = 50, height= 220))
 
 # set figure title
 fig_all.suptitle(cell_ID)
@@ -221,7 +221,7 @@ norm = mtl.colors.Normalize(norm_min, norm_max)
 cmap = mtl.cm.ScalarMappable(norm=norm, cmap=cmap_str)
 
 # colorbar
-fig_all.colorbar(cmap, ax = ax_all.flat[3], label = 'Terminal branch length [µm]')
+fig_all.colorbar(cmap, ax = ax_all.flat[3], label = 'Terminal branch length [µm]', orientation='horizontal')
 
 
 def plot_colorcoded_polar_normed(polar_occurances_df, max_n_neurites, ax):
