@@ -139,7 +139,7 @@ ax_keys = ['A', 'B', 'C', 'D']
 
 fig_regions, axs_regions = plt.subplot_mosaic('AD;BD;CD', 
                                               layout = 'constrained',
-                                              figsize = get_figure_size(width = 277.25, height= 120),
+                                              figsize = get_figure_size(),
                                               width_ratios = [2, 1],
                                               height_ratios = cells_of_region_perc)
 
@@ -261,7 +261,9 @@ fig_regions.align_labels()
 
 plt.show()
 
-save_figures(fig_regions, 'Resting_n_eventplot_nspikes+Regions', figure_dir, darkmode_bool,
+temp_fig_dir = 'C:/Users/nesseler/Desktop/TAC-presentation_data/ePhys'
+
+save_figures(fig_regions, 'Resting_n_eventplot_nspikes+Regions', temp_fig_dir, darkmode_bool,
              figure_format= 'both',
              dataframe_to_save = activity_df, index_label = 'cell_ID', add_measures = True, axis_for_calcs = 0,
              groups_bool= True, groups= ['BAOT/MeA', 'MeA', 'BAOT'], groups_name= 'Region')

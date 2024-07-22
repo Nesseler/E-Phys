@@ -61,18 +61,18 @@ cell_IDs = get_cell_IDs_one_protocol(PGF)
 
 # cell_IDs.reverse()
 
-cell_IDs = ['E-175']
+# cell_IDs = ['E-175']
 
 for cell_ID in cell_IDs:
     # test if desired cells in passive properties
     if cell_ID not in passiv_properties_df.index.to_list():
         raise ValueError(
-            'Passiv properties not calculated for provided cell_ID!')
+            f'Passiv properties not calculated for provided cell_ID: {cell_ID}!')
 
     # test if desired cells in passive properties
     if cell_ID not in activity_df.index.to_list():
         raise ValueError(
-            'Resting membrane properties not calculated for provided cell_ID!')
+            f'Resting membrane properties not calculated for provided cell_ID: {cell_ID}!')
 
 # get hold current as table
 I_hold_table = pd.read_excel(
@@ -570,7 +570,7 @@ for cell_ID in cell_IDs:
     fig.align_labels()
     
     vplots_path_fig = join(vplot_dir, 'cc_IF', 'freq_adaptation')
-    save_figures(fig, f'{cell_ID}-frequency_adaptation', vplots_path_fig, darkmode_bool)
+    save_figures(fig, f'{cell_ID}-frequency_adaptation', vplots_path_fig, darkmode_bool, figure_format='both')
 
     plt.show()
     

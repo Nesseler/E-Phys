@@ -18,7 +18,7 @@ from functions.functions_import import get_traceIndex_n_file
 from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt, calc_dvdt_padded, round_to_base
 
 
-cell_ID = 'E-122'
+cell_ID = 'E-136'
 PGF = 'cc_IF'
 
 from parameters.PGFs import cc_th1Ap_parameters, cc_IF_parameters, cc_sag_parameters, vc_rest_EPSC_parameters
@@ -107,7 +107,7 @@ for step_idx in np.arange(0, n_steps, 5):
     axs[1].plot(v[step_idx], lw = 1, c = 'gray')
 
 
-add_stepidx = 27
+add_stepidx = 24
 
 axs[0].plot(i_cons[add_stepidx], lw = 1, c = colors_dict['primecolor'])
 axs[1].plot(v[add_stepidx], lw = 1, c = colors_dict['primecolor'])

@@ -37,7 +37,7 @@ bins_angles = polar_plot_occurrances.index.to_list()
 resul_binsize = np.diff(bins_angles)[-1]
 
 # get colors
-darkmode_bool = False
+darkmode_bool = True
 colors_dict, region_colors = get_colors(darkmode_bool)
 
 # define directory
@@ -66,11 +66,11 @@ polar_plot_occurrances_normed_std = polar_plot_occurrances_normed.std(axis = 1)
 
 # dendrites
 polar_plot_dendrites_occurrances_normed_mean = polar_plot_dendrites_occurrances_normed.mean(axis = 1)
-polar_plot_dendrites_occurrances_normed_std = polar_plot_dendrites_occurrances_normed.std(axis = 1)
+polar_plot_dendrites_occurrances_normed_std = polar_plot_dendrites_occurrances.div(polar_plot_occurrances.sum(), axis = 1).std(axis = 1)
 
 # axons
 polar_plot_axons_occurrances_normed_mean = polar_plot_axons_occurrances_normed.mean(axis = 1)
-polar_plot_axons_occurrances_normed_std = polar_plot_axons_occurrances_normed.std(axis = 1)
+polar_plot_axons_occurrances_normed_std = polar_plot_axons_occurrances.div(polar_plot_occurrances.sum(), axis = 1).std(axis = 1)
 
 
 ### combine to one dataframe
@@ -79,17 +79,15 @@ ALL_pp_normed_totype_mean_occs = pd.DataFrame({'all' : polar_plot_occurrances_no
                                                 'axons' : polar_plot_axons_occurrances_normed_mean.to_list()}, 
                                                index = orientation_labels)
 
-ALL_pp_normed_totype_std_occs = pd.DataFrame({'all' : polar_plot_occurrances_normed_std.to_list(),
-                                                'dendrites' : polar_plot_dendrites_occurrances_normed_std.to_list(), 
-                                                'axons' : polar_plot_axons_occurrances_normed_std.to_list()}, 
-                                               index = orientation_labels)
-
-
 ALL_pp_normed_toneurites_mean_occs = pd.DataFrame({'all' : polar_plot_occurrances_normed_mean.to_list(),
                                                    'dendrites' : pp_occu_dendrites_occu_normed_to_neurites_mean.to_list(), 
                                                    'axons' : pp_occu_axons_occu_normed_to_neurites_mean.to_list()}, 
                                                   index = orientation_labels)
 
+ALL_pp_normed_toneurites_std_occs = pd.DataFrame({'all' : polar_plot_occurrances_normed_std.to_list(),
+                                                  'dendrites' : polar_plot_dendrites_occurrances_normed_std.to_list(), 
+                                                  'axons' : polar_plot_axons_occurrances_normed_std.to_list()}, 
+                                                 index = orientation_labels)
 
 
 
@@ -171,7 +169,7 @@ fig_norm, axs_norm = plt.subplots(nrows = 3,
                                   layout = 'constrained',
                                   height_ratios= [1, 1, 1],
                                   width_ratios=[1, 1, 1],
-                                  figsize = get_figure_size(width = 150, height = 150))
+                                  figsize = get_figure_size(width = 165.5))#, height = 150))
 
 # flatten axis
 axs_norm = axs_norm.flatten()
@@ -194,14 +192,14 @@ for plot_i, to_neurites_occu, color_pair in zip(np.arange(0, 9, 3), [ALL_pp_norm
     
 # test standard deviation
 
-axs_norm[0].errorbar(x = bins_angles + ((2*np.pi)/(len(bins_angles))/2),
-                     y = ALL_pp_normed_totype_mean_occs['all'],
-                     yerr = ALL_pp_normed_totype_std_occs['all'],
-                     fmt = '.',
-                     elinewidth = 0.5,
-                     color = colors_dict['primecolor'],
-                     markersize = 2,
-                     alpha = 0.5) 
+# axs_norm[0].errorbar(x = np.add(bins_angles, ((2*np.pi)/(len(bins_angles))/2)),
+#                      y = ALL_pp_normed_totype_mean_occs['all'],
+#                      yerr = ALL_pp_normed_toneurites_std_occs['all'],
+#                      fmt = '.',
+#                      elinewidth = 0.5,
+#                      color = colors_dict['primecolor'],
+#                      markersize = 2,
+#                      alpha = 0.5) 
 
 
 ### regions
@@ -248,7 +246,7 @@ for ax, plot_type in zip(axs_norm[::3], ['Combined', 'MeA', 'BAOT']):
 
 # neurites
 for ax in axs_norm[::3]:
-    ax.set_yticks(ticks = np.arange(0, 0.35 + 0.01, 0.05), labels = ['', '', '', '15 %', '', '', '30 %', ''])
+    ax.set_yticks(ticks = np.arange(0, 0.30 + 0.01, 0.05), labels = ['', '', '', '15 %', '', '', '30 %'])
     ax.set_rlabel_position(80)
 
 # dendrites
@@ -270,7 +268,7 @@ for ax in axs_norm:
 
 
     # grid
-    ax.grid(True, alpha = 0.5)
+    ax.grid(True, alpha = 0.5, color = 'gray')
     ax.set_axisbelow(True)
     
 

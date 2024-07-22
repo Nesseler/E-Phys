@@ -73,31 +73,39 @@ plt_df = pd.concat([active_properties_df,
 
 # params_toplot['']
 
-params_toplot = {'1':'r_input', 
-                 '2' : 'tau_mem', 
-                 '3' : 'c_mem',
+# params_toplot = {'1':'r_input', 
+#                  '2' : 'tau_mem', 
+#                  '3' : 'c_mem',
                  
-                 '5' : 'rheobase_rel',
-                 '6' : 't_peaks',
-                 '7' : 'n_rheobasespikes',
+#                  '5' : 'rheobase_rel',
+#                  '6' : 't_peaks',
+#                  '7' : 'n_rheobasespikes',
                  
                  
-                 # '8' : 'v_threshold',                 
-                 # '9' : 'delta_vrest_to_vthres',
-                 # '10': 'v_AHP_amplitude', 
-                 # '11': 'FWHM',
+#                  # '8' : 'v_threshold',                 
+#                  # '9' : 'delta_vrest_to_vthres',
+#                  # '10': 'v_AHP_amplitude', 
+#                  # '11': 'FWHM',
                  
-                 '8' : 'delta_vrest_to_vthres',                 
-                 '9' : 'FWHM',
-                 '10': 't_toPeak', 
-                 '11': 'v_AHP_amplitude',
+#                  '8' : 'delta_vrest_to_vthres',                 
+#                  '9' : 'FWHM',
+#                  '10': 't_toPeak', 
+#                  '11': 'v_AHP_amplitude',
                  
-                 '13': 'sag_delta',
-                 '15': 'n_reboundspikes',
+#                  '13': 'sag_delta',
+#                  '15': 'n_reboundspikes',
                  
-                 '17': 'max_freq',
-                 '18': 'max_inst_freq',
-                 '19': 'max_inst_initial_freq'}
+#                  '17': 'max_freq',
+#                  '18': 'max_inst_freq',
+#                  '19': 'max_inst_initial_freq'}
+
+
+params_toplot = {'1' : 'sag_delta', 
+                 
+                 '5' : 'n_reboundspikes',
+                 '6' : 'reboundspike_t_toPeak',
+                 '7' : 'reboundspike_FWHM',
+                 }
 
 
 plt_df['delta_vrest_to_vthres'] = plt_df['v_threshold'] - plt_df['v_rest']
@@ -109,9 +117,9 @@ darkmode_bool = True
 colors_dict, region_colors = get_colors(darkmode_bool)
 
 # initialize figure
-fig_cats, axs_cats = plt.subplots(nrows = 5,
+fig_cats, axs_cats = plt.subplots(nrows = 2,
                                   ncols = 4,
-                                  figsize = get_figure_size(width=277.25, height = 315.165),
+                                  figsize = get_figure_size(),
                                   layout = 'constrained',
                                   sharex = True)
 
@@ -304,6 +312,13 @@ for key, parameter in params_toplot.items():
         ax.spines['left'].set_bounds([0, 180])
         ax.set_yticks(np.arange(0, 180+1, 50))
         ax.set_yticks(np.arange(0, 180+1, 10), minor = True)
+        
+    elif parameter == 'reboundspike_t_toPeak':
+        ax.set_ylabel('Reboundspike\ntime to peak [ms]')
+        ax.set_ylim([0.75-0.1, 1.75+0.1])
+        ax.spines['left'].set_bounds([0.75, 1.75])
+        ax.set_yticks(np.arange(0.75, 1.75+.1, 0.5))
+        ax.set_yticks(np.arange(0.75, 1.75+.1, 0.25), minor = True)
 
 
 
@@ -337,15 +352,17 @@ plt.rc('lines', linewidth = 1)
 fig_cats.align_labels() 
 
 fig_cats.delaxes(axs_cats[0])
-fig_cats.delaxes(axs_cats[4])
-fig_cats.delaxes(axs_cats[12])
-fig_cats.delaxes(axs_cats[14])
-fig_cats.delaxes(axs_cats[16])
+fig_cats.delaxes(axs_cats[2])
+fig_cats.delaxes(axs_cats[3])
+# fig_cats.delaxes(axs_cats[4])
+# fig_cats.delaxes(axs_cats[16])
 
 
 plt.show()
 
-save_figures(fig_cats, 'Poster_all_cats', figure_dir, darkmode_bool,
+temp_fig_dir = 'C:/Users/nesseler/Desktop/TAC-presentation_data/ePhys'
+
+save_figures(fig_cats, 'HCN_cats', temp_fig_dir, darkmode_bool,
              figure_format= 'both',
              dataframe_to_save = plt_df, index_label = 'cell_ID', add_measures = True, axis_for_calcs = 0,
              groups_bool= True, groups= ['BAOT/MeA', 'MeA', 'BAOT'], groups_name= 'Region')

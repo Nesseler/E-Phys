@@ -30,7 +30,8 @@ todrop = ['v_peaks', 't_peaks', 't_threshold', 'idx_threshold', 'v_AHP', 't_AHP'
 fstAP_df.drop(columns = todrop, inplace = True)
 
 # concatenate active and passive properties
-IF_cat_df = pd.concat([passiv_properties_df, active_properties_df], axis = 1)
+# IF_cat_df = pd.concat([passiv_properties_df, active_properties_df], axis = 1)
+IF_cat_df = passiv_properties_df
 # IF_cat_df.drop(columns = 'rheobase_step_idx', inplace = True)
 
 # get cell IDs
@@ -54,13 +55,11 @@ darkmode_bool = True
 colors_dict, region_colors = get_colors(darkmode_bool)
 
 # initialize figure
-fig_cats, axs_cats = plt.subplots(nrows = 2,
+fig_cats, axs_cats = plt.subplots(nrows = 1,
                                   ncols = 3,
-                                  figsize = get_figure_size(),
+                                  figsize = get_figure_size(width = 247.752, height = 73.25),
                                   layout = 'constrained')
 
-# set font sizes
-set_font_sizes()
 
 # flatten numpy array of axis for easier handling
 axs_cats = axs_cats.flatten()
@@ -93,7 +92,7 @@ for idx, parameter in enumerate(IF_cat_df.columns):
                           ax = ax,
                           hue = 'Region', 
                           palette = region_colors,
-                          size = 5,
+                          size = 3,
                           color = colors_dict['primecolor'],
                           order = ['BAOT/MeA', 'MeA', 'BAOT'])
 
@@ -153,9 +152,14 @@ for idx, parameter in enumerate(IF_cat_df.columns):
 # x tick labels
 [ax.set_xlabel('') for ax in axs_cats]
 [ax.set_xticklabels(['BAOT/\nMeA', 'MeA', 'BAOT'], rotation = 45) for ax in axs_cats]
-[ax.set_xticklabels(['', '', '']) for ax in axs_cats[:3]]
+# [ax.set_xticklabels(['', '', '']) for ax in axs_cats[:3]]
 
-save_figures(fig_cats, 'ccIF-active_passive_properties', figure_dir, darkmode_bool)
+# set font sizes
+set_font_sizes(12)
+
+temp_fig_dir = 'C:/Users/nesseler/Desktop/TAC-presentation_data/ePhys'
+
+save_figures(fig_cats, 'ccIF-active_passive_properties', temp_fig_dir, darkmode_bool, figure_format='both')
 
 
 
@@ -163,14 +167,14 @@ save_figures(fig_cats, 'ccIF-active_passive_properties', figure_dir, darkmode_bo
 
 
 
-sbn.jointplot(data = plt_df[plt_df['Region'] == 'BAOT'], 
-              x = 'r_input', 
-              y = 'v_thres_rheobase_spike',
-              hue = 'Region', 
-              palette = region_colors)
+# sbn.jointplot(data = plt_df[plt_df['Region'] == 'BAOT'], 
+#               x = 'r_input', 
+#               y = 'v_thres_rheobase_spike',
+#               hue = 'Region', 
+#               palette = region_colors)
 
-# plt.xlim([0, 60])
-plt.xlim([0, 1750])
+# # plt.xlim([0, 60])
+# plt.xlim([0, 1750])
 
 
 
