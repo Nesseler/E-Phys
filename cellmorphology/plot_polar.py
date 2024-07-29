@@ -27,17 +27,27 @@ MetaData = pd.read_excel(table_file,
                          sheet_name="MetaData",
                          index_col='cell_ID')
 
-# extract only filenames with all coordinates
-onlyfiles_allcoor = [f for f in onlyfiles if 'all_coordinates' in f]
-onlyfiles_endcoor = [f for f in onlyfiles if 'last_coordinates' in f]
+
+# get cell_IDs from list of all coordinates filenames
+cell_IDs = [filename[:5] for filename in [f for f in onlyfiles if 'all_coordinates' in f]]
+
+# get all filenames
+filenames_df = pd.DataFrame({'all_coordinates_filename' : [f for f in onlyfiles if 'all_coordinates' in f],
+                             'terminal_points_coordinates_filename' : [f for f in onlyfiles if 'terminal_last_coordinates' in f],
+                             'primary_points_coordinates_filename' : [f for f in onlyfiles if 'primary_last_coordinates' in f],
+                             'soma_coordinates_filename' : [f for f in onlyfiles if 'soma_coordinates' in f]},
+                            index = cell_IDs)
+
+
+
+# %%
+
 
 vplots_bool = True
 
 # get colors
 darkmode_bool = False
 colors_dict, region_colors = get_colors(darkmode_bool)
-
-cell_IDs = []
 
 
 # dataframes for exporting
@@ -51,21 +61,22 @@ polar_plot_axons_occurrances = pd.DataFrame(columns = cell_IDs)
 
 # %%
 
-for cell_in_files in range(int(len(onlyfiles)/2)-1, 0, -1):
+
+for cell_ID in cell_IDs:
+    
+    print(f'Started {cell_ID}')
     
     try:
-
-        all_coor_filename = onlyfiles_allcoor[cell_in_files]
+        ## all coordinates
+        # get filename and load csv
+        all_coor_filename = filenames_df.at[cell_ID, 'all_coordinates_filename']
+        all_coordinates = pd.read_csv(join(cell_morph_traces_coordinates_dir, all_coor_filename))
         
-        
-        # get cell ID from filename
-        cell_ID = all_coor_filename[:5]
-        cell_IDs.append(cell_ID)
-        print(f'Started: {cell_ID}')
-        
-        # read all coordinates file
-        all_coordinates = pd.read_csv(join(cell_morph_traces_coordinates_dir, all_coor_filename)) 
-        end_coordinates = pd.read_csv(join(cell_morph_traces_coordinates_dir, onlyfiles_endcoor[cell_in_files])) 
+        ## terminal points
+        # get filename and load csv
+        end_coor_filename = filenames_df.at[cell_ID, 'terminal_points_coordinates_filename']
+        end_coordinates = pd.read_csv(join(cell_morph_traces_coordinates_dir, end_coor_filename)) 
+    
         
         # clean up dataframes
         clean_OnPath_column_to_path_ID_n_label(all_coordinates)

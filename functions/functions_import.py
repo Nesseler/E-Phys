@@ -30,3 +30,13 @@ def get_traceIndex_n_file(PGF = 'ccth1AP', cell_ID = 'E-092'):
     data_file_path_str = fr"{data_file_path}"
     
     return traceIndex, data_file_path_str
+
+
+
+
+def get_onlyfiles_list(dir_path):
+
+    from os import listdir
+    from os.path import isfile, join  
+
+    return [f for f in listdir(dir_path) if isfile(join(dir_path, f))]
