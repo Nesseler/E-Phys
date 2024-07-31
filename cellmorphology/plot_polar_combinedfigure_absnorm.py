@@ -21,7 +21,7 @@ from cellmorphology.functions_cellmorph import clean_OnPath_column_to_path_ID_n_
 
 # settings
 # get colors
-darkmode_bool = True
+darkmode_bool = False
 colors_dict, region_colors = get_colors(darkmode_bool)
 
 
@@ -33,9 +33,9 @@ MetaData = pd.read_excel(table_file,
 
 # %%
 
-cell_IDs = ['E-137']
+# cell_IDs = ['E-137']
 
-# cell_IDs = MetaData[MetaData['reconstructed'] == 1].index.to_list()
+cell_IDs = MetaData[MetaData['reconstructed'] == 1].index.to_list()
 
 for cell_ID in cell_IDs:
     
@@ -58,7 +58,7 @@ for cell_ID in cell_IDs:
     
     
     # end / last / terminal coordinates
-    last_coordinates_path = join(cell_morph_traces_coordinates_dir, f'{cell_ID}-last_coordinates.csv')
+    last_coordinates_path = join(cell_morph_traces_coordinates_dir, f'{cell_ID}-terminal_last_coordinates.csv')
     cell_endcoordinates = pd.read_csv(last_coordinates_path)
     clean_OnPath_column_to_path_ID_n_label(cell_endcoordinates)
     
@@ -80,10 +80,10 @@ for cell_ID in cell_IDs:
     
     # %% combined figure for one cell
     
-    fig_all, ax_all = plt.subplots(nrows = 2,
-                                   ncols = 2,
+    fig_all, ax_all = plt.subplots(nrows = 4,
+                                   ncols = 1,
                                    layout = 'constrained',
-                                   figsize = get_figure_size(width = 165.5))
+                                   figsize = get_figure_size(width = 36.25))
     
     # set figure title
     fig_all.suptitle(cell_ID)
@@ -223,8 +223,8 @@ for cell_ID in cell_IDs:
     cmap = mtl.cm.ScalarMappable(norm=norm, cmap=cmap_str)
     
     # colorbar
-    # fig_all.colorbar(cmap, ax = ax_all.flat[3], label = 'Terminal branch length [µm]', orientation='horizontal')
-    fig_all.colorbar(cmap, ax = ax_all.flat[3], label = 'Terminal branch length [µm]', orientation='vertical')
+    fig_all.colorbar(cmap, ax = ax_all.flat[3], label = 'Terminal branch\nlength [µm]', orientation='horizontal')
+    # fig_all.colorbar(cmap, ax = ax_all.flat[3], label = 'Terminal branch length [µm]', orientation='vertical')
     
     
     def plot_colorcoded_polar_normed(polar_occurances_df, max_n_neurites, ax):

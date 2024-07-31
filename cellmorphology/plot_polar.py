@@ -17,7 +17,7 @@ from parameters.directories_win import cell_morph_traces_coordinates_dir, cell_m
 from getter.get_onlyfiles_list import get_onlyfiles_list
 
 from functions.functions_plotting import get_colors, save_figures, set_font_sizes, get_figure_size
-from cellmorphology.functions_cellmorph import clean_OnPath_column_to_path_ID_n_label
+from cellmorphology.functions_cellmorph import clean_OnPath_column_to_path_ID_n_label, calc_length_of_branch
 
 # get onlyfiles list
 onlyfiles = get_onlyfiles_list(cell_morph_traces_coordinates_dir)
@@ -72,14 +72,15 @@ for cell_ID in cell_IDs:
         all_coor_filename = filenames_df.at[cell_ID, 'all_coordinates_filename']
         all_coordinates = pd.read_csv(join(cell_morph_traces_coordinates_dir, all_coor_filename))
         
+        # clean up dataframe
+        clean_OnPath_column_to_path_ID_n_label(all_coordinates)
+        
         ## terminal points
         # get filename and load csv
         end_coor_filename = filenames_df.at[cell_ID, 'terminal_points_coordinates_filename']
         end_coordinates = pd.read_csv(join(cell_morph_traces_coordinates_dir, end_coor_filename)) 
-    
         
-        # clean up dataframes
-        clean_OnPath_column_to_path_ID_n_label(all_coordinates)
+        # clean up dataframes   
         clean_OnPath_column_to_path_ID_n_label(end_coordinates)
            
         # check if x coordinates need to be flipped
@@ -89,8 +90,10 @@ for cell_ID in cell_IDs:
             end_coordinates['X'] = 590.76 - end_coordinates['X']
             
         # get soma coordinates
-        soma_coordinates = end_coordinates[end_coordinates['path_ID'] == 1]
-            
+        # soma_coordinates = end_coordinates[end_coordinates['path_ID'] == 1]
+        soma_coor_filename = filenames_df.at[cell_ID, 'soma_coordinates_filename']
+        soma_coordinates = pd.read_csv(join(cell_morph_traces_coordinates_dir, soma_coor_filename)) 
+        clean_OnPath_column_to_path_ID_n_label(soma_coordinates)
 
         
         
@@ -221,8 +224,8 @@ for cell_ID in cell_IDs:
         
         
         
-        # skip first to avoid the soma
-        for idx_end_point in end_coordinates.index[1:]:
+        # loop through terminal point coordinates and prepare exporting dataframe
+        for idx_end_point in end_coordinates.index:
             
             path_ID_end_point = end_coordinates.at[idx_end_point, 'path_ID']
             
@@ -337,37 +340,10 @@ for cell_ID in cell_IDs:
         
         # print(find_parent_path(13, path_IDs, all_coordinates))
         
-        # %%
-        
-        def calc_length_of_branch(branch_coor):
-            """ function calculates the length of an branch by the sum of all 3d
-            euclidean distances
-            https://en.wikipedia.org/wiki/Euclidean_distance
-            """
-        
-            # calculate the differences between points on each axis
-            diff = branch_coor.diff(axis = 0)
-            
-            # calculate the square of given distance
-            sq_diff = diff**2
-            
-            # calculate sum for each point to get distance
-            sum_sq_diff = sq_diff.sum(axis = 1)
-            
-            # calculate the square root of the sum of each difference squared
-            sqrt_sum_sq_diff = np.sqrt(sum_sq_diff)
-            
-            # calculate length as sum of all euclidean distances
-            length = sqrt_sum_sq_diff.sum()
-            
-            return length
-        
         
         # %% reconstruct branch terminal to soma
         
         ## list of all paths except current terminal path
-        # path_IDs = np.arange(1, n_paths + 1, 1)
-        
         terminal_path_IDs = end_coordinates['path_ID'][end_coordinates['path_ID'] != 1]
         
         for terminal_path_ID in terminal_path_IDs:
@@ -586,34 +562,6 @@ for cell_ID in cell_IDs:
                 save_figures(fig_branch, f'{cell_ID}_{terminal_path_ID}-terminal_branch_measurements', fig_branch_dir, darkmode_bool,
                              figure_format= 'both')
         
-        
-        # # %% 2D histogram of angle and length of terminal branches
-        
-        # # fig_hist, ax_hist = plt.subplots(subplot_kw={'projection': 'polar'})
-        # fig_hist, ax_hist = plt.subplots()
-        
-        # fig_hist.suptitle(cell_ID)
-        
-        # # get angles of branches
-        # branch_angles_rad = terminal_branches_df["angle_rad"].to_numpy()
-        
-        # ## start with double the number of desired binsizes to end up with histogram
-        # ## that doesnt split at 0
-        # # initialize values for histogram
-        # n_bins = 8
-        # binsize = (2 * np.pi) / n_bins
-        # hist_bins = np.arange(0, 2*np.pi + binsize, binsize)
-        
-        # # get histogram
-        # hist_angles_occu, bins_angles = np.histogram(branch_angles_rad, hist_bins)
-        
-        
-        
-        # # plot histogram as barplot
-        # ax_hist.bar(bins_angles[:-1], hist_angles_occu, width = binsize, align = 'edge')
-        
-        # ax_hist.set_xticks(bins_angles)
-        # ax_hist.set_xticklabels(np.arange(0, 360 + 1, 360 / n_bins, dtype = int), rotation = 45)
         
         # %% absolute polar plot
         # 2D histogram of angle and length of terminal branches
@@ -927,25 +875,7 @@ if True:
 
 print('Finished!')
 
-# %% todo list
 
-
-
-# necessary functions:
-    # coordinate in path
-        # output: in_path_bool, in_path_ID, idx_intersect
-
-
-# TODO:
-    # polar plot with length-colorcoded lines
-    # polar plot with histogram
-        # bin size (quaters or )
-    # histogram
-    # calc length of terminal branches
-        # get intersect points
-    
-    # get sizes of corresponding stack
-        ## append functionality to coordinates exporting script
 
     
 

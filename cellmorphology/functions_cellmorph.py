@@ -66,7 +66,31 @@ def calc_polar_histo_binangles(n_bins = 8):
     bin_angles = np.roll(bin_angles, 1)    
 
     return bin_angles
+
+
+def calc_length_of_branch(branch_coor):
+    """ function calculates the length of an branch by the sum of all 3d
+    euclidean distances
+    https://en.wikipedia.org/wiki/Euclidean_distance
+    """
+
+    # calculate the differences between points on each axis
+    diff = branch_coor.diff(axis = 0)
     
+    # calculate the square of given distance
+    sq_diff = diff**2
+    
+    # calculate sum for each point to get distance
+    sum_sq_diff = sq_diff.sum(axis = 1)
+    
+    # calculate the square root of the sum of each difference squared
+    sqrt_sum_sq_diff = np.sqrt(sum_sq_diff)
+    
+    # calculate length as sum of all euclidean distances
+    length = sqrt_sum_sq_diff.sum()
+    
+    return length
+
     
     
     
