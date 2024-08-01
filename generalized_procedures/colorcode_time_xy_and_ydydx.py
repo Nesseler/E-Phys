@@ -42,10 +42,13 @@ dydx = np.pad(dydx,
 ### time color coding ###
 
 # specify color map
-cmap = 'viridis'
+cmap_str = 'viridis'
 
 # min max normalize time for color-code
 norm = mtl.colors.Normalize(x.min(), x.max())
+
+# create mappable colormap object for colorbar
+cmap = mtl.cm.ScalarMappable(norm=norm, cmap=cmap_str)
 
 
 ## create first line collection for xy
@@ -57,7 +60,7 @@ segments_xy = np.concatenate([points_xy[:-1], points_xy[1:]], axis=1)
 
 # create a line collection
 # solution for plotting lots of individual lines
-lc_xy = mtl.collections.LineCollection(segments_xy, cmap=cmap, norm=norm)
+lc_xy = mtl.collections.LineCollection(segments_xy, cmap=cmap_str, norm=norm)
 
 # Set the values used for colormapping
 # in this case use x (time) component
@@ -73,7 +76,7 @@ segments_ydydx = np.concatenate([points_ydydx[:-1], points_ydydx[1:]], axis=1)
 
 # create a line collection
 # solution for plotting lots of individual lines
-lc_ydydx = mtl.collections.LineCollection(segments_ydydx, cmap=cmap, norm=norm)
+lc_ydydx = mtl.collections.LineCollection(segments_ydydx, cmap=cmap_str, norm=norm)
 
 # Set the values used for colormapping
 # in this case use x (time) component
@@ -84,6 +87,9 @@ lc_ydydx.set_array(x)
 ### plotting ###
 fig, axs = plt.subplots(nrows = 1, ncols = 2,
                         layout = 'constrained')
+
+# colorbar
+fig.colorbar(cmap, ax = axs[-1], orientation = 'vertical')
 
 # plot amplitude vs time
 lines_xy = axs[0].add_collection(lc_xy)

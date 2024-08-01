@@ -82,18 +82,19 @@ for cell_ID in cell_IDs:
         
         # clean up dataframes   
         clean_OnPath_column_to_path_ID_n_label(end_coordinates)
-           
-        # check if x coordinates need to be flipped
-        if MetaData.at[cell_ID, 'to_be_x_flipped']:
-            print('flipping x coordinates')
-            all_coordinates['X'] = 590.76 - all_coordinates['X']
-            end_coordinates['X'] = 590.76 - end_coordinates['X']
             
         # get soma coordinates
         # soma_coordinates = end_coordinates[end_coordinates['path_ID'] == 1]
         soma_coor_filename = filenames_df.at[cell_ID, 'soma_coordinates_filename']
         soma_coordinates = pd.read_csv(join(cell_morph_traces_coordinates_dir, soma_coor_filename)) 
         clean_OnPath_column_to_path_ID_n_label(soma_coordinates)
+        
+        # check if x coordinates need to be flipped
+        if MetaData.at[cell_ID, 'to_be_x_flipped']:
+            print('flipping x coordinates')
+            all_coordinates['X'] = 590.76 - all_coordinates['X']
+            end_coordinates['X'] = 590.76 - end_coordinates['X']
+            soma_coordinates['X'] = 590.76 - soma_coordinates['X']
 
         
         

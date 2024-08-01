@@ -277,6 +277,14 @@ def return_segments(x, ys):
 
 
 
+# define function to change projection type of subplot specific subplot
+def change_projection(fig, axs, ax_tochange, projection = 'polar'):
+
+    rows, cols, start, stop = ax_tochange.get_subplotspec().get_geometry()
+
+    axs.flat[start].remove()
+    axs.flat[start] = fig.add_subplot(rows, cols, start+1, projection=projection)
+    
 
     
     
