@@ -223,8 +223,8 @@ for neurite_type in ['axons']:
 
     # y
     ymin = 0
-    ymax = 2
-    ystep = 2
+    ymax = 4
+    ystep = 4
     ystepminor = 1
     ax.set_ylim(ymin, ymax)
     ax.set_yticks(ticks=np.arange(ymin, ymax + ystep, ystep))
@@ -386,8 +386,8 @@ for neurite_type in ['axons']:
 
     # y
     ymin = 0
-    ymax = 2
-    ystep = 2
+    ymax = 4
+    ystep = 4
     ystepminor = 1
     ax.set_ylim(ymin, ymax)
     ax.set_yticks(ticks=np.arange(ymin, ymax + ystep, ystep))
@@ -490,11 +490,13 @@ for axs_idx, metric in order_dict.items():
                              y=metric,
                              hue='Region',
                              bw=0.4,
+                             split = True,
+                             gap = 0.2, 
                              inner='quart',
                              ax=ax,
                              linewidth=1,
                              palette=region_colors,
-                             gap=0.1)
+                             zorder = 1)
 
     # edit lines of quarts
     for v_idx in np.arange(len(order_dict.items()) * len(sholl_metrics_plot_df['Region'].drop_duplicates())):
@@ -526,7 +528,36 @@ for axs_idx, metric in order_dict.items():
                           ax=ax,
                           size=2,
                           color=colors_dict['primecolor'],
-                          dodge=True)
+                          dodge=True,
+                          zorder = 2)
+    
+    # errorbar
+    for neurite_idx, neurite_type in enumerate(neurite_types):
+        for region_x, region in zip([-0.07, +0.07], ['MeA', 'BAOT']):
+            
+            
+            if neurite_type == 'axons':
+                cur_cell_IDs_dict = cell_IDs_w_axon_dict
+            else:
+                cur_cell_IDs_dict = cell_IDs_dict
+            
+            # data set per type and region for mean and std calculation
+            sholl_metric_per_type_n_region = sholl_metrics[neurite_type].loc[cur_cell_IDs_dict[region], :]
+            sholl_metric_mean = sholl_metric_per_type_n_region[metric].mean()
+            sholl_metric_std = sholl_metric_per_type_n_region[metric].std()
+            
+            ax.errorbar(x = neurite_idx + region_x,
+                        y = sholl_metric_mean,
+                        yerr = sholl_metric_std,
+                        fmt='_', 
+                        markersize = 6,
+                        markerfacecolor = 'none',
+                        capsize = 2,
+                        color=region_colors[region],
+                        linewidth = 1,
+                        label = '_nolegend_',
+                        zorder = 3)
+    
 
     # edit seaborn legend
     ax.legend().set_visible(False)
@@ -563,7 +594,7 @@ for axs_idx, metric in order_dict.items():
     # define ypad relative to range
     ypad = (ymax - ymin) * 0.03
 
-    # apply x axis settings
+    # apply y axis settings
     ax.set_ylim(ymin - ypad, ymax)
     ax.set_yticks(ticks=np.arange(ymin, ymax + ystep, ystep))
     ax.set_yticks(ticks=np.arange(
@@ -651,6 +682,7 @@ for region in ['MeA', 'BAOT']:
                    y=sholl_metrics[neurite_type].loc[plt_cell_IDs[region]]['critical_radius'],
                    color=cmap.to_rgba(sholl_metrics[neurite_type].loc[plt_cell_IDs[region]]['max_intersections']),
                    s=15)
+        
         
         # edit main plot axes
         # x
