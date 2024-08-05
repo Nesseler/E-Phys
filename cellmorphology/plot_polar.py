@@ -861,7 +861,7 @@ for cell_ID in cell_IDs:
  
 # %% save dataframe
 
-if True:
+if False:
 
     # reset index with orientation angle of bins in rad
     polar_plot_occurrances.index = bins_angles

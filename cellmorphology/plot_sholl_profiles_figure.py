@@ -490,8 +490,6 @@ for axs_idx, metric in order_dict.items():
                              y=metric,
                              hue='Region',
                              bw=0.4,
-                             split = True,
-                             gap = 0.2, 
                              inner='quart',
                              ax=ax,
                              linewidth=1,
@@ -533,7 +531,7 @@ for axs_idx, metric in order_dict.items():
     
     # errorbar
     for neurite_idx, neurite_type in enumerate(neurite_types):
-        for region_x, region in zip([-0.07, +0.07], ['MeA', 'BAOT']):
+        for region_x, region in zip([-0.2, +0.2], ['MeA', 'BAOT']):
             
             
             if neurite_type == 'axons':

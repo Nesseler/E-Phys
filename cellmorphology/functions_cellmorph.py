@@ -65,7 +65,7 @@ def calc_polar_histo_binangles(n_bins = 8):
     # roll bin borders
     bin_angles = np.roll(bin_angles, 1)    
 
-    return bin_angles
+    return bin_angles, bin_stepsize
 
 
 def calc_length_of_branch(branch_coor):
@@ -91,6 +91,52 @@ def calc_length_of_branch(branch_coor):
     
     return length
 
+
+def plot_colorcoded_polar_normed(polar_occurances_df, max_n_neurites, ax, n_bins, cmap):
+    """
+    Function uses terminal_brances dataframe to plot the occurrances of branches color-coded in 
+    polar plots.
+    """
     
+    # get bins angles and binsize
+    bins_angles, binsize = calc_polar_histo_binangles(n_bins)
+    
+    # define array with number of previouse numbers of branches in bin
+    bottom = [0] * n_bins
+    
+    # skip (drop) path 1, i.e. soma
+    if 1 in polar_occurances_df.index.to_list():
+        branch_idc = polar_occurances_df.drop(index = 1).index.to_list()
+    else:
+        branch_idc = polar_occurances_df.index.to_list()
+    
+    # loop through all branches to assign specific color for length            
+    for branch_idx in branch_idc:
+    
+        # get angles of branches
+        branch_length = polar_occurances_df.at[branch_idx, "length"]
+        branch_bin = polar_occurances_df.at[branch_idx, "bin_id"].astype(int)
+        
+        # create empty bins and assign branch to bin
+        hist_angles_occu = [0] * n_bins
+        hist_angles_occu[branch_bin] = 1 / max_n_neurites
+        
+        # plot histogram as barplot
+        ax.bar(bins_angles, hist_angles_occu, bottom = bottom,
+                width = binsize, 
+                align = 'edge',
+                edgecolor = 'none',
+                color = cmap.to_rgba(branch_length))
+            
+        # add to bottom list for next step
+        bottom = np.add(bottom, hist_angles_occu)
+
+    return bottom
+    
+
+
+
+
+
     
     

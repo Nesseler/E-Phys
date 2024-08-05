@@ -12,7 +12,6 @@ from parameters.directories_win import cell_morph_descrip_dir, table_file, cell_
 
 
 
-
 # load metadata
 MetaData = pd.read_excel(table_file,
                          sheet_name="MetaData",
@@ -181,6 +180,7 @@ for region in ['all', 'MeA', 'BAOT']:
 
 from functions.functions_plotting import save_figures, get_colors, get_figure_size, set_font_sizes, change_projection
 from cellmorphology.cellmorph_colors import neurite_color_dict
+from inspect import cleandoc as indentstring # package for multiline string with indentation
 
 # set colors
 darkmode_bool = False
@@ -194,25 +194,7 @@ neurite_types = ['neurites', 'dendrites', 'axons']
 regions = ['all', 'MeA', 'BAOT']
 
 
-# %% figure
-
-# polar histogram 
-fig_norm, axs_norm = plt.subplots(nrows = 4,
-                                  ncols = 3,
-                                  layout = 'tight',
-                                  figsize = get_figure_size(width = 150, height = 220),
-                                  dpi = 600)
-
-# flatten axes array
-axs_norm = axs_norm.flatten()
-
-### polar plots ###
-
-# change projection for polar plots
-for ax in axs_norm[:9]:
-    change_projection(fig_norm, axs_norm, ax, projection = 'polar')
-    
-# set dicts for plot (region, neurite_types)
+# %% set dicts for plot (region, neurite_types)
 occs_dict = {'all' : {'neurites'  : ALL_pp_normed_toneurites_mean_occs,
                       'dendrites' : ALL_pp_normed_totype_mean_occs['dendrites'],
                       'axons'     : ALL_pp_normed_totype_mean_occs['axons']},
@@ -240,12 +222,32 @@ alpha_labels_dict = {'all' : {'neurites'   : '$\mathregular{A_{i}}$',
                               'dendrites'  : '$\mathregular{C_{ii}}$',
                               'axons'      : '$\mathregular{C_{iii}}$'},
                       'n_terminals' : {'neurites'   : '$\mathregular{D_{i}}$',
-                                       'dendrites'  : '$\mathregular{D_{ii}}$',
-                                       'axons'      : '$\mathregular{D_{iii}}$'}}
+                                        'dendrites'  : '$\mathregular{D_{ii}}$',
+                                        'axons'      : '$\mathregular{D_{iii}}$'}}
 
+# set spaces dict for title of axes 
+spaces_dict = {'neurites' : '     ', 'dendrites' : '      ', 'axons' : '       '}
+
+# %% figure
+
+# polar histogram 
+fig_norm, axs_norm = plt.subplots(nrows = 4,
+                                  ncols = 3,
+                                  layout = 'constrained',
+                                  figsize = get_figure_size(width = 150, height = 220),
+                                  dpi = 600)
+
+# flatten axes array
+axs_norm = axs_norm.flatten()
+
+### polar plots ###
+
+# change projection for polar plots
+for ax in axs_norm[:9]:
+    change_projection(fig_norm, axs_norm, ax, projection = 'polar')
+    
 # set polar_plot idx
 polar_idx = 0
-
 
 # loop through regions (rows)
 for region in regions:
@@ -259,14 +261,23 @@ for region in regions:
         # set axis title region label
         if region == 'all':
             region_label = 'Both regions'
+            
+            # set title label
+            title_label = f"{alpha_labels_dict[region][neurite_type]}: {region_label}\n{spaces_dict[neurite_type]}{neurite_type}"
+            
+            # set axis title
+            ax.set_title(title_label,
+                          fontsize=12, 
+                          loc='left',
+                          x = -0.4)           
+            
         else:
             region_label = region
-            
-        # set axis title
-        ax.set_title(alpha_labels_dict[region][neurite_type] + ': ' + region_label + ' ' + neurite_type,
-                      fontsize=9, 
-                      loc='left',
-                      x = -0.4)
+            # set axis title
+            ax.set_title(alpha_labels_dict[region][neurite_type] + ': ' + region_label + ' ' + neurite_type,
+                          fontsize=12, 
+                          loc='left',
+                          x = -0.4)
         
         # iterate on polar index
         polar_idx += 1
@@ -282,7 +293,8 @@ for region in regions:
                     width = resul_binsize, 
                     align = 'edge',
                     edgecolor = 'none',
-                    color = neurite_color_dict[region]['dendrites'])
+                    color = neurite_color_dict[region]['dendrites'],
+                    zorder = 2)
             
             # axons normed to all neurites (top)
             ax.bar(bins_angles, occs_dict[region]['neurites']['axons'],
@@ -290,43 +302,43 @@ for region in regions:
                     width = resul_binsize, 
                     align = 'edge',
                     edgecolor = 'none',
-                    color = neurite_color_dict[region]['axons'])
+                    color = neurite_color_dict[region]['axons'],
+                    zorder = 2)
             
         else:
             ax.bar(bins_angles, occu,
                     width = resul_binsize, 
                     align = 'edge',
                     edgecolor = 'none',
-                    color = neurite_color_dict[region][neurite_type])  
+                    color = neurite_color_dict[region][neurite_type],
+                    zorder = 2)  
            
 
 ### y axis
 
 # neurites
-for ax in axs_norm[:3]:
-    ax.set_yticks(ticks = np.arange(0, 0.30 + 0.01, 0.05), labels = ['', '', '', '15 %', '', '', '30 %'])
+for ax in axs_norm[:9:3]:
+    ax.set_yticks(ticks = np.arange(0, 0.30 + 0.01, 0.05), labels = ['', '', '', '15 %', '', '', '30 %'], zorder = 3)
     ax.set_rlabel_position(80)
 
 # dendrites
-for ax in axs_norm[3:6]:
-    ax.set_yticks(ticks = np.arange(0, 0.25 + 0.01, 0.05), labels = ['', '', '10 %', '', '20 %', ''])
+for ax in axs_norm[1:9:3]:
+    ax.set_yticks(ticks = np.arange(0, 0.25 + 0.01, 0.05), labels = ['', '', '10 %', '', '20 %', ''], zorder = 3)
     ax.set_rlabel_position(80)
 
 # axons
-for ax in axs_norm[6:9]:
-    ax.set_yticks(ticks = np.arange(0, 0.35 + 0.01, 0.05), labels = ['', '', '', '15 %', '', '', '30 %', ''], va = 'top')
+for ax in axs_norm[2:9:3]:
+    ax.set_yticks(ticks = np.arange(0, 0.35 + 0.01, 0.05), labels = ['', '', '', '15 %', '', '', '30 %', ''], va = 'top', zorder = 3)
     ax.set_rlabel_position(-80)
 
 
 ### x axis
 for ax in axs_norm[:9]:
     # x axis
-    ax.set_xticks(np.arange(0, np.pi*2, np.pi / 4))
-    ax.set_xticklabels(orientation_labels)
-
+    ax.set_xticks(ticks = np.arange(0, np.pi*2, np.pi / 4), labels = orientation_labels, zorder = 3)
 
     # grid
-    ax.grid(True, alpha = 0.5, color = 'gray')
+    ax.grid(True, alpha = 0.5, color = 'gray', zorder = 0)
     ax.set_axisbelow(True)     
         
 
@@ -343,8 +355,8 @@ for neurite_idx, neurite_type in enumerate(neurite_types):
     ax = axs_norm[neurite_idx + 9]  
     
     # set axis title
-    ax.set_title(alpha_labels_dict['n_terminals'][neurite_type] + ': ' + neurite_type,
-                  fontsize=9, 
+    ax.set_title(alpha_labels_dict['n_terminals'][neurite_type] + ': ' + neurite_type.title(),
+                  fontsize=12, 
                   loc='left',
                   x = -0.4)
     
@@ -362,14 +374,14 @@ for neurite_idx, neurite_type in enumerate(neurite_types):
       
     # violin plots   
     violins = sbn.violinplot(data = violin_data,
-                             x = 'Region', 
-                             y = 'n_terminal_points',
-                             hue = True, hue_order=[True, False], split = True,
-                             ax = ax, 
-                             scale='width',
-                             inner='quart',
-                             linewidth = 1,
-                             order = ['both_regions', 'MeA', 'BAOT'])
+                              x = 'Region', 
+                              y = 'n_terminal_points',
+                              hue = True, hue_order=[True, False], split = True,
+                              ax = ax, 
+                              scale='width',
+                              inner='quart',
+                              linewidth = 1,
+                              order = ['both_regions', 'MeA', 'BAOT'])
     
     # edit lines of quarts
     for r_idx, region in enumerate(['all', 'MeA', 'BAOT']):
@@ -405,7 +417,7 @@ for neurite_idx, neurite_type in enumerate(neurite_types):
                     markersize = 6,
                     markerfacecolor = 'none',
                     capsize = 2,
-                    color=colors_dict['primecolor'],
+                    color=neurite_color_dict[region][neurite_type],
                     linewidth = 1,
                     label = '_nolegend_')
     

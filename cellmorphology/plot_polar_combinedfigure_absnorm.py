@@ -33,7 +33,7 @@ MetaData = pd.read_excel(table_file,
 
 # %%
 
-# cell_IDs = ['E-137']
+# cell_IDs = ['E-065']
 
 cell_IDs = MetaData[MetaData['reconstructed'] == 1].index.to_list()
 
@@ -152,8 +152,8 @@ for cell_ID in cell_IDs:
     
     # initilize polar histogram
     n_bins = 8
-    binsize = (2 * np.pi) / n_bins
-    bins_angles = calc_polar_histo_binangles(n_bins)
+    # binsize = (2 * np.pi) / n_bins
+    bins_angles, binsize = calc_polar_histo_binangles(n_bins)
     
     # get total number of neurites in bin
     total_n_neurites = terminal_branches_df.drop(index = 1).shape[0]
