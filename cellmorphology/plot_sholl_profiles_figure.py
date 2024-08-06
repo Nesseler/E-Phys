@@ -7,8 +7,8 @@ Created on Wed Jul 31 10:17:07 2024
 
 # general packages
 from cellmorphology.cellmorph_colors import neurite_color_dict
-from functions.functions_plotting import get_colors, save_figures, set_font_sizes, get_figure_size
-from cellmorphology.cellmorph_packages import *
+from functions.functions_plotting import get_colors, save_figures, get_figure_size
+from cellmorphology.cellmorph_packages import mtl, plt, sbn, pd, np, join
 
 # script specific directories / parameters / functions
 from parameters.directories_win import cell_morph_descrip_dir, table_file, cell_morph_plots_dir

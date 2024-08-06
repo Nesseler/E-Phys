@@ -100,7 +100,7 @@ for cell_ID in cell_IDs:
     print(f'{cell_ID} done')
     
 # save dataframe
-total_cable_length_df.to_excel(join(cell_morph_descrip_dir, 'total_cable_length.xlsx'), index_label= 'path_ID')
+total_cable_length_df.to_excel(join(cell_morph_descrip_dir, 'total_cable_length.xlsx'), index_label= 'cell_ID')
 
 # feedback
 print('Finished!')
