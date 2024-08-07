@@ -249,4 +249,4 @@ if vplots:
 
 # %% save dataframe
 
-# height_width_df.to_excel(join(cell_morph_descrip_dir, 'height_width.xlsx'), index_label='cell_ID')
+height_width_df.to_excel(join(cell_morph_descrip_dir, 'height_width.xlsx'), index_label='cell_ID')

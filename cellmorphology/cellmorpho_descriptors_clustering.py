@@ -67,6 +67,16 @@ total_cable_length_cols = [col for col in total_cable_length.columns.to_list() i
 cellmorph_descriptors = pd.concat([cellmorph_descriptors, total_cable_length[total_cable_length_cols]], axis = 1)
 
 
+# rename columns to unify naming scheme
+for neurite_prefix, neurite_type in zip(['dendritic', 'axonic'], neurite_types[1:]):
+
+    cellmorph_descriptors.rename(columns = {f'{neurite_prefix}_primaries'         : f'{neurite_type}-n_primaries', 
+                                            f'{neurite_prefix}_terminals'         : f'{neurite_type}-n_terminals',
+                                            f'bifurcation_ratio_{neurite_prefix}' : f'{neurite_type}-bifurcation_ratio',
+                                            f'total_cable_length-{neurite_type}'  : f'{neurite_type}-total_cable_length'},
+                                            inplace = True)
+
+
 # %% load critical and enclosing radius and max number of intersections
 
 # load
@@ -88,6 +98,18 @@ for neurite_type in ['dendrites', 'axons']:
 
     # concatenate to descriptors
     cellmorph_descriptors = pd.concat([cellmorph_descriptors, sholl_metrics_pertype], axis = 1)
+ 
+
+# %% load circular means data
+
+# load
+circular_means = pd.read_excel(join(cell_morph_descrip_dir, 'circular_means.xlsx'), index_col = 'cell_ID')
+
+# filter out neurites
+circular_means_cols = [col for col in circular_means.columns.to_list() if 'neurites' not in col]
+
+# concat
+cellmorph_descriptors = pd.concat([cellmorph_descriptors, circular_means[circular_means_cols]], axis = 1)
     
 
 # %% load AIS data
@@ -112,14 +134,30 @@ cellmorph_descriptors = pd.concat([cellmorph_descriptors, axon_data['AIS distanc
 # load
 spines_df = pd.read_excel(join(cell_morph_descrip_dir, 'spines.xlsx'), index_col='cell_ID')
 
+# %%
 
-# %% remove cells that do not contain all analysed values
-
+# remove cells that do not contain all analysed values
 cellmorph_descriptors.drop(index = ['E-126', 'E-158'], inplace = True)
 
-# %% replace nan values in cell descriptor table
-
+# replace nan values in cell descriptor table
 cellmorph_descriptors.fillna(value = 0, inplace = True)
+
+
+# %% sort column names after their name
+sorted_columns = []
+
+for neurite_type in ['dendrites', 'axons']:
+    
+    for col_parameter in ['width', 'height', 'n_primaries', 'n_terminals', 'bifurcation_ratio', 'total_cable_length', 'critical_radius', 'enclosing_radius', 'max_intersections', 'circmean']:
+    
+        sorted_columns.append(f'{neurite_type}-{col_parameter}')
+
+# append last column
+sorted_columns.append('AIS distance to soma')
+
+# apply sorting
+cellmorph_descriptors = cellmorph_descriptors[sorted_columns]
+
 
 # %% normalise cell descriptors
 
@@ -128,11 +166,6 @@ cellmorph_descriptors_minmax = (cellmorph_descriptors - cellmorph_descriptors.mi
 
 # z-score cellmorph matrix
 cellmorph_descriptors_zscored = (cellmorph_descriptors - cellmorph_descriptors.mean()) / cellmorph_descriptors.std()
-
-
-# %% sort dataframe
-
-# cellmorph_descriptors_zscored.sort_values(['total_cable_length-axons'], inplace = True)
 
 
 # %% initialize plotting
@@ -488,7 +521,7 @@ sbn.heatmap(data= cellmorph_descriptors_corr,
 axs_corr_heat[0].set_title('A: Pearson correlation coefficient',
                            fontsize=12, 
                            loc='left',
-                           x = -0.62)
+                           x = -0.63)
 
 
 # plot heatmap with values above threshold only
@@ -497,9 +530,21 @@ corr_threshold = 0.8
 # replace values in dataframe below threshold with nan
 cellmorph_descriptors_corr_thresh = cellmorph_descriptors_corr[(cellmorph_descriptors_corr > corr_threshold) | (cellmorph_descriptors_corr < -corr_threshold)]
 
+
+# define boundaries for color map with threshold
+color_boundaries = [-1, -corr_threshold, corr_threshold, 1]
+n_color = len(color_boundaries) -1
+
+norm = mtl.colors.BoundaryNorm(boundaries = [-1, -corr_threshold, corr_threshold, 1], ncolors=n_color)
+
+cmap = plt.get_cmap(cmap_str, n_color)
+
+
+
 # plot heatmap of correlation values
-sbn.heatmap(data= cellmorph_descriptors_corr_thresh,
-            cmap = cmap_str,
+sbn.heatmap(data= cellmorph_descriptors_corr,
+            cmap = cmap,
+            norm = norm,
             vmin = -1,
             vmax = 1,
             annot = False,
@@ -510,39 +555,129 @@ sbn.heatmap(data= cellmorph_descriptors_corr_thresh,
 axs_corr_heat[1].set_title(r'B: Pearson correlation coefficient $\pm$' + str(corr_threshold),
                            fontsize=12, 
                            loc='left',
-                           x = -0.62)
+                           x = -0.63)
 
 plt.show()
 
 
 # %%
-# sbn.pairplot(cellmorph_descriptors, kind="reg")
-# plt.show()
+
+sbn.clustermap(data = cellmorph_descriptors_zscored,
+                method = 'ward',
+                col_cluster=False,
+                cbar_pos=(0.02, 0.2, 0.05, 0.18))
+
+plt.show()
 
 
 
 
 
+# %% heatmap pre clustering
 
-# %% heatmap
-
-
+# initialise figure
 fig_heat, ax_heat = plt.subplots(nrows = 1,
                                   ncols = 1,
                                   layout = 'constrained',
-                                  figsize = get_figure_size(width = 150, height = 125),
+                                  figsize = get_figure_size(width = 150, height = 150),
                                   dpi = 600)
 
+#set figure title
+fig_heat.suptitle('Cell morphology parameters pre-clustering', fontsize = 12)
 
+# set min and max of heatmap
+heatmin = -2
+heatmax = 2
+
+# plot heatmap
 sbn.heatmap(cellmorph_descriptors_zscored,
-            vmin = -2,
-            vmax = 2,
+            vmin = heatmin,
+            vmax = heatmax,
             square = False, 
             ax = ax_heat, 
             cmap="flare_r", 
             yticklabels=False,
-            linewidth = 0) 
+            linewidth = 0,
+            cbar_kws={'label': 'Z-scored parameter value [std]', 'ticks' : np.arange(heatmin, heatmax+1, 1)}) 
 
     
+# show plot
+plt.show()
+
+
+# %% hierarchical clustering
+
+from scipy.cluster.hierarchy import linkage, dendrogram
+from scipy.cluster.hierarchy import fcluster
+
+# set scaling method
+scaling = 'zscored'
+
+# set dict for clustering parameters
+clustering_data_dict = {'minmax' : {'df' : cellmorph_descriptors_minmax, 'heatmin' : 0, 'heatmax'  : 1, 'cbar_label' : 'Min-max normalized'},
+                        'zscored': {'df' : cellmorph_descriptors_zscored, 'heatmin' : -2, 'heatmax'  : 4, 'cbar_label' : 'Z-scored parameter value [std]'}}
+
+# set variables
+df_tocluster, heatmin, heatmax, cbar_label = clustering_data_dict[scaling].values()
+
+
+ward_clustering_linkage = linkage(df_tocluster, method="ward", metric="euclidean")
+
+
+
+# initialise figure
+fig_dendro_heat, ax_dendro_heat = plt.subplots(nrows = 1,
+                                               ncols = 2,
+                                               layout = 'constrained',
+                                               figsize = get_figure_size(width = 150, height = 200),
+                                               dpi = 600,
+                                               width_ratios=[0.2, 0.8])
+
+# dendrogram
+
+# set axis
+ax = ax_dendro_heat[0]
+
+# set linewidths
+mtl.rcParams['lines.linewidth'] = 1
+
+# plot dendrogram
+dendrogram = dendrogram(Z = ward_clustering_linkage, 
+                        labels = df_tocluster.index, 
+                        ax = ax,
+                        orientation = 'left')
+
+# get cell IDs of leaves
+leave_cell_IDs = dendrogram['ivl'][::-1]
+
+# resort dataframe indices
+df_tocluster_clustered = df_tocluster.reindex(leave_cell_IDs)
+
+# remove spines
+[ax.spines[spine].set_visible(False) for spine in ['top', 'right', 'left']]
+
+
+# heatmap
+
+# set axis
+ax = ax_dendro_heat[1]
+
+
+# plot heatmap
+sbn.heatmap(df_tocluster_clustered,
+            vmin = heatmin,
+            vmax = heatmax,
+            square = False, 
+            xticklabels= 1,
+            ax = ax, 
+            cmap="flare_r", 
+            yticklabels=False,
+            linewidth = 0,
+            cbar_kws={'label': cbar_label, 'ticks' : np.arange(heatmin, heatmax+1, 1), 'aspect' : 50}) 
+
+
+
+
+
 # show plot
 plt.show()
