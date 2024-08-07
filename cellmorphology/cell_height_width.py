@@ -119,7 +119,7 @@ mtl.rcParams.update({'font.size': 9})
 
 
 
-cell_ID = 'E-087'
+cell_ID = 'E-089'
 
 vplots = True
 
@@ -249,4 +249,4 @@ if vplots:
 
 # %% save dataframe
 
-height_width_df.to_excel(join(cell_morph_descrip_dir, 'height_width.xlsx'), index_label='cell_ID')
+# height_width_df.to_excel(join(cell_morph_descrip_dir, 'height_width.xlsx'), index_label='cell_ID')

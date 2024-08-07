@@ -113,6 +113,14 @@ cellmorph_descriptors = pd.concat([cellmorph_descriptors, axon_data['AIS distanc
 spines_df = pd.read_excel(join(cell_morph_descrip_dir, 'spines.xlsx'), index_col='cell_ID')
 
 
+# %% remove cells that do not contain all analysed values
+
+cellmorph_descriptors.drop(index = ['E-126', 'E-158'], inplace = True)
+
+# %% replace nan values in cell descriptor table
+
+cellmorph_descriptors.fillna(value = 0, inplace = True)
+
 # %% normalise cell descriptors
 
 # min-max normalize cellmorph matrix
@@ -151,11 +159,11 @@ fig_heat, ax_heat = plt.subplots(nrows = 1,
 
 
 sbn.heatmap(cellmorph_descriptors_zscored,
-            vmin = -4,
-            vmax = 4,
+            vmin = -2,
+            vmax = 2,
             square = False, 
             ax = ax_heat, 
-            cmap="bwr", 
+            cmap="flare_r", 
             yticklabels=False,
             linewidth = 0) 
 
