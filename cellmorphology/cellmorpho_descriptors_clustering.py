@@ -7,7 +7,7 @@ Created on Tue Aug  6 17:22:45 2024
 
 from cellmorphology.cellmorph_packages import mtl, plt, sbn, pd, np, join
 
-from parameters.directories_win import table_file, cell_morph_descrip_dir
+from parameters.directories_win import table_file, cell_morph_descrip_dir, cell_morph_plots_dir
 
 # load metadata
 MetaData = pd.read_excel(table_file,
@@ -20,6 +20,9 @@ cell_IDs = MetaData[MetaData['reconstructed'] == 1].index.to_list()
 # set list of neurite types
 neurite_types = ['neurites', 'dendrites', 'axons']
 
+# set directory for clustering figures
+cellmorph_clustering_fig_dir = join(cell_morph_plots_dir, 'clustering')
+
 
 # %%
 
@@ -31,7 +34,7 @@ cellmorph_descriptors.index.name = 'cell_ID'
 # %% load height & width
 
 # load
-height_width = pd.read_excel(join(cell_morph_descrip_dir, 'height_width.xlsx'), index_col = 'cell_IDs')
+height_width = pd.read_excel(join(cell_morph_descrip_dir, 'height_width.xlsx'), index_col = 'cell_ID')
 
 # get list of columns to use
 height_width_cols = [col for col in height_width.columns.to_list() if 'width' in col and 'neurites' not in col or 'height' in col and 'neurites' not in col]
@@ -140,13 +143,15 @@ spines_df = pd.read_excel(join(cell_morph_descrip_dir, 'spines.xlsx'), index_col
 cellmorph_descriptors.drop(index = ['E-126', 'E-158'], inplace = True)
 
 # replace nan values in cell descriptor table
-cellmorph_descriptors.fillna(value = 0, inplace = True)
+# cellmorph_descriptors.fillna(value = 0, inplace = True)
+
+cellmorph_descriptors = cellmorph_descriptors.dropna(axis=0)
 
 
 # %% sort column names after their name
 sorted_columns = []
 
-for neurite_type in ['dendrites', 'axons']:
+for neurite_type in ['dendrites']: ### !!!!axons
     
     for col_parameter in ['width', 'height', 'n_primaries', 'n_terminals', 'bifurcation_ratio', 'total_cable_length', 'critical_radius', 'enclosing_radius', 'max_intersections', 'circmean']:
     
@@ -166,6 +171,22 @@ cellmorph_descriptors_minmax = (cellmorph_descriptors - cellmorph_descriptors.mi
 
 # z-score cellmorph matrix
 cellmorph_descriptors_zscored = (cellmorph_descriptors - cellmorph_descriptors.mean()) / cellmorph_descriptors.std()
+
+
+from scipy.stats import circmean, circstd
+
+# exception in zscoring for circular mean
+for neurite_type in ['dendrites']:  ### !!!!axons
+    
+    # get list of circular means
+    circ_means_pertype = cellmorph_descriptors[f'{neurite_type}-circmean']
+    
+    # calc circular mean and std of means
+    population_circ_mean = circmean(circ_means_pertype)
+    population_circ_std = circstd(circ_means_pertype)
+    
+    cellmorph_descriptors_zscored[f'{neurite_type}-circmean'] = [(cell_circ_mean - population_circ_mean) / population_circ_std for cell_circ_mean in circ_means_pertype]
+
 
 
 # %% initialize plotting
@@ -486,8 +507,14 @@ for data_idx, data_df in enumerate([cellmorph_descriptors, cellmorph_descriptors
 # align labels
 fig_dist_all.align_labels()
     
-# show plot
-plt.show
+# show figure
+plt.show()
+
+# save figure
+save_figures(fig_dist_all, 'hierarchical_clustering-parameter_distributions-all', 
+             save_dir = cellmorph_clustering_fig_dir,
+             darkmode_bool= darkmode_bool,
+             figure_format= 'png')
 
 
 # %% correlation analysis
@@ -497,7 +524,7 @@ plt.show
 fig_corr_heat, axs_corr_heat = plt.subplots(nrows = 2,
                                             ncols = 1,
                                             layout = 'constrained',
-                                            figsize = get_figure_size(width = 150, height = 225),
+                                            figsize = get_figure_size(width = 160, height = 225),
                                             dpi = 600,
                                             sharey = True,
                                             sharex = True)
@@ -521,7 +548,7 @@ sbn.heatmap(data= cellmorph_descriptors_corr,
 axs_corr_heat[0].set_title('A: Pearson correlation coefficient',
                            fontsize=12, 
                            loc='left',
-                           x = -0.63)
+                           x = -0.58)
 
 
 # plot heatmap with values above threshold only
@@ -555,9 +582,16 @@ sbn.heatmap(data= cellmorph_descriptors_corr,
 axs_corr_heat[1].set_title(r'B: Pearson correlation coefficient $\pm$' + str(corr_threshold),
                            fontsize=12, 
                            loc='left',
-                           x = -0.63)
+                           x = -0.58)
 
+# show figure
 plt.show()
+
+# save figure
+save_figures(fig_corr_heat, 'hierarchical_clustering-correlation_matrices', 
+             save_dir = cellmorph_clustering_fig_dir,
+             darkmode_bool= darkmode_bool,
+             figure_format= 'png')
 
 
 # %%
@@ -611,25 +645,106 @@ from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.cluster.hierarchy import fcluster
 
 # set scaling method
-scaling = 'zscored'
+scaling = 'minmax'
 
 # set dict for clustering parameters
-clustering_data_dict = {'minmax' : {'df' : cellmorph_descriptors_minmax, 'heatmin' : 0, 'heatmax'  : 1, 'cbar_label' : 'Min-max normalized'},
-                        'zscored': {'df' : cellmorph_descriptors_zscored, 'heatmin' : -2, 'heatmax'  : 4, 'cbar_label' : 'Z-scored parameter value [std]'}}
+clustering_data_dict = {'minmax' : {'df' : cellmorph_descriptors_minmax, 'heatmin' : 0, 'heatmax'  : 1, 'cbar_label' : 'Min-max normalized', 'c_threshold' : 3},
+                        'zscored': {'df' : cellmorph_descriptors_zscored, 'heatmin' : -2, 'heatmax'  : 2, 'cbar_label' : 'Z-scored parameter value [std]', 'c_threshold' : 15}}
 
 # set variables
-df_tocluster, heatmin, heatmax, cbar_label = clustering_data_dict[scaling].values()
+df_tocluster, heatmin, heatmax, cbar_label, c_threshold = clustering_data_dict[scaling].values()
 
-
+# calc distance between clusters
 ward_clustering_linkage = linkage(df_tocluster, method="ward", metric="euclidean")
 
+# get last few clusters that have been merged by the linkage functions
+last_clusters = ward_clustering_linkage[-20:, 2]
 
+# reverse list 
+last_clusters_rev = last_clusters[::-1]
+
+# set a list of indices
+last_clusters_idc = np.arange(1, len(last_clusters) +1)
+
+
+# calculate the acceleration of lost distance between clusters
+# calculated as the 2nd derivative
+acceleration = np.diff(last_clusters, 2)   
+
+# reverse list
+acceleration_rev = acceleration[::-1]
+
+
+### elbow plot ###
+
+fig_elbow, ax_elbow = plt.subplots(nrows = 1,
+                                   ncols = 1,
+                                   layout = 'constrained',
+                                   figsize = get_figure_size(width = 100, height = 100),
+                                   dpi = 600)
+
+# set title
+fig_elbow.suptitle(f'hierarchical clustering\n{scaling} scaling - elbow plot',
+                   fontsize = 12)
+
+# plot cluster distances
+ax_elbow.plot(last_clusters_idc, last_clusters_rev,
+              lw = 1,
+              c = colors_dict['primecolor'],
+              label = 'Cluster distance')
+
+# plot acceleration
+ax_elbow.plot(last_clusters_idc[:-2] + 1, acceleration_rev,
+              lw = 1,
+              c = colors_dict['color3'],
+              label = 'Acceleration of cluster\ndistance growth')
+
+# set legend
+ax_elbow.legend(prop={'size': 9})
+
+
+# edit axis
+# x
+ax_elbow.set_xlabel('Number of clusters [#]')
+
+xmin = 1
+xmax = last_clusters_idc[-1]
+xpad = 0.5
+
+ax_elbow.set_xlim([xmin - xpad, xmax + xpad])
+ax_elbow.set_xticks(ticks = np.arange(2, len(last_clusters)+1, 2))
+ax_elbow.set_xticks(ticks = last_clusters_idc, minor = True)
+ax_elbow.spines['bottom'].set_bounds([xmin, xmax])
+
+# remove spines
+[ax_elbow.spines[spine].set_visible(False) for spine in ['top', 'right']]
+
+# show plot
+plt.show()
+
+# save figure
+save_figures(fig_elbow, f'hierarchical_clustering-elbow_plot-{scaling}', 
+             save_dir = cellmorph_clustering_fig_dir,
+             darkmode_bool= darkmode_bool,
+             figure_format= 'png')
+
+
+
+# set number of clusters
+n_clusters = 5
+
+
+# as halfway point between n_clusters-1 and n_clusters
+c_threshold = (last_clusters_rev[n_clusters-2] - last_clusters_rev[n_clusters-1]) + last_clusters_rev[n_clusters-1]
+
+
+### dendrogram and heatmap ###
 
 # initialise figure
 fig_dendro_heat, ax_dendro_heat = plt.subplots(nrows = 1,
                                                ncols = 2,
                                                layout = 'constrained',
-                                               figsize = get_figure_size(width = 150, height = 200),
+                                               figsize = get_figure_size(width = 160, height = 205),
                                                dpi = 600,
                                                width_ratios=[0.2, 0.8])
 
@@ -645,7 +760,8 @@ mtl.rcParams['lines.linewidth'] = 1
 dendrogram = dendrogram(Z = ward_clustering_linkage, 
                         labels = df_tocluster.index, 
                         ax = ax,
-                        orientation = 'left')
+                        orientation = 'left',
+                        color_threshold = c_threshold)
 
 # get cell IDs of leaves
 leave_cell_IDs = dendrogram['ivl'][::-1]
@@ -667,7 +783,7 @@ ax = ax_dendro_heat[1]
 sbn.heatmap(df_tocluster_clustered,
             vmin = heatmin,
             vmax = heatmax,
-            square = False, 
+            square = False,
             xticklabels= 1,
             ax = ax, 
             cmap="flare_r", 
@@ -675,9 +791,15 @@ sbn.heatmap(df_tocluster_clustered,
             linewidth = 0,
             cbar_kws={'label': cbar_label, 'ticks' : np.arange(heatmin, heatmax+1, 1), 'aspect' : 50}) 
 
-
-
-
+# remove ylabel
+ax.set_ylabel('')
 
 # show plot
 plt.show()
+
+# save figure
+save_figures(fig_dendro_heat, f'hierarchical_clustering-dendro+heat-{scaling}', 
+             save_dir = cellmorph_clustering_fig_dir,
+             darkmode_bool= darkmode_bool,
+             figure_format= 'png')
+

@@ -22,7 +22,7 @@ polar_plot_occurrances = pd.read_excel(join(cell_morph_descrip_dir, 'polar_plot_
 polar_plot_dendrites_occurrances = pd.read_excel(join(cell_morph_descrip_dir, 'polar_plot_dendrites_occurrances.xlsx'), index_col = 'orientation_rad')
 polar_plot_axons_occurrances = pd.read_excel(join(cell_morph_descrip_dir, 'polar_plot_axons_occurrances.xlsx'), index_col = 'orientation_rad')
 
-orientation_labels = ['p', 'pd', 'd', 'ad', 'a', 'av', 'v', 'pv']
+orientation_labels = ['p', '', 'd', '', 'a', '', 'v', '']
 
 bins_angles = polar_plot_occurrances.index.to_list()
 

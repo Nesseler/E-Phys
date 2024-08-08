@@ -330,5 +330,52 @@ for cell_ID in cell_IDs:
                  f'{cell_ID}-circular_means', 
                  fig_dir,
                  darkmode_bool = darkmode_bool,
-                 figure_format='png')
+                 figure_format='both')
 
+
+# %%
+
+
+
+
+import numpy as np
+
+from scipy.stats import circmean
+
+import matplotlib.pyplot as plt
+
+from astropy import stats as astro_stats
+
+angles = np.deg2rad(np.arange(90, 180, 10))
+
+print(astro_stats.rayleightest(angles))
+
+circmean = circmean(angles)
+
+np.rad2deg(circmean)
+
+
+mean = angles.mean()
+
+np.rad2deg(mean)
+
+
+plt.plot(np.cos(np.linspace(0, 2*np.pi, 500)),
+
+         np.sin(np.linspace(0, 2*np.pi, 500)),
+
+         c='k')
+
+plt.scatter(np.cos(angles), np.sin(angles), c='k')
+
+plt.scatter(np.cos(circmean), np.sin(circmean), c='b',
+
+            label='circmean')
+
+# plt.scatter(np.cos(mean), np.sin(mean), c='r', label='mean')
+
+plt.legend()
+
+plt.axis('equal')
+
+plt.show()

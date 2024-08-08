@@ -11,7 +11,8 @@ from cellmorphology.cellmorph_packages import plt, mtl, sbn, pd, join, np
 from parameters.directories_win import cell_morph_descrip_dir, table_file, cell_morph_plots_dir, cell_morph_traces_coordinates_dir
 
 # load cellmorpho parameters
-from cellmorphology.cellmorph_parameters import orientation_labels
+# from cellmorphology.cellmorph_parameters import orientation_labels
+orientation_labels = ['p', '', 'd', '', 'a', '', 'v', '']
 
 # load cellmorhp functions
 from cellmorphology.functions_cellmorph import calc_polar_histo_binangles, clean_OnPath_column_to_path_ID_n_label

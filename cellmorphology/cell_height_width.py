@@ -141,16 +141,16 @@ neurite_color_dict = {'neurites'  : 'grey',
 
 if vplots:
 
-    for cell_ID in cell_IDs: #['E-137']:   
+    for cell_ID in cell_IDs:#['E-137']:   
         
         fig, ax = plt.subplots(nrows = 1,
                                ncols = 1,
                                layout = 'constrained',
-                               figsize = get_figure_size(width = 100, height = 100),
+                               figsize = get_figure_size(width = 77.5, height = 80),
                                dpi = 600)
         
         # set figure title
-        fig.suptitle(f'{cell_ID}')
+        fig.suptitle(f'{cell_ID}', fontsize = 12)
         
             
         # set coordinates data dict
@@ -244,7 +244,7 @@ if vplots:
                      f'{cell_ID}-width_height', 
                      fig_dir,
                      darkmode_bool = darkmode_bool,
-                     figure_format='png')
+                     figure_format='both')
 
 
 # %% save dataframe
