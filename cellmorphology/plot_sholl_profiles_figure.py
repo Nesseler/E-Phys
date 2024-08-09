@@ -29,6 +29,26 @@ sholl_metrics = {'neurites': pd.read_excel(join(cell_morph_descrip_dir, 'sholl_m
                  'axons': pd.read_excel(join(cell_morph_descrip_dir, 'sholl_metrics_axons.xlsx'), index_col='cell_ID')}
 
 
+# %% drop cells E-126 & E-158
+
+cell_IDs_toDrop = ['E-126', 'E-158']
+
+for neurite_type in sholl_metrics.keys():
+    
+    # iterate through cell_IDs to drop to check wether their contain in the dataframes
+    for cell_ID_toDrop in cell_IDs_toDrop:
+        
+        # test if cell_ID is in index
+        if cell_ID_toDrop in sholl_metrics[neurite_type].index:
+            sholl_metrics[neurite_type].drop(index = cell_IDs_toDrop, inplace = True)
+            
+        # test if cell_ID is in columns
+        if cell_ID_toDrop in sholl_profiles[neurite_type].index:
+            sholl_profiles[neurite_type].drop(columns = cell_IDs_toDrop, inplace = True)
+
+
+# %%
+
 # load metadata
 MetaData = pd.read_excel(table_file,
                          sheet_name="MetaData",
