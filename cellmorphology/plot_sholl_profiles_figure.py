@@ -674,12 +674,21 @@ for region in ['MeA', 'BAOT']:
             plt_cell_IDs = cell_IDs_dict
         elif neurite_type == 'axons':
             plt_cell_IDs = cell_IDs_w_axon_dict
+            
+        # plot diagonal line in plot
+        ax.plot([0, 400], [0, 400],
+                color = colors_dict['primecolor'],
+                linewidth = 1,
+                linestyle = 'dashed',
+                alpha = 0.5, 
+                zorder = 0)
         
         # plot scatter plots
         ax.scatter(x=sholl_metrics[neurite_type].loc[plt_cell_IDs[region]]['enclosing_radius'],
                    y=sholl_metrics[neurite_type].loc[plt_cell_IDs[region]]['critical_radius'],
                    color=cmap.to_rgba(sholl_metrics[neurite_type].loc[plt_cell_IDs[region]]['max_intersections']),
-                   s=15)
+                   s=15,
+                   zorder = 1)
         
         
         # edit main plot axes
@@ -719,6 +728,15 @@ for region in ['MeA', 'BAOT']:
         ax_inset = ax.inset_axes([0.1, 0.7, 0.25, 0.25])
         
         # plot in inset
+        ax_inset.plot([0, 400], [0, 400],
+                      color = colors_dict['primecolor'],
+                      linewidth = 0.5,
+                      linestyle = 'dashed',
+                      alpha = 0.5, 
+                      zorder = 0)
+        
+        
+        # scatterplot in inset
         scatter = sbn.scatterplot(data=sholl_metrics_plot_df[sholl_metrics_plot_df['neurite_type'] == neurite_type].sort_values(by=['Region'], ascending=inset_sort[region]),
                                   x='enclosing_radius',
                                   y='critical_radius',
@@ -726,7 +744,8 @@ for region in ['MeA', 'BAOT']:
                                   palette=region_colors,
                                   ax=ax_inset,
                                   s=6,
-                                  linewidth=0)
+                                  linewidth=0, 
+                                  zorder = 1)
         
         # remove seaborn legend
         ax_inset.legend().set_visible(False)
@@ -755,6 +774,10 @@ fig_sholl_scatter.align_labels()
 plt.show()
 
 # save figure
-save_figures(fig_sholl_scatter, 'sholl_metrics_crit_v_enclos_figure', join(cell_morph_plots_dir, 'sholl_plots'),
-             darkmode_bool = darkmode_bool, figure_format = 'both')
+crit_v_enclos_figure_dir = join(cell_morph_plots_dir, 'crit_v_enclos_figure')
+
+save_figures(fig_sholl_scatter, 'sholl_metrics_crit_v_enclos_figure', 
+             save_dir = crit_v_enclos_figure_dir,
+             darkmode_bool = darkmode_bool, 
+             figure_format = 'both')
 
