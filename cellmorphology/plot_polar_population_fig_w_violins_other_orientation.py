@@ -390,14 +390,18 @@ for neurite_idx, neurite_type in enumerate(neurite_types):
         
             all_l_idx = r_idx * 3 + l_idx
             
-            violins.lines[all_l_idx].set_color(neurite_color_dict[region][neurite_type])
-            
+            # violins.lines[all_l_idx].set_color(neurite_color_dict[region][neurite_type])
+            violins.lines[all_l_idx].set_color(colors_dict['primecolor'])
+            violins.lines[all_l_idx].set_linestyle('solid')
         
         # set edge color of violin
         violins.collections[r_idx].set_edgecolor(neurite_color_dict[region][neurite_type])
+        # violins.collections[r_idx].set_edgecolor('None')
         
         # set facecolor of violin
-        violins.collections[r_idx].set_facecolor('None')
+        # violins.collections[r_idx].set_facecolor('None')
+        violins.collections[r_idx].set_facecolor(neurite_color_dict[region][neurite_type])
+    
     
     # swarmplots    
     sbn.swarmplot(data = violin_data,
