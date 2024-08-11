@@ -209,7 +209,7 @@ alpha_labels_dict = {'MeA'  : {'neurites'   : '$\mathregular{A_{i}}$',
 fig_norm, axs_norm = plt.subplots(nrows = 3,
                                   ncols = 3,
                                   layout = 'constrained',
-                                  figsize = get_figure_size(width = 150, height = 175),
+                                  figsize = get_figure_size(width = 160, height = 175),
                                   dpi = 600,
                                   height_ratios=[0.2, 0.2, 0.3])
 
@@ -241,7 +241,7 @@ for region in regions:
         ax.set_title(alpha_labels_dict[region][neurite_type] + ': ' + region + ' ' + neurite_type,
                       fontsize=12, 
                       loc='left',
-                      x = -0.45)
+                      x = -0.4)
     
 
         
@@ -318,7 +318,7 @@ for neurite_idx, neurite_type in enumerate(neurite_types):
     ax.set_title(alpha_labels_dict['n_terminals'][neurite_type] + ': ' + neurite_type.title(),
                  fontsize=12, 
                  loc='left',
-                 x = -0.45)
+                 x = -0.4)
     
     # # set violin data
     # # get data for both regions
@@ -344,7 +344,8 @@ for neurite_idx, neurite_type in enumerate(neurite_types):
                              ax = ax, 
                              inner = None,
                              zorder = 0,
-                             linewidth = 1)
+                             linewidth = 1,
+                             density_norm = 'width')
     
     # edit lines of quarts
     for r_idx, region in enumerate(regions):
@@ -464,7 +465,7 @@ fig_norm.align_labels()
 plt.show()
 
 # save figure
-figure_dir = join(cell_morph_plots_dir, 'polar_population_figure')
+figure_dir = join(cell_morph_plots_dir, 'figure-polar_population')
 save_figures(fig_norm, 
              figure_name = 'population_polar_plots-new_figure', 
              save_dir = figure_dir,

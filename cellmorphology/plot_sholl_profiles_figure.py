@@ -488,8 +488,8 @@ fig_metrics_violins, axs_metrics_violins = plt.subplots(nrows=2,
 axs_metrics_violins = axs_metrics_violins.flatten()
 
 # create plotting dict for plotting order
-order_dict = {1: 'critical_radius',
-              2: 'enclosing_radius',
+order_dict = {1: 'enclosing_radius',
+              2: 'critical_radius',
               3: 'max_intersections'}
 
 # create list for subplot alphabetical labels
@@ -509,40 +509,43 @@ for axs_idx, metric in order_dict.items():
                              x='neurite_type',
                              y=metric,
                              hue='Region',
+                             hue_order = ['MeA', 'BAOT'],
                              bw=0.4,
-                             inner='quart',
+                             inner=None,
+                             split = True,
+                             gap = 0.15,
                              ax=ax,
                              linewidth=1,
                              palette=region_colors,
-                             zorder = 1)
+                             zorder = 1,
+                             density_norm= 'width')
 
     # edit lines of quarts
-    for v_idx in np.arange(len(order_dict.items()) * len(sholl_metrics_plot_df['Region'].drop_duplicates())):
+    # for v_idx in np.arange(len(order_dict.items()) * len(sholl_metrics_plot_df['Region'].drop_duplicates())):
 
-        for l_idx in np.arange(0, 3):
-            all_l_idx = v_idx * 3 + l_idx
+    #     for l_idx in np.arange(0, 3):
+    #         all_l_idx = v_idx * 3 + l_idx
 
-            if v_idx % 2 == 0:
-                violins.lines[all_l_idx].set_color(region_colors['MeA'])
-            else:
-                violins.lines[all_l_idx].set_color(region_colors['BAOT'])
+    #         if v_idx % 2 == 0:
+    #             violins.lines[all_l_idx].set_color(region_colors['MeA'])
+    #         else:
+    #             violins.lines[all_l_idx].set_color(region_colors['BAOT'])
 
     # edit color of edges and faces
-    for v_idx, violin in enumerate(violins.collections):
-        # print(violin)
-        if v_idx % 2 == 0:
-            violin.set_edgecolor(region_colors['MeA'])
-        else:
-            violin.set_edgecolor(region_colors['BAOT'])
-
-        # violin.set_edgecolor(colors_dict['primecolor'])
-        violin.set_facecolor('None')
+    for n_idx, neurite_type in enumerate(neurite_types):
+        
+        for r_idx, region in enumerate(['MeA', 'BAOT']):
+            v_idx = n_idx * 2 + r_idx
+            
+            violins.collections[v_idx].set_edgecolor(region_colors[region])
+            violins.collections[v_idx].set_facecolor(region_colors[region])
 
     # swarmplots
     swarm = sbn.swarmplot(data=sholl_metrics_plot_df,
                           x='neurite_type',
                           y=metric,
                           hue='Region',
+                          hue_order = ['MeA', 'BAOT'],
                           ax=ax,
                           size=2,
                           color=colors_dict['primecolor'],
@@ -551,7 +554,7 @@ for axs_idx, metric in order_dict.items():
     
     # errorbar
     for neurite_idx, neurite_type in enumerate(neurite_types):
-        for region_x, region in zip([-0.2, +0.2], ['MeA', 'BAOT']):
+        for region_x, region in zip([-0.1, +0.1], ['MeA', 'BAOT']):
             
             
             if neurite_type == 'axons':
@@ -563,6 +566,7 @@ for axs_idx, metric in order_dict.items():
             sholl_metric_per_type_n_region = sholl_metrics[neurite_type].loc[cur_cell_IDs_dict[region], :]
             sholl_metric_mean = sholl_metric_per_type_n_region[metric].mean()
             sholl_metric_std = sholl_metric_per_type_n_region[metric].std()
+            sholl_metric_median = sholl_metric_per_type_n_region[metric].median()
             
             ax.errorbar(x = neurite_idx + region_x,
                         y = sholl_metric_mean,
@@ -571,39 +575,59 @@ for axs_idx, metric in order_dict.items():
                         markersize = 6,
                         markerfacecolor = 'none',
                         capsize = 2,
-                        color=region_colors[region],
+                        color= colors_dict['primecolor'],
                         linewidth = 1,
                         label = '_nolegend_',
                         zorder = 3)
+            
+            # plot median
+            ax.scatter(x = neurite_idx + region_x,
+                       y = sholl_metric_median,
+                       marker='D', 
+                       s = 5,
+                       color=colors_dict['primecolor'],
+                       linewidth = 1,
+                       label = '_nolegend_',
+                       zorder = 4)
+        
     
+    # get handles and labels of legend
+    legend_handles, legend_labels = ax.get_legend_handles_labels()
 
-    # edit seaborn legend
-    ax.legend().set_visible(False)
+    # remove seaborn legend
+    if axs_idx != 3:
+        ax.legend().set_visible(False)
+    else:
+        ax.legend(handles = legend_handles[:2],
+                  labels = legend_labels[:2],
+                  loc='upper right',
+                  ncol=1)
+
 
     # x
     ax.set_xlim(0-0.5, 2+0.5)
     ax.set_xticks(ticks=np.arange(0, 2 + 0.5, 1),
-                  labels=neurite_types, rotation=45)
+                  labels=[label.title() for label in neurite_types], rotation=45)
     ax.spines['bottom'].set_bounds([0, 2])
-    ax.set_xlabel('')
+    ax.set_xlabel('Type of neurites')
 
     # y
     if metric == 'critical_radius':
-        ax.set_ylabel('Critical radius [µm]')
+        ax.set_ylabel('Critical radius\nper cell [µm]')
         ymin = 0
         ymax = 300
         ystep = 100
         ystepminor = 25
 
     elif metric == 'enclosing_radius':
-        ax.set_ylabel('Enclosing radius [µm]')
+        ax.set_ylabel('Enclosing radius\nper cell [µm]')
         ymin = 0
         ymax = 500
         ystep = 100
         ystepminor = 25
 
     elif metric == 'max_intersections':
-        ax.set_ylabel('Max. number of intersections [#]')
+        ax.set_ylabel('Max. number of intersections\nper cell [#]')
         ymin = 0
         ymax = 50
         ystep = 25
@@ -614,7 +638,7 @@ for axs_idx, metric in order_dict.items():
 
     # apply y axis settings
     ax.set_ylim(ymin - ypad, ymax)
-    ax.set_yticks(ticks=np.arange(ymin, ymax + ystep, ystep))
+    ax.set_yticks(ticks=np.arange(ymin, ymax + ystepminor, ystep))
     ax.set_yticks(ticks=np.arange(
         ymin, ymax + ystepminor, ystepminor), minor=True)
     ax.spines['left'].set_bounds([ymin, ymax])
@@ -627,12 +651,69 @@ fig_metrics_violins.delaxes(axs_metrics_violins[0])
 # align labels
 fig_metrics_violins.align_labels()
 
+
+
 # show plot
 plt.show()
 
 # save plot
-save_figures(fig_metrics_violins, 'sholl_metrics_violins_figure', join(cell_morph_plots_dir, 'sholl_plots'),
-             darkmode_bool=darkmode_bool, figure_format='both')
+sholl_metrics_violins_fig_dir = join(cell_morph_plots_dir, 'figure-sholl_metrics_violins')
+save_figures(fig_metrics_violins,
+             figure_name = 'sholl_metrics_violins_figure', 
+             save_dir= sholl_metrics_violins_fig_dir,
+             darkmode_bool=darkmode_bool, 
+             figure_format='both')
+
+
+# %% sholl metrics statistics
+
+from scipy.stats import normaltest, mannwhitneyu
+
+# create dataframe for statistics measures
+sholl_metrics_normaltest = pd.DataFrame()
+sholl_metrics_mannwhitneyu = pd.DataFrame()
+
+# iterate through metric
+for sholl_metric in ['enclosing_radius', 'critical_radius', 'max_intersections']:
+    
+    # iterate through neurite type
+    for neurite_type in neurite_types:
+        
+        # set cell_IDs per neurite types
+        # get cell_IDs per neurite_type
+        if neurite_type != 'axons':
+            cell_IDs_perNeuriteType = cell_IDs_dict
+        elif neurite_type == 'axons':
+            cell_IDs_perNeuriteType = cell_IDs_w_axon_dict
+        
+        # iterate through regions
+        for region in ['MeA', 'BAOT']:
+            
+            # get cell_IDs per neurite_type and region
+            cell_IDs_perNeuriteType_n_region = cell_IDs_perNeuriteType[region]
+
+            # run normal test
+            normaltest_res = normaltest(sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType_n_region, sholl_metric])
+
+            # write to dataframe
+            sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest_statistic'] = normaltest_res.statistic
+            sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest_p_value'] = normaltest_res.pvalue
+
+        
+        # compare both regions
+        sholl_metric_perNeurite_MeA = sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType['MeA'], sholl_metric]
+        sholl_metric_perNeurite_BAOT = sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType['BAOT'], sholl_metric]
+        
+        # run test
+        mannwhitneyu_res = mannwhitneyu(sholl_metric_perNeurite_MeA, sholl_metric_perNeurite_BAOT, nan_policy='omit')
+
+        # write to dataframe
+        sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'manwhitneyu_statistic'] = mannwhitneyu_res.statistic
+        sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'manwhitneyu_pvalue'] = mannwhitneyu_res.pvalue
+
+
+# save statistics dataframes
+sholl_metrics_normaltest.to_csv(join(sholl_metrics_violins_fig_dir, 'sholl_metrics_normaltest.xlsx'), index_label='sholl_metric-neurite_type-region')
 
 
 # %% figure for critical vs enclosing radius
@@ -640,7 +721,7 @@ save_figures(fig_metrics_violins, 'sholl_metrics_violins_figure', join(cell_morp
 # inititalise figure
 fig_sholl_scatter, axs_sholl_scatter = plt.subplots(nrows=3,
                                                     ncols=2,
-                                                    figsize=get_figure_size(width=150, height=225),
+                                                    figsize=get_figure_size(width=160, height=225),
                                                     layout='constrained',
                                                     dpi=600)
 

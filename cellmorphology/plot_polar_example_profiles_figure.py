@@ -127,7 +127,8 @@ neurite_types = ['neurites', 'dendrites', 'axons']
 
 # %% set plotting dicts
 
-scatter_plot_dict = {'s' : 0.5}
+scatter_plot_dict = {'s' : 1, 
+                     'marker' : '.'}
 
 path_color_dict = {'dendrite' : {'path_color' : colors_dict['primecolor'], 'end_color' : 'r'},
                     'axon' :     {'path_color' : 'b', 'end_color' : 'lightcoral'},
@@ -154,14 +155,17 @@ alpha_labels_dict = {cell_IDs_dict['MeA'][0]  : {'coordinates': '$\mathregular{A
 
 # %% figure
 
-fig, axs = plt.subplots(nrows = 4,
-                        ncols = 4,
-                        layout = 'constrained',
-                        figsize = get_figure_size(height = 150, width = 150),
-                        dpi = 600)
+# fig, axs = plt.subplots(nrows = 4,
+#                         ncols = 4,
+#                         layout = 'constrained',
+#                         figsize = get_figure_size(height = 200, width = 160),
+#                         dpi = 600)
 
-# flatten axes array
-axs = axs.flatten()
+fig, axs = plt.subplot_mosaic([[0, 1, 2, 3], [4, 4, 4, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16], [17, 17, 17, 17]],
+                              layout = 'constrained',
+                              figsize = get_figure_size(height = 190, width = 160),
+                              dpi = 600, 
+                              height_ratios = [0.2, 0.1, 0.2, 0.2, 0.2, 0.02])
 
 ### cell coordinates ###
 for c_idx, cell_ID in enumerate(cell_IDs):
@@ -188,15 +192,19 @@ for c_idx, cell_ID in enumerate(cell_IDs):
         # scatter plots
         # all coordinates
         ax.scatter(x = path_all_coordinates['X'],
-                    y = path_all_coordinates['Y'],
-                    color = path_color_dict[cur_path_label]['path_color'],
-                    **scatter_plot_dict)
+                   y = path_all_coordinates['Y'],
+                   color = path_color_dict[cur_path_label]['path_color'],
+                   edgecolor = 'None',
+                   label = cur_path_label.title(),
+                   **scatter_plot_dict)
     
         # end coordinates
         ax.scatter(x = path_end_coordinates['X'],
-                    y = path_end_coordinates['Y'],
-                    color = path_color_dict[cur_path_label]['end_color'],
-                    **scatter_plot_dict)
+                   y = path_end_coordinates['Y'],
+                   color = path_color_dict[cur_path_label]['end_color'],
+                   edgecolor = 'None',
+                   label = cur_path_label.title() + ' terminal point',
+                   **scatter_plot_dict)
 
     # set aspect ratio
     ax.set_box_aspect(1)
@@ -213,15 +221,50 @@ for c_idx, cell_ID in enumerate(cell_IDs):
     # y
     ax.set_ylim([cell_coordinates_field_of_view, 0])
     ax.set_yticks(ticks = np.arange(0, 590, 250), labels = [])
+    ax.set_ylabel('Height [µm]')
 
-axs[0].set_ylabel('Height [µm]')
-    
+# legend
+handles, labels = axs[0].get_legend_handles_labels()
+
+# limit lists of handels and labels
+handles = [handles[h_idx] for h_idx in [0, 0, 2, 3, 20, 21]]
+labels = [labels[l_idx] for l_idx in [0, 0, 2, 3, 20, 21]]
+
+# replace 2nd item 
+# create empty plot for label in legend
+l = mtl.lines.Line2D([], [], color="none")
+handles[1] = l
+labels[1] = " "
+
+# create legend
+legend = axs[4].legend(handles = handles,
+                       labels = labels,
+                       loc='center',
+                       ncol=3)
+
+#change the marker size manually for both lines
+for l_idx in range(6):
+    legend.legend_handles[l_idx]._sizes = [8]
+ 
+# remove all spines and ticks
+[axs[4].spines[spine].set_visible(False) for spine in ['top', 'right', 'bottom', 'left']]
+axs[4].set_xticks(ticks = [])
+axs[4].set_yticks(ticks = [])
+
 
 ### polar plots ###
 
 # change projection for polar plots
-for ax in axs[4:16]:
-    change_projection(fig, axs, ax, projection = 'polar')
+for ax_idx in np.arange(5, 17):
+    ax_tochange = axs[ax_idx]
+
+    # get geometry of existing plots    
+    rows, cols, start, stop = ax_tochange.get_subplotspec().get_geometry()
+
+    # remove and readd plot with changed projection
+    ax_tochange.remove()
+    axs[ax_idx] = fig.add_subplot(rows, cols, start+1, projection='polar')
+    
     
 # get number of bins
 n_bins = len(orientation_labels)
@@ -252,22 +295,22 @@ for c_idx, cell_ID in enumerate(cell_IDs):
     
     # plot neurites
     neurites_occu = plot_colorcoded_polar_normed(terminal_branches_df,
-                                                 max_n_neurites = total_n_neurites, 
-                                                 ax = axs[c_idx+4],
-                                                 n_bins = n_bins,
-                                                 cmap = cmap)    
+                                                  max_n_neurites = total_n_neurites, 
+                                                  ax = axs[c_idx+5],
+                                                  n_bins = n_bins,
+                                                  cmap = cmap)    
 
     # plot dendrites
     dendrites_occu = plot_colorcoded_polar_normed(terminal_branches_df[terminal_branches_df['path_label'] == 'dendrite'],
                                                   max_n_neurites = total_n_dendrites, 
-                                                  ax = axs[c_idx+4+4],
+                                                  ax = axs[c_idx+5+4],
                                                   n_bins = n_bins,
                                                   cmap = cmap)    
     
     # plot axons
     axons_occu = plot_colorcoded_polar_normed(terminal_branches_df[terminal_branches_df['path_label'] == 'axon'],
                                               max_n_neurites = total_n_axons, 
-                                              ax = axs[c_idx+4+8],
+                                              ax = axs[c_idx+5+8],
                                               n_bins = n_bins,
                                               cmap = cmap)
     
@@ -282,30 +325,51 @@ for c_idx, cell_ID in enumerate(cell_IDs):
     update_max(max_dict, 'dendrites', dendrites_occu)
     update_max(max_dict, 'axons', axons_occu)
 
-   
+
+# set x title offset
+x_offset = -0.33
 
 # add axis titels
-for r_idx, row in enumerate(['coordinates', 'neurites', 'dendrites', 'axons']):
+for c_idx, cell_ID in enumerate(cell_IDs):
+    
+    # set axis
+    ax = axs[c_idx]
+    
+    # set title
+    titel = alpha_labels_dict[cell_ID]['coordinates'] + ': ' + cell_ID   
+    
+    # plot title
+    ax.set_title(titel, 
+                 fontsize = 12,
+                 loc='left',
+                 x = 0 + x_offset)
+
+
+for r_idx, row in enumerate(['neurites', 'dendrites', 'axons']):
     
     for c_idx, cell_ID in enumerate(cell_IDs):
     
         # set axis
-        ax = axs[c_idx + r_idx * 4]
+        ax = axs[c_idx + r_idx * 4 + 5]
         
-        if row == 'coordinates':
-            titel = alpha_labels_dict[cell_ID][row] + ': ' + cell_ID
-        else:
-            titel = alpha_labels_dict[cell_ID][row]
+        # set title
+        titel = alpha_labels_dict[cell_ID][row] 
         
+        # plot title
         ax.set_title(titel, 
                      fontsize = 12,
                      loc='left',
-                     x = -0.42)
+                     x = 0 + x_offset)
         
 # add row titles
-for ax, row in zip(axs[4:16:4], ['Neurites', 'Dendrites', 'Axons']):
-    ax.annotate(row, xy=(0, 0.5), 
-                xytext=(-ax.yaxis.labelpad - 6, 0),
+for n_idx, neurite_type in enumerate(neurite_types):
+    
+    # set axis
+    ax = axs[n_idx + (n_idx * 3) + 5]
+    
+    ax.annotate(neurite_type.title(), 
+                xy=(0, 0.5), 
+                xytext=(-axs[0].yaxis.labelpad, 0),
                 xycoords = ax.yaxis.label, 
                 textcoords='offset points',
                 fontsize=9, 
@@ -317,7 +381,10 @@ for ax, row in zip(axs[4:16:4], ['Neurites', 'Dendrites', 'Axons']):
 # edit axes
 for n_idx, neurite_type in enumerate(neurite_types):
     
-    for ax in axs[4*n_idx+4:4*n_idx+8]:
+    for p_idx in np.arange(0, 4):
+        
+        # set axis
+        ax = axs[p_idx + (n_idx * 4) + 5]
         
         # y
         ymin = 0
@@ -327,6 +394,7 @@ for n_idx, neurite_type in enumerate(neurite_types):
         # apply
         ax.set_ylim([ymin, ymax])
         ax.set_yticks(ticks = np.arange(ymin, ymax+0.01, ymax/2), labels = ['', '', ymax_label])
+        ax.set_rlabel_position(67.5)
         ax.tick_params(axis='x', which='major', pad=-3)
 
         # x axis
@@ -341,11 +409,9 @@ for n_idx, neurite_type in enumerate(neurite_types):
 
 # colorbar
 fig.colorbar(cmap, 
-             ax = axs[12:16], 
+             cax = axs[17], 
              label = 'Terminal branch length [µm]', 
-             orientation='horizontal',
-             fraction=0.09,
-             aspect=90)
+             orientation='horizontal')
 
 
 # align labels
@@ -355,7 +421,18 @@ fig.align_labels()
 plt.show()
 
 # save figure
-save_figures(fig, figure_name = 'polar_plots-example_cells-figure', 
-             save_dir = join(cell_morph_plots_dir, 'polar_plots'),
-             darkmode_bool = darkmode_bool, 
-             figure_format= 'both')
+figure_dir = join(cell_morph_plots_dir, 'figure-example_polar_plots')
+save_figures(fig, 
+              figure_name = 'polar_plots-example_cells-figure', 
+              save_dir = figure_dir,
+              darkmode_bool = darkmode_bool, 
+              figure_format= 'both')
+
+
+# save coordinates and polar occurrances
+
+
+# save polar occurrances
+pp_occu_neurites_normed_to_neurites.to_excel(join(figure_dir, 'polar_occu_neurites_normed_toType.xlsx'), index_label = 'orientation_rad')
+pp_occu_dendrites_normed_to_type.to_excel(join(figure_dir, 'polar_occu_dendrites_normed_toType.xlsx'), index_label = 'orientation_rad')
+pp_occu_axons_normed_to_type.to_excel(join(figure_dir, 'polar_occu_axons_normed_toType.xlsx'), index_label = 'orientation_rad')
