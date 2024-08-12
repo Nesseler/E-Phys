@@ -99,7 +99,7 @@ for c_idx, cell_ID in enumerate(all_cell_IDs):
             # plot sholl profile
             ax.plot(sholl_profile_range, neurite_sholl[cell_ID],
                     c = neurite_color_dict[region][neurite_type],
-                    label = neurite_type)
+                    label = neurite_type.title())
         
         # set legend
         ax.legend(prop={'size': 9})
@@ -140,7 +140,32 @@ fig_ex.align_labels()
 plt.show()
 
 # save figure
-save_figures(fig_ex, 'sholl_profiles_cell_examples_figure', join(cell_morph_plots_dir, 'sholl_plots'),
-             darkmode_bool=darkmode_bool, figure_format='both')
+fig_dir = join(cell_morph_plots_dir, 'figure-sholl_profiles-cell_examples')
+save_figures(fig_ex, 'figure-sholl_profiles-cell_examples', 
+             save_dir = fig_dir,
+             darkmode_bool=darkmode_bool, 
+             figure_format='both')
 
+
+# %% collect data to plot together
+
+# create dataframe
+sholl_example_profiles = pd.DataFrame()
+
+for neurite_type in neurite_types:
+    
+    # set dataframe to plot from
+    neurite_sholl = sholl_profiles[neurite_type]
+    
+    # collection for all plotted cells
+    for cell_ID in all_cell_IDs:
+        
+        # check if cell_ID is in sholl profiles dataframe (for cell without axon)
+        if cell_ID in neurite_sholl.columns:
+        
+            # write to dataframe
+            sholl_example_profiles[f'{cell_ID}-{neurite_type}'] = neurite_sholl[cell_ID]
+
+# save dataframe
+sholl_example_profiles.to_excel(join(fig_dir, 'sholl_profiles-example_cells.xlsx'), index_label= 'Radius')
 

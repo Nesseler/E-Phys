@@ -9,6 +9,8 @@ from cellmorphology.cellmorph_packages import mtl, plt, sbn, pd, np, join
 
 from parameters.directories_win import table_file, cell_morph_descrip_dir, cell_morph_plots_dir
 
+from cellmorphology.cellmorph_parameters import cell_IDs_toDrop
+
 # load metadata
 MetaData = pd.read_excel(table_file,
                          sheet_name="MetaData",
@@ -112,7 +114,7 @@ circular_means = pd.read_excel(join(cell_morph_descrip_dir, 'circular_means.xlsx
 circular_means_cols = [col for col in circular_means.columns.to_list() if 'neurites' not in col]
 
 # concat
-cellmorph_descriptors = pd.concat([cellmorph_descriptors, circular_means[circular_means_cols]], axis = 1)
+# cellmorph_descriptors = pd.concat([cellmorph_descriptors, circular_means[circular_means_cols]], axis = 1)
     
 
 # %% load AIS data
@@ -140,20 +142,21 @@ spines_df = pd.read_excel(join(cell_morph_descrip_dir, 'spines.xlsx'), index_col
 # %%
 
 # remove cells that do not contain all analysed values
-cellmorph_descriptors.drop(index = ['E-126', 'E-158'], inplace = True)
+cellmorph_descriptors.drop(index = cell_IDs_toDrop, inplace = True)
 
 # replace nan values in cell descriptor table
 # cellmorph_descriptors.fillna(value = 0, inplace = True)
 
+# drop cells without axons
 cellmorph_descriptors = cellmorph_descriptors.dropna(axis=0)
 
 
 # %% sort column names after their name
 sorted_columns = []
 
-for neurite_type in ['dendrites']: ### !!!!axons
+for neurite_type in ['dendrites', 'axons']: ### !!!!axons
     
-    for col_parameter in ['width', 'height', 'n_primaries', 'n_terminals', 'bifurcation_ratio', 'total_cable_length', 'critical_radius', 'enclosing_radius', 'max_intersections', 'circmean']:
+    for col_parameter in ['width', 'height', 'n_primaries', 'n_terminals', 'bifurcation_ratio', 'total_cable_length', 'critical_radius', 'enclosing_radius', 'max_intersections']: #, 'circmean']:
     
         sorted_columns.append(f'{neurite_type}-{col_parameter}')
 
@@ -163,6 +166,8 @@ sorted_columns.append('AIS distance to soma')
 # apply sorting
 cellmorph_descriptors = cellmorph_descriptors[sorted_columns]
 
+# test: drop axons-n_primaries
+cellmorph_descriptors.drop(columns = ['axons-n_primaries'], inplace = True)
 
 # %% normalise cell descriptors
 
@@ -173,19 +178,19 @@ cellmorph_descriptors_minmax = (cellmorph_descriptors - cellmorph_descriptors.mi
 cellmorph_descriptors_zscored = (cellmorph_descriptors - cellmorph_descriptors.mean()) / cellmorph_descriptors.std()
 
 
-from scipy.stats import circmean, circstd
+# from scipy.stats import circmean, circstd
 
-# exception in zscoring for circular mean
-for neurite_type in ['dendrites']:  ### !!!!axons
+# # exception in zscoring for circular mean
+# for neurite_type in ['dendrites']:  ### !!!!axons
     
-    # get list of circular means
-    circ_means_pertype = cellmorph_descriptors[f'{neurite_type}-circmean']
+#     # get list of circular means
+#     circ_means_pertype = cellmorph_descriptors[f'{neurite_type}-circmean']
     
-    # calc circular mean and std of means
-    population_circ_mean = circmean(circ_means_pertype)
-    population_circ_std = circstd(circ_means_pertype)
+#     # calc circular mean and std of means
+#     population_circ_mean = circmean(circ_means_pertype)
+#     population_circ_std = circstd(circ_means_pertype)
     
-    cellmorph_descriptors_zscored[f'{neurite_type}-circmean'] = [(cell_circ_mean - population_circ_mean) / population_circ_std for cell_circ_mean in circ_means_pertype]
+#     cellmorph_descriptors_zscored[f'{neurite_type}-circmean'] = [(cell_circ_mean - population_circ_mean) / population_circ_std for cell_circ_mean in circ_means_pertype]
 
 
 
@@ -305,61 +310,61 @@ def create_data_distribution_figure(distributions_data = cellmorph_descriptors_z
     return fig_dist, ax_dist
     
     
-# %% plot z-scored distribution
+# # %% plot z-scored distribution
 
-fig_dist_zscored, ax_dist_zscored = create_data_distribution_figure(cellmorph_descriptors_zscored)    
+# fig_dist_zscored, ax_dist_zscored = create_data_distribution_figure(cellmorph_descriptors_zscored)    
 
-# set axis label
-ax_dist_zscored.set_ylabel('Z-scored parameter value [std]')
+# # set axis label
+# ax_dist_zscored.set_ylabel('Z-scored parameter value [std]')
 
-# show plot
-plt.show()
+# # show plot
+# plt.show()
 
 
-# %% plot min max distribution
+# # %% plot min max distribution
 
-fig_dist_minmax, ax_dist_minmax = create_data_distribution_figure(cellmorph_descriptors_minmax)    
+# fig_dist_minmax, ax_dist_minmax = create_data_distribution_figure(cellmorph_descriptors_minmax)    
 
-# set axis label
-ax_dist_minmax.set_ylabel('Min-Max-Normalised parameter value')
+# # set axis label
+# ax_dist_minmax.set_ylabel('Min-Max-Normalised parameter value')
 
-# edit axis
-ymin = -0.5
-ymax = 1.5
-ypad = 0.15
-ystep = 1
-ystepminor = 0.25
+# # edit axis
+# ymin = -0.5
+# ymax = 1.5
+# ypad = 0.15
+# ystep = 1
+# ystepminor = 0.25
     
-ax_dist_minmax.set_ylim([ymin - ypad, ymax + ypad])
-ax_dist_minmax.set_yticks(ticks = np.arange(0, ymax+ ystepminor, ystep))
-ax_dist_minmax.set_yticks(ticks = np.arange(ymin, ymax+ ystepminor, ystepminor), minor = True)
-ax_dist_minmax.spines['left'].set_bounds([ymin, ymax])
+# ax_dist_minmax.set_ylim([ymin - ypad, ymax + ypad])
+# ax_dist_minmax.set_yticks(ticks = np.arange(0, ymax+ ystepminor, ystep))
+# ax_dist_minmax.set_yticks(ticks = np.arange(ymin, ymax+ ystepminor, ystepminor), minor = True)
+# ax_dist_minmax.spines['left'].set_bounds([ymin, ymax])
 
-# show plot
-plt.show()
+# # show plot
+# plt.show()
     
 
-# %% plot min max distribution
+# # %% plot min max distribution
 
-fig_dist, ax_dist = create_data_distribution_figure(cellmorph_descriptors)    
+# fig_dist, ax_dist = create_data_distribution_figure(cellmorph_descriptors)    
 
-# set axis label
-ax_dist.set_ylabel('Parameter value [µm / # / ]')
+# # set axis label
+# ax_dist.set_ylabel('Parameter value [µm / # / ]')
 
-# edit axis
-ymin = 0
-ymax = 6000
-ypad = 100
-ystep = 2000
-ystepminor = 500
+# # edit axis
+# ymin = 0
+# ymax = 6000
+# ypad = 100
+# ystep = 2000
+# ystepminor = 500
     
-ax_dist.set_ylim([ymin - ypad, ymax + ypad])
-ax_dist.set_yticks(ticks = np.arange(0, ymax+ ystepminor, ystep))
-ax_dist.set_yticks(ticks = np.arange(ymin, ymax+ ystepminor, ystepminor), minor = True)
-ax_dist.spines['left'].set_bounds([ymin, ymax])
+# ax_dist.set_ylim([ymin - ypad, ymax + ypad])
+# ax_dist.set_yticks(ticks = np.arange(0, ymax+ ystepminor, ystep))
+# ax_dist.set_yticks(ticks = np.arange(ymin, ymax+ ystepminor, ystepminor), minor = True)
+# ax_dist.spines['left'].set_bounds([ymin, ymax])
 
-# show plot
-plt.show()    
+# # show plot
+# plt.show()    
 
 
 # %% create figure of all plots
@@ -645,7 +650,7 @@ from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.cluster.hierarchy import fcluster
 
 # set scaling method
-scaling = 'minmax'
+scaling = 'zscored'
 
 # set dict for clustering parameters
 clustering_data_dict = {'minmax' : {'df' : cellmorph_descriptors_minmax, 'heatmin' : 0, 'heatmax'  : 1, 'cbar_label' : 'Min-max normalized', 'c_threshold' : 3},
@@ -786,7 +791,7 @@ sbn.heatmap(df_tocluster_clustered,
             square = False,
             xticklabels= 1,
             ax = ax, 
-            cmap="flare_r", 
+            cmap="coolwarm", 
             yticklabels=False,
             linewidth = 0,
             cbar_kws={'label': cbar_label, 'ticks' : np.arange(heatmin, heatmax+1, 1), 'aspect' : 50}) 
@@ -801,5 +806,41 @@ plt.show()
 save_figures(fig_dendro_heat, f'hierarchical_clustering-dendro+heat-{scaling}', 
              save_dir = cellmorph_clustering_fig_dir,
              darkmode_bool= darkmode_bool,
-             figure_format= 'png')
+             figure_format= 'both')
 
+
+
+# %% heatmap test
+
+fig_testmap, axs_testmap = plt.subplots(nrows = 1,
+                                        ncols = 4,
+                                        layout = 'constrained',
+                                        figsize = get_figure_size(width = 160, height = 205))
+
+
+# get indices of clustered cells
+cell_IDs_heatmap = df_tocluster_clustered.index.to_list()
+
+# create dataframe for auxillary heatmap
+aux_heatmap = pd.DataFrame(index = cell_IDs_heatmap)
+
+# get auxillary data
+aux_heatmap['Region'] = MetaData.loc[cell_IDs_heatmap, 'Region']
+aux_heatmap['spinyness'] = spines_df.loc[cell_IDs_heatmap, 'Unnamed: 2']
+aux_heatmap['dendrites-circ_mean'] = circular_means['dendrites-circmean']
+aux_heatmap['axons-circ_mean'] = circular_means['axons-circmean']
+
+# transform region to values
+aux_heatmap['Region'] = aux_heatmap['Region'].replace({'MeA' : 0, 'BAOT/MeA' : 0.5, 'BAOT' : 1})
+
+
+sbn.heatmap(aux_heatmap,
+            vmin = 3,
+            vmax = 0,
+            square = False,
+            xticklabels= 1,
+            ax = axs_testmap[0], 
+            cmap="coolwarm", 
+            yticklabels=False,
+            linewidth = 0,
+            cbar_kws={'label': cbar_label, 'ticks' : np.arange(heatmin, heatmax+1, 1), 'aspect' : 50}) 

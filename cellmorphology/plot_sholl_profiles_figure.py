@@ -31,7 +31,7 @@ sholl_metrics = {'neurites': pd.read_excel(join(cell_morph_descrip_dir, 'sholl_m
 
 # %% drop cells E-126 & E-158
 
-cell_IDs_toDrop = ['E-126', 'E-158']
+from cellmorphology.cellmorph_parameters import cell_IDs_toDrop
 
 for neurite_type in sholl_metrics.keys():
     
@@ -40,11 +40,11 @@ for neurite_type in sholl_metrics.keys():
         
         # test if cell_ID is in index
         if cell_ID_toDrop in sholl_metrics[neurite_type].index:
-            sholl_metrics[neurite_type].drop(index = cell_IDs_toDrop, inplace = True)
+            sholl_metrics[neurite_type].drop(index = cell_ID_toDrop, inplace = True)
             
         # test if cell_ID is in columns
-        if cell_ID_toDrop in sholl_profiles[neurite_type].index:
-            sholl_profiles[neurite_type].drop(columns = cell_IDs_toDrop, inplace = True)
+        if cell_ID_toDrop in sholl_profiles[neurite_type].columns:
+            sholl_profiles[neurite_type].drop(columns = cell_ID_toDrop, inplace = True)
 
 
 # %%
@@ -82,7 +82,7 @@ for region in regions:
         measurement_columns.append(region + '-' + neurite_type)
 
 mean_columns = ['mean_' + col for col in measurement_columns]
-std_columns = ['mean_' + col for col in measurement_columns]
+std_columns = ['std_' + col for col in measurement_columns]
 
 # average
 mean_sholl_profiles = pd.DataFrame(columns=mean_columns,
@@ -90,7 +90,7 @@ mean_sholl_profiles = pd.DataFrame(columns=mean_columns,
 mean_sholl_profiles.index.name = 'Radius'
 
 # standard deviation
-std_sholl_profiles = pd.DataFrame(columns=mean_columns,
+std_sholl_profiles = pd.DataFrame(columns=std_columns,
                                   index=sholl_profiles['neurites'].index)
 std_sholl_profiles.index.name = 'Radius'
 
@@ -99,16 +99,12 @@ for region in regions:
     for neurite_type in neurite_types:
 
         if neurite_type == 'axons':
-            mean_sholl_profiles['mean_' + region + '-' +
-                                neurite_type] = sholl_profiles[neurite_type][cell_IDs_w_axon_dict[region]].mean(axis=1)
-            std_sholl_profiles['std_' + region + '-' +
-                               neurite_type] = sholl_profiles[neurite_type][cell_IDs_w_axon_dict[region]].std(axis=1)
+            mean_sholl_profiles['mean_' + region + '-' + neurite_type] = sholl_profiles[neurite_type][cell_IDs_w_axon_dict[region]].mean(axis=1)
+            std_sholl_profiles['std_' + region + '-' + neurite_type] = sholl_profiles[neurite_type][cell_IDs_w_axon_dict[region]].std(axis=1)
 
         else:
-            mean_sholl_profiles['mean_' + region + '-' +
-                                neurite_type] = sholl_profiles[neurite_type][cell_IDs_dict[region]].mean(axis=1)
-            std_sholl_profiles['std_' + region + '-' +
-                               neurite_type] = sholl_profiles[neurite_type][cell_IDs_dict[region]].std(axis=1)
+            mean_sholl_profiles['mean_' + region + '-' + neurite_type] = sholl_profiles[neurite_type][cell_IDs_dict[region]].mean(axis=1)
+            std_sholl_profiles['std_' + region + '-' + neurite_type] = sholl_profiles[neurite_type][cell_IDs_dict[region]].std(axis=1)
 
 
 # %% initialize plotting
@@ -125,8 +121,7 @@ mtl.rcParams.update({'font.size': 9})
 
 # initialise figure
 fig_sholl, axs_sholl = plt.subplot_mosaic('AB;AB;AB;CD;CE;CF',
-                                          figsize=get_figure_size(
-                                              height=150, width=150),
+                                          figsize=get_figure_size(height=160, width=160),
                                           layout='tight',
                                           dpi=600)
 
@@ -281,15 +276,15 @@ fig_sholl.align_labels()
 plt.show()
 
 # save figure
-save_figures(fig_sholl, 'sholl_profiles_figure', join(cell_morph_plots_dir, 'sholl_plots'),
-             darkmode_bool=darkmode_bool, figure_format='both')
+# save_figures(fig_sholl, 'sholl_profiles_figure', join(cell_morph_plots_dir, 'sholl_plots'),
+#              darkmode_bool=darkmode_bool, figure_format='both')
 
 
 # %% sholl profiles figure v2!
 
 # initialise figure
 fig_sholl, axs_sholl = plt.subplot_mosaic('BD;BD;BE;CE;CF;CF',
-                                          figsize=get_figure_size(height=100, width=150),
+                                          figsize=get_figure_size(height=120, width=160),
                                           layout='tight',
                                           dpi=600)
 
@@ -299,6 +294,13 @@ axs_keys = {'MeA': 'B', 'BAOT': 'C'}
 
 # specify line
 line_dict = {'lw': 1, 'alpha': 1}
+
+# set labels for subplots
+axs_titles = {'MeA' : 'A: MeA',
+              'BAOT': 'B: BAOT',
+              'neurites' : '$\mathregular{C_{i}}$: Neurites',
+              'dendrites' : '$\mathregular{C_{ii}}$: Dendrites',
+              'axons' : '$\mathregular{C_{iii}}$: Axons'}
 
 # plot all profiles together
 for region in ['MeA', 'BAOT']:
@@ -328,7 +330,7 @@ for region in ['MeA', 'BAOT']:
         ax.plot(mean_sholl_profiles['mean_' + region + '-' + neurite_type],
                 color=neurite_color_dict[region][neurite_type],
                 zorder=3,
-                label=neurite_type)
+                label=neurite_type.title())
 
 # edit sholl profile axes
 for region in ['MeA', 'BAOT']:
@@ -337,7 +339,7 @@ for region in ['MeA', 'BAOT']:
     ax = axs_sholl[axs_keys[region]]
 
     # subplot title
-    ax.set_title(region, fontsize=12, loc='left')
+    ax.set_title(axs_titles[region], fontsize=12, loc='left')
 
     # legend
     ax.legend(prop={'size': 7})
@@ -368,7 +370,7 @@ for neurite_type in neurite_types:
 
     for region in ['BAOT', 'MeA']:
 
-        ax.set_title(neurite_type, fontsize=12, loc='left')
+        ax.set_title(axs_titles[neurite_type], fontsize=12, loc='left')
 
         ax.plot(mean_sholl_profiles['mean_' + region + '-' + neurite_type],
                 # region_colors[region],
@@ -424,7 +426,7 @@ for key in ['B', 'C', 'D', 'E', 'F']:
 
     # x
     xmin = 0
-    xmax = 450
+    xmax = 400
     xstep = 100
     xstepminor = 25
     ax.set_xlim(xmin-10, xmax-10)
@@ -445,8 +447,21 @@ fig_sholl.align_labels()
 plt.show()
 
 # save figure
-save_figures(fig_sholl, 'sholl_profiles_figure_v2', join(cell_morph_plots_dir, 'sholl_plots'),
-             darkmode_bool=darkmode_bool, figure_format='both')
+sholl_profiles_fig_dir = join(cell_morph_plots_dir, 'figure-sholl_profiles')
+save_figures(fig_sholl, 
+             figure_name = 'sholl_profiles_figure_v2', 
+             save_dir = sholl_profiles_fig_dir,
+             darkmode_bool=darkmode_bool, 
+             figure_format='both')
+
+
+# %% collect data and write to dataframe to save
+
+# concat mean and std of sholl profiles 
+mean_std_sholl_profiles = pd.concat([mean_sholl_profiles, std_sholl_profiles], axis = 1)
+
+# save dataframe
+mean_std_sholl_profiles.to_excel(join(sholl_profiles_fig_dir, 'sholl_profiles-means_n_stds.xlsx'), index_label = 'Radius')
 
 
 
@@ -479,8 +494,7 @@ sholl_metrics_plot_df = sholl_metrics_plot_df[sholl_metrics_plot_df['Region'] !=
 # initialise figure
 fig_metrics_violins, axs_metrics_violins = plt.subplots(nrows=2,
                                                         ncols=2,
-                                                        figsize=get_figure_size(
-                                                            width=150, height=150),
+                                                        figsize=get_figure_size(width=160, height=160),
                                                         layout='constrained',
                                                         dpi=600)
 
@@ -657,7 +671,7 @@ fig_metrics_violins.align_labels()
 plt.show()
 
 # save plot
-sholl_metrics_violins_fig_dir = join(cell_morph_plots_dir, 'figure-sholl_metrics_violins')
+sholl_metrics_violins_fig_dir = join(cell_morph_plots_dir, 'figure-sholl_metrics-violins')
 save_figures(fig_metrics_violins,
              figure_name = 'sholl_metrics_violins_figure', 
              save_dir= sholl_metrics_violins_fig_dir,
@@ -667,7 +681,8 @@ save_figures(fig_metrics_violins,
 
 # %% sholl metrics statistics
 
-from scipy.stats import normaltest, mannwhitneyu
+from scipy.stats import normaltest, mannwhitneyu, ks_1samp
+from scipy import stats
 
 # create dataframe for statistics measures
 sholl_metrics_normaltest = pd.DataFrame()
@@ -698,22 +713,53 @@ for sholl_metric in ['enclosing_radius', 'critical_radius', 'max_intersections']
             # write to dataframe
             sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest_statistic'] = normaltest_res.statistic
             sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest_p_value'] = normaltest_res.pvalue
+            
+            # write boolean
+            if normaltest_res.pvalue < 0.05 :
+                sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest-normally_distributed'] = True
+            else:
+                sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest-normally_distributed'] = False
+            
+            # run rest
+            kstest_res = ks_1samp(sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType_n_region, sholl_metric],
+                                  stats.norm.cdf,
+                                  nan_policy='omit')
+            
+            # write to dataframe
+            sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'kstest_statistic'] = kstest_res.statistic
+            sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'kstest_pvalue'] = kstest_res.pvalue
+            
+            # write boolean
+            if kstest_res.pvalue > 0.05 :  
+                sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'kstest-normally_distributed'] = True
+            else:
+                sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'kstest-normally_distributed'] = False
 
-        
+  
         # compare both regions
         sholl_metric_perNeurite_MeA = sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType['MeA'], sholl_metric]
         sholl_metric_perNeurite_BAOT = sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType['BAOT'], sholl_metric]
-        
-        # run test
-        mannwhitneyu_res = mannwhitneyu(sholl_metric_perNeurite_MeA, sholl_metric_perNeurite_BAOT, nan_policy='omit')
 
-        # write to dataframe
-        sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'manwhitneyu_statistic'] = mannwhitneyu_res.statistic
-        sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'manwhitneyu_pvalue'] = mannwhitneyu_res.pvalue
+        if not (sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-MeA', 'kstest-normally_distributed'] and sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-BAOT', 'kstest-normally_distributed']):
+            # run test
+            mannwhitneyu_res = mannwhitneyu(sholl_metric_perNeurite_MeA, sholl_metric_perNeurite_BAOT, 
+                                            alternative = 'two-sided', 
+                                            nan_policy='omit')
+
+            # write to dataframe
+            sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'manwhitneyu_statistic'] = mannwhitneyu_res.statistic
+            sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'manwhitneyu_pvalue'] = mannwhitneyu_res.pvalue
+            
+            # write boolean
+            if mannwhitneyu_res.pvalue < 0.05:
+                sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'statistically_different'] = True
+            else:
+                sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'statistically_different'] = False
 
 
 # save statistics dataframes
-sholl_metrics_normaltest.to_csv(join(sholl_metrics_violins_fig_dir, 'sholl_metrics_normaltest.xlsx'), index_label='sholl_metric-neurite_type-region')
+sholl_metrics_normaltest.to_excel(join(sholl_metrics_violins_fig_dir, 'sholl_metrics_normaltest.xlsx'), index_label='sholl_metric-neurite_type-region')
+sholl_metrics_mannwhitneyu.to_excel(join(sholl_metrics_violins_fig_dir, 'sholl_metrics_mannwhitneyu.xlsx'), index_label='sholl_metric-neurite_type')
 
 
 # %% figure for critical vs enclosing radius
@@ -729,7 +775,15 @@ fig_sholl_scatter, axs_sholl_scatter = plt.subplots(nrows=3,
 axs_sholl_scatter = axs_sholl_scatter.flatten()
 
 # create list for subplot alphabetical labels
-alpha_labels = ['A', 'B', 'C', 'D', 'E', 'F']
+# alpha_labels = ['A', 'B', 'C', 'D', 'E', 'F']
+
+# create dict for axis titles 
+axs_titles = {'MeA' : {'neurites' : '$\mathregular{A_{i}}$: MeA neurites',
+                       'dendrites': '$\mathregular{B_{i}}$: MeA dendrites',
+                       'axons'    : '$\mathregular{C_{i}}$: MeA axons'}, 
+              'BAOT': {'neurites' : '$\mathregular{A_{ii}}$: BAOT neurites',
+                       'dendrites': '$\mathregular{B_{ii}}$: BAOT dendrites',
+                       'axons'    : '$\mathregular{C_{ii}}$: BAOT axons'}}
 
 # initialise color-coding of max intersections
 cmap_str = 'viridis'
@@ -766,7 +820,7 @@ for region in ['MeA', 'BAOT']:
         ax = axs_sholl_scatter[order_dict[region][neurite_type]]
     
         # subplot title
-        ax.set_title(alpha_labels[order_dict[region][neurite_type]] + ': ' + region + ' ' + neurite_type, 
+        ax.set_title(axs_titles[region][neurite_type], 
                      fontsize=12, 
                      loc='left')
         
@@ -866,7 +920,7 @@ for region in ['MeA', 'BAOT']:
 
 # axis labels
 [ax.set_ylabel('Critical radius [µm]') for ax in axs_sholl_scatter[::2]] 
-[ax.set_xlabel('Enclosing radius  [µm]') for ax in axs_sholl_scatter[-2:]]
+[ax.set_xlabel('Enclosing radius  [µm]') for ax in axs_sholl_scatter]
 
 # align labels
 fig_sholl_scatter.align_labels()
@@ -875,10 +929,38 @@ fig_sholl_scatter.align_labels()
 plt.show()
 
 # save figure
-crit_v_enclos_figure_dir = join(cell_morph_plots_dir, 'crit_v_enclos_figure')
+crit_v_enclos_figure_dir = join(cell_morph_plots_dir, 'figure-sholl_metrics-enclosing_v_critical_radius')
 
-save_figures(fig_sholl_scatter, 'sholl_metrics_crit_v_enclos_figure', 
+save_figures(fig_sholl_scatter, 'sholl_metrics-crit_v_enclos-figure', 
              save_dir = crit_v_enclos_figure_dir,
              darkmode_bool = darkmode_bool, 
              figure_format = 'both')
 
+# %% collected data to save
+
+# create dataframe
+sholl_metrics_df = pd.DataFrame(index = sholl_cell_IDs)
+
+# iterate through neurite_type
+for neurite_type in neurite_types:
+    
+    # iterate through regions
+    for region in ['MeA', 'BAOT']:
+        
+        # get sholl metric per Type
+        sholl_metric_perType = sholl_metrics[neurite_type]
+
+        # limit to current region
+        sholl_metric_perType_n_region = sholl_metric_perType[sholl_metric_perType['Region'] == region]
+        
+        # get current cell_IDs
+        sholl_metric_region_cell_IDs = sholl_metric_perType_n_region.index.to_list()
+        
+        # iterate through metrics
+        for sholl_metric in ['enclosing_radius', 'critical_radius', 'max_intersections']:
+
+            # write to dataframe
+            sholl_metrics_df.loc[sholl_metric_region_cell_IDs, f'{sholl_metric}-{neurite_type}-{region}'] = sholl_metric_perType_n_region[sholl_metric]
+
+# save dataframe
+sholl_metrics_df.to_excel(join(crit_v_enclos_figure_dir, 'sholl_metrics_sorted.xlsx'), index_label = 'cell_ID')

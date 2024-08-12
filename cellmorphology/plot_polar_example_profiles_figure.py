@@ -244,7 +244,7 @@ legend = axs[4].legend(handles = handles,
 
 #change the marker size manually for both lines
 for l_idx in range(6):
-    legend.legend_handles[l_idx]._sizes = [8]
+    legend.legend_handles[l_idx]._sizes = [45]
  
 # remove all spines and ticks
 [axs[4].spines[spine].set_visible(False) for spine in ['top', 'right', 'bottom', 'left']]
@@ -421,7 +421,7 @@ fig.align_labels()
 plt.show()
 
 # save figure
-figure_dir = join(cell_morph_plots_dir, 'figure-example_polar_plots')
+figure_dir = join(cell_morph_plots_dir, 'figure-polar-example_cells')
 save_figures(fig, 
               figure_name = 'polar_plots-example_cells-figure', 
               save_dir = figure_dir,

@@ -43,11 +43,13 @@ neurite_types = ['neurites', 'dendrites', 'axons']
 regions = ['MeA', 'BAOT']
 
 
-# %% drop cells E-126 & E-158
+# %% drop cells 
+
+from cellmorphology.cellmorph_parameters import cell_IDs_toDrop
 
 for neurite_type in neurite_types:
     
-    polar_occu_dict[neurite_type].drop(columns = ['E-126', 'E-158'], inplace = True)
+    polar_occu_dict[neurite_type].drop(columns = cell_IDs_toDrop, inplace = True)
 
 
 # %% drop cells with no axon from axon occurances
@@ -465,7 +467,7 @@ fig_norm.align_labels()
 plt.show()
 
 # save figure
-figure_dir = join(cell_morph_plots_dir, 'figure-polar_population')
+figure_dir = join(cell_morph_plots_dir, 'figure-polar-population')
 save_figures(fig_norm, 
              figure_name = 'population_polar_plots-new_figure', 
              save_dir = figure_dir,
@@ -497,7 +499,8 @@ mean_median_std_terminal_points.to_excel(join(figure_dir, 'polar_occurrances-pop
 
 # %% statistical tests
 
-from scipy.stats import normaltest, mannwhitneyu
+from scipy.stats import normaltest, mannwhitneyu, ks_1samp, ttest_ind
+from scipy import stats
 
 # test for normal distribution per neurite type and region
 
@@ -510,35 +513,80 @@ for neurite_type_terminals in neurite_terminal_types.values():
         
         n_terminal_points_per_type_n_per_region = n_terminal_points_df.loc[region_cell_IDs[region], neurite_type_terminals]
 
+        # run tests
         ntest_stats, ntest_pvalue = normaltest(n_terminal_points_per_type_n_per_region, nan_policy= 'omit')
+        kstest_res = ks_1samp(n_terminal_points_per_type_n_per_region, stats.norm.cdf, nan_policy='omit')
         
-        n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-{region}', 'statistic'] = ntest_stats
-        n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-{region}', 'pvalue'] = ntest_pvalue
+        # write to dataframe
+        # normaltest
+        n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-{region}', 'normaltest_statistic'] = ntest_stats
+        n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-{region}', 'normaltest_pvalue'] = ntest_pvalue
+        
+        # write boolean
+        if ntest_pvalue < 0.05 :  
+            n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-{region}', 'normaltest-normally_distributed'] = True
+        else:
+            n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-{region}', 'normaltest-normally_distributed'] = False
+        
+        # kolmogorov-smirnov test
+        n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-{region}', 'kstest_statistic'] = kstest_res.statistic
+        n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-{region}', 'kstest_pvalue'] = kstest_res.pvalue
+        
+        # write boolean
+        if kstest_res.pvalue > 0.05 :  
+            n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-{region}', 'kstest-normally_distributed'] = True
+        else:
+            n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-{region}', 'kstest-normally_distributed'] = False
         
 # save normaltest p_values
 n_terminals_normaltest_pvalues.to_excel(join(figure_dir, 'population_fig-n_terminals-ntest_pvalues.xlsx'), index_label='neurite_type-region')
 
 
+# %%
 # test for statistical difference between regions
 
 # create dataframe
-n_terminals_mannwhitneyu_pvalues = pd.DataFrame()
+n_terminals_pvalues = pd.DataFrame()
 
 for neurite_type_terminals in neurite_terminal_types.values():
      
     # get n_terminal_points
     n_terminal_points_per_type_MeA = n_terminal_points_df.loc[region_cell_IDs['MeA'], neurite_type_terminals]
     n_terminal_points_per_type_BAOT = n_terminal_points_df.loc[region_cell_IDs['BAOT'], neurite_type_terminals]
-
-    # apply test
-    mannwhitneyu_stats, mannwhitneyu_pvalue = mannwhitneyu(x = n_terminal_points_per_type_MeA,
-                                                           y = n_terminal_points_per_type_BAOT,
-                                                           nan_policy= 'omit')
+    
+    # look for normal distribution in both distributions
+    MeA_normal_pvalue = n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-MeA', 'kstest_pvalue']
+    BAOT_normal_pvalue = n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-BAOT', 'kstest_pvalue']
+    
+    # choose appropriate test
+    if (MeA_normal_pvalue > 0.05 and BAOT_normal_pvalue > 0.05):
+        # run rest
+        ttest_res = ttest_ind(n_terminal_points_per_type_MeA, n_terminal_points_per_type_BAOT, 
+                              nan_policy='omit', alternative='two-sided')
         
-    # write to dataframe
-    n_terminals_mannwhitneyu_pvalues.at[f'{neurite_type_terminals}', 'mannwhitneyu_statistic'] = mannwhitneyu_stats
-    n_terminals_mannwhitneyu_pvalues.at[f'{neurite_type_terminals}', 'mannwhitneyu_pvalue'] = mannwhitneyu_pvalue
+        # write to dataframe
+        n_terminals_pvalues.at[f'{neurite_type_terminals}', 'ttest_ind_stats'] = ttest_res.statistic
+        n_terminals_pvalues.at[f'{neurite_type_terminals}', 'ttest_ind_pvalue'] = ttest_res.pvalue
 
+    else:
+        # run rest
+        mannwhitneyu_res = mannwhitneyu(n_terminal_points_per_type_MeA, n_terminal_points_per_type_BAOT,
+                                        alternative='two-sided', nan_policy='omit')
+        
+        # write to dataframe
+        n_terminals_pvalues.at[f'{neurite_type_terminals}', 'mannwhitneyu_stats'] = mannwhitneyu_res.statistic
+        n_terminals_pvalues.at[f'{neurite_type_terminals}', 'mannwhitneyu_pvalue'] = mannwhitneyu_res.pvalue
+    
+        # write boolean
+        if mannwhitneyu_res.pvalue < 0.05:
+            n_terminals_pvalues.at[f'{neurite_type_terminals}', 'statistical_difference'] = True
+        else:
+            n_terminals_pvalues.at[f'{neurite_type_terminals}', 'statistical_difference'] = False
+    
+    
 
 # save mannwhitneyu p_values
-n_terminals_mannwhitneyu_pvalues.to_excel(join(figure_dir, 'population_fig-n_terminals-mannwhitneyu_pvalues.xlsx'), index_label='neurite_type')
+n_terminals_pvalues.to_excel(join(figure_dir, 'population_fig-n_terminals-mannwhitneyu_pvalues.xlsx'), index_label='neurite_type')
+
+
+
