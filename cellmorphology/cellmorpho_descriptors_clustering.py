@@ -760,8 +760,8 @@ from cellmorphology.cellmorph_colors import spines_color_dict, neurite_color_dic
 
 heatmap_dict = {'Region'              : {'cmap' : [region_colors[region] for region in ['MeA', 'BAOT/MeA', 'BAOT']]},
                 'spinyness'           : {'cmap' : [spines_color_dict['both'][spinyness] for spinyness in ['low', 'moderate', 'high']]},
-                'dendrites-circ_mean' : {'cmap' : plt.get_cmap('viridis'), 'vmin' : 0, 'vmax' : np.pi * 2},
-                'axons-circ_mean'     : {'cmap' : plt.get_cmap('viridis'), 'vmin' : 0, 'vmax' : np.pi * 2},
+                'dendrites-circ_mean' : {'cmap' : plt.get_cmap('twilight'), 'vmin' : 0, 'vmax' : np.pi * 2},
+                'axons-circ_mean'     : {'cmap' : plt.get_cmap('twilight'), 'vmin' : 0, 'vmax' : np.pi * 2},
                 'AIS root'            : {'cmap' : [neurite_color_dict[region]['axons'] for region in ['MeA', 'BAOT']]}}
 
 cbar_dict = {'Region'              : {'ticks' : [0.166, 0.5, 0.833],                  'labels' : ['MeA', 'BAOT/MeA', 'BAOT'], 'range' : [0, 1]},
@@ -847,7 +847,10 @@ ax_dendro.set_xticks(ticks = np.arange(0, 25+1, 5), minor = True)
 [ax_dendro.spines[spine].set_visible(False) for spine in ['top', 'right', 'left']]
 
 # get cell IDs of leaves
-leave_cell_IDs = dendrogram_plot['ivl'][::-1]
+leave_cell_IDs = dendrogram_plot['ivl']
+
+# invert order of leave cell IDs
+leave_cell_IDs = list(reversed(leave_cell_IDs))
 
 # resort dataframe indices
 cellmorph_descriptors_zscored_clustered = cellmorph_descriptors_zscored.reindex(leave_cell_IDs)
@@ -856,7 +859,7 @@ aux_cellmorph_descriptors_clustered = aux_cellmorph_descriptors.reindex(leave_ce
 
 ### heatmap ###
 # plot heatmap
-sbn.heatmap(cellmorph_descriptors_zscored,
+sbn.heatmap(cellmorph_descriptors_zscored_clustered,
             vmin = heatmin,
             vmax = heatmax,
             square = False,
