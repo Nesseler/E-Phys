@@ -683,6 +683,7 @@ save_figures(fig_metrics_violins,
 
 from scipy.stats import normaltest, mannwhitneyu, ks_1samp
 from scipy import stats
+from statsmodels.stats.multitest import multipletests # bonferroni correction
 
 # create dataframe for statistics measures
 sholl_metrics_normaltest = pd.DataFrame()
@@ -747,14 +748,33 @@ for sholl_metric in ['enclosing_radius', 'critical_radius', 'max_intersections']
                                             nan_policy='omit')
 
             # write to dataframe
-            sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'manwhitneyu_statistic'] = mannwhitneyu_res.statistic
-            sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'manwhitneyu_pvalue'] = mannwhitneyu_res.pvalue
+            sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'mannwhitneyu_statistic'] = mannwhitneyu_res.statistic
+            sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'mannwhitneyu_pvalue'] = mannwhitneyu_res.pvalue
             
             # write boolean
             if mannwhitneyu_res.pvalue < 0.05:
-                sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'statistically_different'] = True
+                sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'mannwhitneyu-statistically_different'] = True
             else:
-                sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'statistically_different'] = False
+                sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'mannwhitneyu-statistically_different'] = False
+        
+        
+    # Bonferroni correction
+    # get rows of pvalues
+    rows = [sholl_metric + '-' + neurite_type for neurite_type in neurite_types]
+    
+    # get pvalues
+    mannwhitneyu_pvalues = sholl_metrics_mannwhitneyu.loc[rows, 'mannwhitneyu_pvalue']
+    
+    # apply bonferroni correction
+    rejects, pvals_corrected, _, _ = multipletests(mannwhitneyu_pvalues,
+                                                   alpha=0.05, 
+                                                   method='bonferroni')
+    
+    # write to dataframe
+    sholl_metrics_mannwhitneyu.loc[rows, 'bonferroni_pvalue'] = pvals_corrected
+    
+    # write boolean
+    sholl_metrics_mannwhitneyu.loc[rows, 'bonferroni-statistical_difference'] = sholl_metrics_mannwhitneyu.loc[rows, 'bonferroni_pvalue'] < 0.05
 
 
 # save statistics dataframes

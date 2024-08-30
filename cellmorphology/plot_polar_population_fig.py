@@ -501,6 +501,7 @@ mean_median_std_terminal_points.to_excel(join(figure_dir, 'polar_occurrances-pop
 
 from scipy.stats import normaltest, mannwhitneyu, ks_1samp, ttest_ind
 from scipy import stats
+from statsmodels.stats.multitest import multipletests # bonferroni correction
 
 # test for normal distribution per neurite type and region
 
@@ -537,12 +538,12 @@ for neurite_type_terminals in neurite_terminal_types.values():
             n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-{region}', 'kstest-normally_distributed'] = True
         else:
             n_terminals_normaltest_pvalues.at[f'{neurite_type_terminals}-{region}', 'kstest-normally_distributed'] = False
-        
+
+
 # save normaltest p_values
 n_terminals_normaltest_pvalues.to_excel(join(figure_dir, 'population_fig-n_terminals-ntest_pvalues.xlsx'), index_label='neurite_type-region')
 
 
-# %%
 # test for statistical difference between regions
 
 # create dataframe
@@ -579,11 +580,26 @@ for neurite_type_terminals in neurite_terminal_types.values():
     
         # write boolean
         if mannwhitneyu_res.pvalue < 0.05:
-            n_terminals_pvalues.at[f'{neurite_type_terminals}', 'statistical_difference'] = True
+            n_terminals_pvalues.at[f'{neurite_type_terminals}', 'mannwhitneyu-statistical_difference'] = True
         else:
-            n_terminals_pvalues.at[f'{neurite_type_terminals}', 'statistical_difference'] = False
+            n_terminals_pvalues.at[f'{neurite_type_terminals}', 'mannwhitneyu-statistical_difference'] = False
     
     
+# bonferroni correction
+# get pvalues
+mannwhitneyu_pvalues = n_terminals_pvalues.loc[:, 'mannwhitneyu_pvalue']
+
+# apply bonferroni correction
+rejects, pvals_corrected, _, _ = multipletests(mannwhitneyu_pvalues,
+                                               alpha=0.05, 
+                                               method='bonferroni')
+
+# write to dataframe
+n_terminals_pvalues.loc[:, 'bonferroni_pvalue'] = pvals_corrected
+
+# write boolean
+n_terminals_pvalues.loc[:, 'bonferroni-statistical_difference'] = n_terminals_pvalues.loc[:, 'bonferroni_pvalue'] < 0.05
+
 
 # save mannwhitneyu p_values
 n_terminals_pvalues.to_excel(join(figure_dir, 'population_fig-n_terminals-mannwhitneyu_pvalues.xlsx'), index_label='neurite_type')

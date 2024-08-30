@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Aug 12 11:22:10 2024
+Created on Wed Aug 21 09:51:22 2024
 
 @author: nesseler
 """
+
 
 from cellmorphology.cellmorph_packages import mtl, plt, sbn, pd, np, join
 
@@ -18,6 +19,7 @@ MetaData = pd.read_excel(table_file,
 
 # set list of neurite types
 neurite_types = ['neurites', 'dendrites', 'axons']
+
 
 # %% load & clean data
 
@@ -45,9 +47,9 @@ cellmorph_parameters.drop(index = cell_IDs_toDrop, inplace = True)
 # remove axonless cells from 
 for col in cellmorph_parameters.columns:
     if 'axon' in col:
-        cellmorph_parameters.replace(to_replace = {col : 0},
-                                     value = np.nan,
-                                     inplace = True)
+         cellmorph_parameters.replace(to_replace = {col : 0},
+                                      value = np.nan, 
+                                      inplace = True)
         
 
 # set list of parameters
@@ -55,6 +57,118 @@ parameters = ['n_primaries', 'n_terminals', 'bifurcation_ratio', 'total_cable_le
 
 # add region
 cellmorph_parameters['Region'] = MetaData.loc[cellmorph_parameters.index, 'Region']
+
+
+# %%
+
+def get_cell_IDs_tobeCombined(MetaData, cell_IDs_tobeAnalysed):
+    '''
+    This functions checks wether cell_IDs originated from the same slice and
+    region. It returns a list of lists containing cell_IDs that meet these 
+    requirments and can be average in later analyses.
+    Parameter:
+        MetaData: Pandas Dataframe, containing experimental MetaData
+        cell_IDs_tobeAnalysed: list of cell_IDs that will be checked
+    Returns:
+        cell_IDs_tobeCombined: list of cell_IDs that originate from the same
+        slice and region.
+    '''
+    
+    # get cell_IDs to check
+    # cell_IDs_tobeAnalysed = cellmorph_parameters.index.to_list()
+    
+    # limit MetaData to cell_IDs that will be included
+    included_MetaData = MetaData.loc[cell_IDs_tobeAnalysed, :]
+    
+    # set list of lists of cell_IDs to combine
+    cell_IDs_tobeCombined = []
+    
+    # get experimental days 
+    experimental_days = set(included_MetaData['file'].dropna())
+    
+    # get integers of experimental days
+    experimental_days_ints = [int(day[-3:]) for day in experimental_days]
+    
+    # zip lists together
+    experimental_days_zip = zip(experimental_days, experimental_days_ints)
+    
+    # sort list of experimental days
+    experimental_days = [day for day, day_i in sorted(experimental_days_zip, key=lambda x:int(x[1]), reverse=True)]
+    
+    # iterate through experimental days
+    for e_day in experimental_days:
+        
+        # get local MetaData rows
+        day_MetaData = included_MetaData[included_MetaData['file'] == e_day]
+        
+        # get cell_IDs
+        day_cell_IDs = day_MetaData.index.to_list()
+        
+        # get slices  
+        day_slices = day_MetaData.loc[day_cell_IDs, 'Slice']
+    
+        # set uniques slices
+        day_slices = set(day_slices)
+        
+        # iterate through slices
+        for day_slice in day_slices:
+            
+            # get MetaData of slice and day
+            slice_day_MetaData = day_MetaData[day_MetaData['Slice'] == day_slice]
+            
+            # get regions
+            slice_day_regions = slice_day_MetaData['Region']
+            
+            # iterate through unique regions:
+            for region in set(slice_day_regions):
+                
+                # get MetaData of slice, day and region
+                region_slice_day_MetaData = slice_day_MetaData[slice_day_MetaData['Region'] == region]
+                
+                # get cell_IDs 
+                region_slice_day_cell_IDs = region_slice_day_MetaData.index.to_list()
+                
+                # append to list of cell_IDs if more than one cell_ID
+                if len(region_slice_day_cell_IDs) > 1:
+                    cell_IDs_tobeCombined.append(region_slice_day_cell_IDs)
+    
+    return cell_IDs_tobeCombined
+
+
+cell_IDs_tobeCombined = get_cell_IDs_tobeCombined(MetaData = MetaData, cell_IDs_tobeAnalysed = cellmorph_parameters.index.to_list())
+
+# %%
+
+cellmorph_parameters_combined = cellmorph_parameters.copy()
+
+for cell_IDs_combi in cell_IDs_tobeCombined:
+    
+    # get parameter of cells to combined    
+    cellmorph_params_combi = cellmorph_parameters_combined.loc[cell_IDs_combi, :].drop(columns = ['Region'])
+    
+    # drop cell_IDs
+    cellmorph_parameters_combined.drop(index = cell_IDs_combi, inplace = True)
+    
+    # create new combined cell_ID
+    combi_cell_ID = 'E-'
+    
+    for cell_ID in cell_IDs_combi:
+        
+        combi_cell_ID = combi_cell_ID + cell_ID[2:] + '_'
+        
+    combi_cell_ID = combi_cell_ID[:-1]    
+    
+    # insert combination
+    cellmorph_parameters_combined.loc[combi_cell_ID, :] = cellmorph_params_combi.mean()
+    
+    # get region
+    cellmorph_parameters_combined.at[combi_cell_ID, 'Region'] = cellmorph_parameters.at[cell_IDs_combi[0], 'Region']
+
+
+
+# %% reset dataframe
+
+cellmorph_parameters = cellmorph_parameters_combined
 
 
 # %% reorder dataframe for plotting
@@ -75,6 +189,7 @@ for p_idx, parameter in enumerate(parameters):
         # write to Dataframe
         cellmorph_parameters_plotting_perType[parameter] = cellmorph_parameters[f'{neurite_type}-{parameter}']
         cellmorph_parameters_plotting_perType['neurite_type'] = [neurite_type] * len(cellmorph_parameters[f'{neurite_type}-{parameter}'])
+        cellmorph_parameters_plotting_perType['Region'] = cellmorph_parameters['Region']
         
         # concat to perParameter
         cellmorph_parameters_plotting_perParameter = pd.concat([cellmorph_parameters_plotting_perParameter, cellmorph_parameters_plotting_perType], axis = 0)
@@ -86,7 +201,7 @@ for p_idx, parameter in enumerate(parameters):
 cellmorph_parameters_plotting = cellmorph_parameters_plotting.loc[:,~cellmorph_parameters_plotting.columns.duplicated()].copy()
 
 # add region
-cellmorph_parameters_plotting['Region'] = MetaData.loc[cellmorph_parameters_plotting.index, 'Region']
+# cellmorph_parameters_plotting['Region'] = MetaData.loc[cellmorph_parameters_plotting.index, 'Region']
 
 # remove cells without region
 cellmorph_parameters_plotting = cellmorph_parameters_plotting.query('Region != "BAOT/MeA"')
@@ -234,7 +349,7 @@ for parameter in parameters:
     
         # y
         if parameter == 'n_primaries':
-            ylabel = 'Number of primary\nbranches per cell [#]'
+            ylabel = 'Number of primary\nbranches per slice [#]'
                 
             if n_idx == 2:
                 ymin = 0
@@ -248,7 +363,7 @@ for parameter in parameters:
                 ystepminor = 1
     
         elif parameter == 'n_terminals':
-            ylabel = 'Number of terminal\nbranches per cell [#]'
+            ylabel = 'Number of terminal\nbranches per slice [#]'
     
             if n_idx == 2:
                 ymin = 0
@@ -262,7 +377,7 @@ for parameter in parameters:
                 ystepminor = 2
                 
         elif parameter == 'bifurcation_ratio':
-            ylabel = 'Bifurcation ratio\nper cell [#]'
+            ylabel = 'Bifurcation ratio\nper slice [#]'
                 
             ymin = 0
             ymax = 20
@@ -270,7 +385,7 @@ for parameter in parameters:
             ystepminor = 1
             
         elif parameter == 'total_cable_length':
-            ylabel = 'Total cable length\nper cell [µm]'
+            ylabel = 'Total cable length\nper slice [µm]'
                 
             if n_idx == 2:
                 ymin = 0
@@ -304,7 +419,7 @@ for parameter in parameters:
     plt.show()
     
     # save figure
-    figure_dir = join(cell_morph_plots_dir, 'figure-n_primaries-n_terminals-bifurcation_ratio-total_cable_length')
+    figure_dir = join(cell_morph_plots_dir, 'figure-n_primaries-n_terminals-bifurcation_ratio-total_cable_length', 'statistics_adventure')
     
     save_figures(fig,
                   figure_name = f'figure-{parameter}', 
@@ -409,5 +524,3 @@ for parameter in parameters:
 
 cellmorph_normaltest.to_excel(join(figure_dir, 'normaltest.xlsx'), index_label= 'neurite_type-parameter-region')
 cellmorph_parameters_between_regions.to_excel(join(figure_dir, 'statistical_difference.xlsx'), index_label= 'neurite_type-parameter')
- 
-

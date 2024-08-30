@@ -369,157 +369,157 @@ def create_data_distribution_figure(distributions_data = cellmorph_descriptors_z
 
 # # %% create figure of all plots
 
-# # rewrite function
-# def plot_data_distribution(ax, distributions_data = cellmorph_descriptors_zscored):
+# rewrite function
+def plot_data_distribution(ax, distributions_data = cellmorph_descriptors_zscored):
         
-#     # melt dataframe to plot
-#     distributions_data_melted = distributions_data.melt(var_name = 'parameter')
+    # melt dataframe to plot
+    distributions_data_melted = distributions_data.melt(var_name = 'parameter')
     
     
-#     # create list of parameters
-#     parameters = distributions_data.columns.to_list()
+    # create list of parameters
+    parameters = distributions_data.columns.to_list()
     
-#     # create list of colors for parameters
-#     p_cmap = plt.get_cmap('viridis', 20)
+    # create list of colors for parameters
+    p_cmap = plt.get_cmap('viridis', 20)
     
-#     # plot violins
+    # plot violins
         
-#     violins = sbn.violinplot(data = distributions_data_melted,
-#                              x = 'parameter',
-#                              y = 'value',
-#                              ax = ax,
-#                              linewidth = 1,
-#                              inner = 'quart',
-#                              scale='width',
-#                              hue = True, hue_order=[True, False], split = True)
+    violins = sbn.violinplot(data = distributions_data_melted,
+                              x = 'parameter',
+                              y = 'value',
+                              ax = ax,
+                              linewidth = 1,
+                              inner = 'quart',
+                              scale='width',
+                              hue = True, hue_order=[True, False], split = True)
     
     
-#     for p_idx, param in enumerate(parameters):
-#         # set line color of quarts
-#         for l_idx in range(3):
-#             violins.lines[p_idx * 3 + l_idx].set_color(p_cmap(p_idx))
+    for p_idx, param in enumerate(parameters):
+        # set line color of quarts
+        for l_idx in range(3):
+            violins.lines[p_idx * 3 + l_idx].set_color(p_cmap(p_idx))
         
-#         # set edge color of violin
-#         violins.collections[p_idx].set_edgecolor(p_cmap(p_idx))
+        # set edge color of violin
+        violins.collections[p_idx].set_edgecolor(p_cmap(p_idx))
     
-#         # set facecolor of violin
-#         violins.collections[p_idx].set_facecolor('None')
+        # set facecolor of violin
+        violins.collections[p_idx].set_facecolor('None')
     
-#     # plot swarm
+    # plot swarm
     
-#     swarms = sbn.swarmplot(data = distributions_data_melted,
-#                            x = 'parameter',
-#                            y = 'value', 
-#                            ax = ax,
-#                            s = 1,
-#                            color=colors_dict['primecolor'])
+    swarms = sbn.swarmplot(data = distributions_data_melted,
+                            x = 'parameter',
+                            y = 'value', 
+                            ax = ax,
+                            s = 1,
+                            color=colors_dict['primecolor'])
     
-#     # plot error bar
-#     for p_idx, param in enumerate(parameters):
-#         ax.errorbar(x = p_idx+0.3,
-#                     y = distributions_data[param].mean(),
-#                     yerr = distributions_data[param].std(),
-#                     fmt='_', 
-#                     markersize = 4,
-#                     markerfacecolor = 'none',
-#                     capsize = 1,
-#                     color=p_cmap(p_idx),
-#                     linewidth = 1,
-#                     label = '_nolegend_')
+    # plot error bar
+    for p_idx, param in enumerate(parameters):
+        ax.errorbar(x = p_idx+0.3,
+                    y = distributions_data[param].mean(),
+                    yerr = distributions_data[param].std(),
+                    fmt='_', 
+                    markersize = 4,
+                    markerfacecolor = 'none',
+                    capsize = 1,
+                    color=p_cmap(p_idx),
+                    linewidth = 1,
+                    label = '_nolegend_')
         
-#     # edit seaborn legend
-#     ax.legend().set_visible(False)
+    # edit seaborn legend
+    ax.legend().set_visible(False)
     
 
 
-# # initialize figure
-# fig_dist_all, axs_dist_all = plt.subplots(nrows = 3,
-#                                           ncols = 1,
-#                                           layout = 'constrained',
-#                                           figsize = get_figure_size(width = 150, height = 250),
-#                                           dpi = 600)
+# initialize figure
+fig_dist_all, axs_dist_all = plt.subplots(nrows = 3,
+                                          ncols = 1,
+                                          layout = 'constrained',
+                                          figsize = get_figure_size(width = 150, height = 250),
+                                          dpi = 600)
 
-# for data_idx, data_df in enumerate([cellmorph_descriptors, cellmorph_descriptors_minmax, cellmorph_descriptors_zscored]):
+for data_idx, data_df in enumerate([cellmorph_descriptors, cellmorph_descriptors_minmax, cellmorph_descriptors_zscored]):
     
-#     # set axis
-#     ax = axs_dist_all[data_idx]
+    # set axis
+    ax = axs_dist_all[data_idx]
     
-#     # plot
-#     plot_data_distribution(ax, distributions_data = data_df)
+    # plot
+    plot_data_distribution(ax, distributions_data = data_df)
     
-#     # edit axis
-#     # x
-#     xmin = 0
-#     xmax = len(cellmorph_descriptors.columns) - 1
-#     xpad = 0.6
+    # edit axis
+    # x
+    xmin = 0
+    xmax = len(cellmorph_descriptors.columns) - 1
+    xpad = 0.6
     
 
-#     # y
-#     if data_idx == 0:
-#         ymin = 0
-#         ymax = 6000
-#         ypad = 100
-#         ystep = 2000
-#         ystepminor = 500
-#         xticklabels = []
-#         ylabel = 'Parameter value [µm / # / ]'
-#         axistitle = 'Original parameters'
+    # y
+    if data_idx == 0:
+        ymin = 0
+        ymax = 6000
+        ypad = 100
+        ystep = 2000
+        ystepminor = 500
+        xticklabels = []
+        ylabel = 'Parameter value [µm / # / ]'
+        axistitle = 'Original parameters'
         
-#     elif data_idx == 1:
-#         ymin = -0.5
-#         ymax = 1.5
-#         ypad = 0.15
-#         ystep = 1
-#         ystepminor = 0.25
-#         xticklabels = []
-#         ylabel = 'Parameter value'
-#         axistitle = 'Min-Max-Normalized parameters'
+    elif data_idx == 1:
+        ymin = -0.5
+        ymax = 1.5
+        ypad = 0.15
+        ystep = 1
+        ystepminor = 0.25
+        xticklabels = []
+        ylabel = 'Parameter value'
+        axistitle = 'Min-Max-Normalized parameters'
             
-#     elif data_idx == 2:
-#         ymin = -4
-#         ymax = 6
-#         ypad = 0.25
-#         ystep = 2
-#         ystepminor = 0.25
-#         xticklabels = cellmorph_descriptors.columns
-#         ylabel = 'Parameter value [std]'
-#         axistitle = 'Z-scored parameters'
+    elif data_idx == 2:
+        ymin = -4
+        ymax = 6
+        ypad = 0.25
+        ystep = 2
+        ystepminor = 0.25
+        xticklabels = cellmorph_descriptors.columns
+        ylabel = 'Parameter value [std]'
+        axistitle = 'Z-scored parameters'
         
         
-#     # set axis title
-#     ax.set_title(axistitle,
-#                  fontsize=12, 
-#                  loc='left',
-#                  x = 0)
+    # set axis title
+    ax.set_title(axistitle,
+                  fontsize=12, 
+                  loc='left',
+                  x = 0)
         
-#     # apply axis changes 
-#     ax.set_xlim([xmin - xpad, xmax + xpad])
-#     ax.set_xticklabels(labels = xticklabels,
-#                        rotation = 90)
-#     ax.spines['bottom'].set_bounds([xmin, xmax])
+    # apply axis changes 
+    ax.set_xlim([xmin - xpad, xmax + xpad])
+    ax.set_xticklabels(labels = xticklabels,
+                        rotation = 90)
+    ax.spines['bottom'].set_bounds([xmin, xmax])
     
-#     ax.set_xlabel('')
+    ax.set_xlabel('')
 
-#     ax.set_ylim([ymin - ypad, ymax + ypad])
-#     ax.set_yticks(ticks = np.arange(round_up_to_base(ymin, 1), ymax+ ystepminor, ystep))
-#     ax.set_yticks(ticks = np.arange(ymin, ymax+ ystepminor, ystepminor), minor = True)
-#     ax.spines['left'].set_bounds([ymin, ymax])
-#     ax.set_ylabel(ylabel)
+    ax.set_ylim([ymin - ypad, ymax + ypad])
+    ax.set_yticks(ticks = np.arange(round_up_to_base(ymin, 1), ymax+ ystepminor, ystep))
+    ax.set_yticks(ticks = np.arange(ymin, ymax+ ystepminor, ystepminor), minor = True)
+    ax.spines['left'].set_bounds([ymin, ymax])
+    ax.set_ylabel(ylabel)
     
-#     # remove spines
-#     [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
+    # remove spines
+    [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
    
-# # align labels
-# fig_dist_all.align_labels()
+# align labels
+fig_dist_all.align_labels()
     
-# # show figure
-# plt.show()
+# show figure
+plt.show()
 
 # # save figure
 # save_figures(fig_dist_all, 'hierarchical_clustering-parameter_distributions-all', 
-#              save_dir = cellmorph_clustering_fig_dir,
-#              darkmode_bool= darkmode_bool,
-#              figure_format= 'png')
+#               save_dir = cellmorph_clustering_fig_dir,
+#               darkmode_bool= darkmode_bool,
+#               figure_format= 'png')
 
 
 # %% correlation analysis
