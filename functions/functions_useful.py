@@ -74,15 +74,7 @@ def calc_dvdt_padded(v,t):
     return dvdt
 
     
-# def get_sampling_rate(bundleTester, traceIndex):
-    
-#     #from patchview.HekaIO.HekaHelpers import HekaBundleInfo
-    
-#     SR = bundleTester.getSeriesSamplingRate(traceIndex)
-    
-#     SR = int(round(SR))
-        
-#     return SR
+
 
 
 # from patchview.HekaIO.HekaHelpers import HekaBundleInfo
