@@ -282,8 +282,12 @@ def change_projection(fig, axs, ax_tochange, projection = 'polar'):
 
     rows, cols, start, stop = ax_tochange.get_subplotspec().get_geometry()
 
-    axs.flat[start].remove()
-    axs.flat[start] = fig.add_subplot(rows, cols, start+1, projection=projection)
+    if type(axs) == dict:
+        axs[str(start)].remove()
+        axs[str(start)] = fig.add_subplot(rows, cols, start+1, projection=projection) 
+    else:
+        axs.flat[start].remove()
+        axs.flat[start] = fig.add_subplot(rows, cols, start+1, projection=projection)
     
 
     

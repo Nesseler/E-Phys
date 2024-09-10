@@ -448,11 +448,11 @@ plt.show()
 
 # save figure
 sholl_profiles_fig_dir = join(cell_morph_plots_dir, 'figure-sholl_profiles')
-save_figures(fig_sholl, 
-             figure_name = 'sholl_profiles_figure_v2', 
-             save_dir = sholl_profiles_fig_dir,
-             darkmode_bool=darkmode_bool, 
-             figure_format='both')
+# save_figures(fig_sholl, 
+#              figure_name = 'sholl_profiles_figure_v2', 
+#              save_dir = sholl_profiles_fig_dir,
+#              darkmode_bool=darkmode_bool, 
+#              figure_format='both')
 
 
 # %% collect data and write to dataframe to save
@@ -672,11 +672,11 @@ plt.show()
 
 # save plot
 sholl_metrics_violins_fig_dir = join(cell_morph_plots_dir, 'figure-sholl_metrics-violins')
-save_figures(fig_metrics_violins,
-             figure_name = 'sholl_metrics_violins_figure', 
-             save_dir= sholl_metrics_violins_fig_dir,
-             darkmode_bool=darkmode_bool, 
-             figure_format='both')
+# save_figures(fig_metrics_violins,
+#              figure_name = 'sholl_metrics_violins_figure', 
+#              save_dir= sholl_metrics_violins_fig_dir,
+#              darkmode_bool=darkmode_bool, 
+#              figure_format='both')
 
 
 # %% sholl metrics statistics
@@ -778,8 +778,8 @@ for sholl_metric in ['enclosing_radius', 'critical_radius', 'max_intersections']
 
 
 # save statistics dataframes
-sholl_metrics_normaltest.to_excel(join(sholl_metrics_violins_fig_dir, 'sholl_metrics_normaltest.xlsx'), index_label='sholl_metric-neurite_type-region')
-sholl_metrics_mannwhitneyu.to_excel(join(sholl_metrics_violins_fig_dir, 'sholl_metrics_mannwhitneyu.xlsx'), index_label='sholl_metric-neurite_type')
+# sholl_metrics_normaltest.to_excel(join(sholl_metrics_violins_fig_dir, 'sholl_metrics_normaltest.xlsx'), index_label='sholl_metric-neurite_type-region')
+# sholl_metrics_mannwhitneyu.to_excel(join(sholl_metrics_violins_fig_dir, 'sholl_metrics_mannwhitneyu.xlsx'), index_label='sholl_metric-neurite_type')
 
 
 # %% figure for critical vs enclosing radius
@@ -951,10 +951,10 @@ plt.show()
 # save figure
 crit_v_enclos_figure_dir = join(cell_morph_plots_dir, 'figure-sholl_metrics-enclosing_v_critical_radius')
 
-save_figures(fig_sholl_scatter, 'sholl_metrics-crit_v_enclos-figure', 
-             save_dir = crit_v_enclos_figure_dir,
-             darkmode_bool = darkmode_bool, 
-             figure_format = 'both')
+# save_figures(fig_sholl_scatter, 'sholl_metrics-crit_v_enclos-figure', 
+#              save_dir = crit_v_enclos_figure_dir,
+#              darkmode_bool = darkmode_bool, 
+#              figure_format = 'both')
 
 # %% collected data to save
 
@@ -983,4 +983,4 @@ for neurite_type in neurite_types:
             sholl_metrics_df.loc[sholl_metric_region_cell_IDs, f'{sholl_metric}-{neurite_type}-{region}'] = sholl_metric_perType_n_region[sholl_metric]
 
 # save dataframe
-sholl_metrics_df.to_excel(join(crit_v_enclos_figure_dir, 'sholl_metrics_sorted.xlsx'), index_label = 'cell_ID')
+# sholl_metrics_df.to_excel(join(crit_v_enclos_figure_dir, 'sholl_metrics_sorted.xlsx'), index_label = 'cell_ID')
