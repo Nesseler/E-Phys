@@ -33,7 +33,7 @@ def get_colorcode(x, y, data_fc, norm=None, cmap='seismic', plot_dict={'c':'k'})
 
 
 
-from patchview.HekaIO.HekaHelpers import HekaBundleInfo
+from HekaIO.HekaHelpers import HekaBundleInfo
 
 from functions.functions_useful import calc_time_series
 

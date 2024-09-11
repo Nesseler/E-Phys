@@ -174,7 +174,7 @@ for region in regions:
 
 # %% initialize plotting
 
-from functions.functions_plotting import save_figures, get_colors, get_figure_size, set_font_sizes, change_projection
+from functions.functions_plotting import save_figures, get_colors, get_figure_size, set_font_sizes, change_projection, plot_half_violin
 from cellmorphology.cellmorph_colors import neurite_color_dict
 from inspect import cleandoc as indentstring # package for multiline string with indentation
 
@@ -223,7 +223,7 @@ fig_norm, axs_norm = plt.subplot_mosaic(mosaic = '01234;56734',
                                         figsize = get_figure_size(width = 277.25, height = 110),
                                         dpi = 600,
                                         height_ratios=[1, 1],
-                                        width_ratios = [1.5, 1.5, 1.5, 1, 1])
+                                        width_ratios = [1, 1, 1, 1, 1])
 
 fig_norm.get_layout_engine().set(wspace=0.15)
 
@@ -344,10 +344,10 @@ for neurite_idx, neurite_type in enumerate(['dendrites', 'axons']):
                   loc='left',
                   x = -0.38)
     
-    # # set violin data
-    # # get data for both regions
-    # violin_data_bothregions = n_terminal_points[n_terminal_points['neurite_type'] == neurite_terminal_types[neurite_type]]
-    # violin_data_bothregions.loc[:, 'Region'] = ['both_regions'] * violin_data_bothregions.shape[0]
+    # set violin data
+    # get data for both regions
+    violin_data_bothregions = n_terminal_points[n_terminal_points['neurite_type'] == neurite_terminal_types[neurite_type]]
+    violin_data_bothregions.loc[:, 'Region'] = ['both_regions'] * violin_data_bothregions.shape[0]
 
     # get data for individual regions
     violin_data = n_terminal_points[n_terminal_points['neurite_type'] == neurite_terminal_types[neurite_type]]
@@ -357,38 +357,38 @@ for neurite_idx, neurite_type in enumerate(['dendrites', 'axons']):
     # violin_data = pd.concat([violin_data, violin_data_bothregions], axis = 0)
     violin_data['X'] = [0] * violin_data.shape[0]
       
-    # violin plots   
-    violins = sbn.violinplot(data = violin_data,
-                              x = 'X',
-                              y = 'n_terminal_points',
-                              hue = 'Region', 
-                              hue_order = regions,
-                              split = True,
-                              gap = .1,
-                              ax = ax, 
-                              inner = None,
-                              zorder = 0,
-                              linewidth = 1,
-                              density_norm = 'width')
+    # # violin plots   
+    # violins = sbn.violinplot(data = violin_data,
+    #                           x = 'X',
+    #                           y = 'n_terminal_points',
+    #                           hue = 'Region', 
+    #                           hue_order = regions,
+    #                           split = True,
+    #                           gap = .1,
+    #                           ax = ax, 
+    #                           inner = None,
+    #                           zorder = 0,
+    #                           linewidth = 1,
+    #                           density_norm = 'width')
     
-    # edit lines of quarts
-    for r_idx, region in enumerate(regions):
+    # # edit lines of quarts
+    # for r_idx, region in enumerate(regions):
         
-        for l_idx in np.arange(0, 3):
+    #     for l_idx in np.arange(0, 3):
         
-            all_l_idx = r_idx * 3 + l_idx
+    #         all_l_idx = r_idx * 3 + l_idx
             
-            # violins.lines[all_l_idx].set_color(neurite_color_dict[region][neurite_type])
-            # violins.lines[all_l_idx].set_color(colors_dict['primecolor'])
-            # violins.lines[all_l_idx].set_linestyle('solid')
+    #         # violins.lines[all_l_idx].set_color(neurite_color_dict[region][neurite_type])
+    #         # violins.lines[all_l_idx].set_color(colors_dict['primecolor'])
+    #         # violins.lines[all_l_idx].set_linestyle('solid')
         
-        # set edge color of violin
-        violins.collections[r_idx].set_edgecolor(neurites_regions_color_dict[region][neurite_type])
-        # violins.collections[r_idx].set_edgecolor('None')
+    #     # set edge color of violin
+    #     violins.collections[r_idx].set_edgecolor(neurites_regions_color_dict[region][neurite_type])
+    #     # violins.collections[r_idx].set_edgecolor('None')
         
-        # set facecolor of violin
-        violins.collections[r_idx].set_facecolor('None')
-        # violins.collections[r_idx].set_facecolor(neurites_regions_color_dict[region][neurite_type])
+    #     # set facecolor of violin
+    #     violins.collections[r_idx].set_facecolor('None')
+    #     # violins.collections[r_idx].set_facecolor(neurites_regions_color_dict[region][neurite_type])
     
     
     # swarmplots    
@@ -403,8 +403,25 @@ for neurite_idx, neurite_type in enumerate(['dendrites', 'axons']):
                   palette=[neurites_regions_color_dict['MeA'][neurite_type], neurites_regions_color_dict['BAOT'][neurite_type]],
                   zorder = 1)
         
-    # errorbar
-    for region_x, region in zip([-0.1, 0.1], regions):
+    # violins and errorbars
+    for region_x, region, direction in zip([-0.1, 0.1], ['MeA', 'BAOT'], [-1, 1]):
+        
+        # get data for violin
+        violin_data = n_terminal_points[n_terminal_points['neurite_type'] == neurite_terminal_types[neurite_type]]
+        violin_data = violin_data[violin_data['Region'] == region]
+        
+        # plot half violins
+        plot_half_violin(data = violin_data['n_terminal_points'].dropna().to_list(), 
+                         ax = ax,
+                         v_abs_cutoff= [0, np.nan],
+                         v_position = 0,
+                         v_offset = direction * 0.3,
+                         v_width = 0.2,
+                         v_direction = direction,
+                         v_lw = 0.75,
+                         v_color = neurites_regions_color_dict[region][neurite_type],
+                         v_baseline = True,
+                         v_zorder = 0)
         
         # get mean and std
         mean = n_terminal_points_means.at[region, neurite_terminal_types[neurite_type]]
@@ -437,7 +454,7 @@ for neurite_idx, neurite_type in enumerate(['dendrites', 'axons']):
     # x
     xshift = 0.2
     
-    ax.set_xlim(0-0.5, 0+0.5)
+    ax.set_xlim(0-0.6, 0+0.6)
     ax.set_xticks(ticks=np.arange(-xshift, xshift+0.1, xshift*2),
                   labels=['MeA', 'BAOT'], rotation=0)
     ax.spines['bottom'].set_bounds([-xshift, xshift])

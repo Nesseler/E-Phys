@@ -63,7 +63,7 @@ xpad = 0.6
 
 # y
 ymin = -200
-ymax = 1700
+ymax = 1500
 ypad = 100
 ystep = 500
 ystepminor = 100

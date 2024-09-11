@@ -128,6 +128,22 @@ axs_v_rest[1].set_xlabel('')
 save_figures(fig_v_rest, 'Resting_n_eventplot_nspikes', figure_dir, darkmode_bool)
 
 
+
+
+
+# %% initialize plotting
+
+import matplotlib as mtl
+from functions.functions_plotting import save_figures, get_colors, get_figure_size, set_font_sizes, change_projection, plot_half_violin
+from cellmorphology.cellmorph_colors import neurite_color_dict
+
+# set colors
+darkmode_bool = True
+colors_dict, region_colors = get_colors(darkmode_bool)
+
+# set font size
+mtl.rcParams.update({'font.size': 12})
+
 # %% EVENTPLOT + V_REST FIGURE in Regions
 
 # get n cells per region and calc percentage
@@ -139,13 +155,17 @@ ax_keys = ['A', 'B', 'C', 'D']
 
 fig_regions, axs_regions = plt.subplot_mosaic('AD;BD;CD', 
                                               layout = 'constrained',
-                                              figsize = get_figure_size(),
-                                              width_ratios = [2, 1],
+                                              figsize = get_figure_size(width = 277.25, height = 120),
+                                              width_ratios = [2, 1.2],
+                                              dpi = 600,
                                               height_ratios = cells_of_region_perc)
 
 # eventplot
 
 for idx_region, region in enumerate(regions):
+    
+    # set axis
+    ax = axs_regions[ax_keys[idx_region]]
     
     # get cell_IDs of dataframe per region
     cell_IDs_region = activity_df[activity_df['Region'] == region].index.to_list()
@@ -165,32 +185,36 @@ for idx_region, region in enumerate(regions):
         else:
             t_spikes = []
         
-        axs_regions[ax_keys[idx_region]].eventplot(t_spikes,
-                                                   orientation = 'horizontal', 
-                                                   lineoffsets=idx_cell, 
-                                                   linewidth = 1.5,
-                                                   linelengths=0.9, 
-                                                   color = region_colors[MetaData.at[cell_ID, 'Region']])
+        ax.eventplot(t_spikes,
+                     orientation = 'horizontal', 
+                     lineoffsets=idx_cell, 
+                     linewidth = 1.5,
+                     linelengths=0.9, 
+                     color = region_colors[MetaData.at[cell_ID, 'Region']])
     
     # set title
-    axs_regions[ax_keys[idx_region]].set_title(region, fontsize = 18)
+    ax.set_title(region, fontsize = 14)
     
     # set shared x axis
-    axs_regions[ax_keys[idx_region]].set_xlim([0, 30])
-    axs_regions[ax_keys[idx_region]].set_xticks(np.arange(0, 30+1, 10))
-    axs_regions[ax_keys[idx_region]].set_xticks(np.arange(0, 30+1, 1), minor = True)
+    ax.set_xlim([0-0.5, 30+0.5])
+    ax.set_xticks(np.arange(0, 30+1, 10))
+    ax.set_xticks(np.arange(0, 30+1, 1), minor = True)
     
     # set y axis for each subplot  
-    axs_regions[ax_keys[idx_region]].set_ylim([0-(tick_size/2), n_cells_region-1+(tick_size/2)])
+    ax.set_ylim([0-(tick_size/2), n_cells_region-1+(tick_size/2)])
     
     n_cells_stepsize = 10
     ticks = np.arange(n_cells_stepsize - 1, n_cells_region, n_cells_stepsize)
     labels = ticks + 1
-    axs_regions[ax_keys[idx_region]].set_yticks(ticks = ticks, 
-                                                labels = labels)
-    axs_regions[ax_keys[idx_region]].set_yticks(ticks = np.arange(0, n_cells_region, 1), 
-                                                minor = True)
-    axs_regions[ax_keys[idx_region]].set_ylabel('Cells\n[#]')
+    
+    ax.set_yticks(ticks = ticks, labels = labels)
+    ax.set_yticks(ticks = np.arange(0, n_cells_region, 1),  minor = True)
+    ax.set_ylabel('Cells\n[#]')
+    
+    # edit spines of eventplots
+    ax.spines['left'].set_bounds([0, n_cells_region-1])
+    ax.spines['bottom'].set_bounds([0, 30])
+    [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
 
 
 # set eventplots x axes
@@ -202,16 +226,11 @@ for i in ['A', 'B']:
 axs_regions['C'].set_xlabel('Time [s]')
 
 
-# violin plots for v_mem
-violins = sbn.violinplot(data = activity_df, 
-                         x = "activity", 
-                         y = "v_rest",
-                         bw = 0.35,
-                         inner = 'quart',
-                         hue = 'Region',
-                         palette = ['k', 'k', 'k'],
-                         ax = axs_regions['D'], 
-                         linewidth = 1.)
+
+# # # v_rest # # #
+
+# set axis
+ax = axs_regions['D']
 
 swarms = sbn.swarmplot(data = activity_df, 
                        x = "activity", 
@@ -219,25 +238,87 @@ swarms = sbn.swarmplot(data = activity_df,
                        hue = 'Region',
                        palette = region_colors,
                        size = 4, 
-                       ax = axs_regions['D'], 
+                       ax = ax, 
                        color = colors_dict['primecolor'],
-                       dodge = True)
+                       dodge = True,
+                       zorder = 1)
 
-axs_regions['D'].get_legend().remove()
+# set offsets of violins
+v_positions = [-0.26667, 0, 0.26667]
 
-for l in violins.lines:
-    l.set_color(colors_dict['primecolor'])
+for a_idx, activity in enumerate(['silent', 'spiking']):
+    
+    for r_idx, region in enumerate(regions):
+        
+        # get data
+        violin_data = activity_df[activity_df['activity'] == activity][activity_df['Region'] == region]
+        violin_data = violin_data['v_rest'].to_list()
+        
+        # get mean, median, and std
+        mean = np.mean(violin_data)
+        median = np.median(violin_data)
+        std = np.std(violin_data)
+        n = len(violin_data)
 
-[violin.set_edgecolor(colors_dict['primecolor']) for violin in violins.collections]
+        # set offset
+        offset = 0.05
 
-axs_regions['D'].set_ylabel('Resting membrane potential [mV]')
-axs_regions['D'].set_ylim([-101, -49])
-axs_regions['D'].spines['left'].set_bounds([-100, -50])
-axs_regions['D'].set_yticks(np.arange(-100, -50+1, 10))
-axs_regions['D'].set_yticks(np.arange(-100, -50+1, 5), minor = True)
+        # set bandwidth
+        bandwidth = n**(-1./(1+2))
+        # print(n**(-1./(1+4)), bandwidth)
 
-axs_regions['D'].set_xlabel('')
-axs_regions['D'].spines['bottom'].set_bounds([0, 1])
+        # plot half violin
+        plot_half_violin(data = violin_data, 
+                         ax = ax,
+                         v_kde_cutoff = 0.025,
+                         v_bandwidth = bandwidth,
+                         v_position = v_positions[r_idx] + a_idx,
+                         v_offset = -offset,
+                         v_width = 0.115,
+                         v_baseline = True,
+                         v_color = region_colors[region],
+                         v_zorder = 0)
+        
+        # set x position of errorbar
+        e_position = v_positions[r_idx] + a_idx + offset
+        
+        ax.errorbar(x = e_position,
+                    y = mean,
+                    yerr = std,
+                    fmt='_', 
+                    markersize = 7,
+                    markerfacecolor = 'none',
+                    capsize = 3,
+                    color=colors_dict['primecolor'],
+                    linewidth = 1,
+                    label = '_nolegend_',
+                    zorder = 2)
+        
+        ax.scatter(x = e_position,
+                    y = median,
+                    marker='D', 
+                    s = 5,
+                    color=colors_dict['primecolor'],
+                    linewidth = 1,
+                    label = '_nolegend_',
+                    zorder = 3)
+                
+        
+# remove seaborn legend
+# ax.get_legend().remove()
+ax.legend(prop={'size': 10})
+ax.get_legend().get_frame().set_linewidth(0.0)
+
+# y
+ax.set_ylabel('Resting membrane potential [mV]')
+ax.set_ylim([-101, -49])
+ax.spines['left'].set_bounds([-100, -50])
+ax.set_yticks(np.arange(-100, -50+1, 10))
+ax.set_yticks(np.arange(-100, -50+1, 1), minor = True)
+
+# x
+ax.set_xlabel('')
+ax.spines['bottom'].set_bounds([0, 1])
 
 # despine
 [axs_regions['D'].spines[spine].set_visible(False) for spine in ['top', 'right']]
@@ -245,28 +326,17 @@ axs_regions['D'].spines['bottom'].set_bounds([0, 1])
 # set grid as False for all subplots
 [axs_regions[ax].grid(False) for ax in axs_regions]
 
-
-small_font_size = 12
-
-plt.rc('font', size = small_font_size)
-plt.rc('axes', titlesize = small_font_size, 
-               labelsize = small_font_size,
-               linewidth = 0.5)
-plt.rc('xtick', labelsize = small_font_size)
-plt.rc('ytick', labelsize = small_font_size)
-plt.rc('lines', linewidth = 1)
-
-
+# align labels
 fig_regions.align_labels()
 
 plt.show()
 
-temp_fig_dir = 'C:/Users/nesseler/Desktop/TAC-presentation_data/ePhys'
+temp_fig_dir = "C:/Users/nesseler/Desktop/Poster_iBehave"
 
 save_figures(fig_regions, 'Resting_n_eventplot_nspikes+Regions', temp_fig_dir, darkmode_bool,
-             figure_format= 'both',
-             dataframe_to_save = activity_df, index_label = 'cell_ID', add_measures = True, axis_for_calcs = 0,
-             groups_bool= True, groups= ['BAOT/MeA', 'MeA', 'BAOT'], groups_name= 'Region')
+              figure_format= 'both',
+              dataframe_to_save = activity_df, index_label = 'cell_ID', add_measures = True, axis_for_calcs = 0,
+              groups_bool= True, groups= ['BAOT/MeA', 'MeA', 'BAOT'], groups_name= 'Region')
 
 
 

@@ -412,7 +412,7 @@ dendrogram_plot = dendrogram(Z = ward_clustering_linkage,
 # plot cluster threshold
 ax_dendro.axhline(y = c_threshold, 
                   color = 'w',
-                  lw = 1,
+                  lw = 0.75,
                   ls = 'dashed')
 
 plt.rcParams['lines.linewidth'] = 0.5 
@@ -436,7 +436,17 @@ cellmorph_descriptors_zscored_clustered = cellmorph_descriptors_zscored.reindex(
 aux_cellmorph_descriptors_clustered = aux_cellmorph_descriptors.reindex(leave_cell_IDs)
 
 
-### heatmap ###
+# # # heatmap # # #
+
+# colormap for heatmap
+c_map_str = 'icefire'
+
+# custom colormaps
+# from matplotlib.colors import LinearSegmentedColormap
+# c_map_str = sbn.diverging_palette(h_neg=60, h_pos=300, s=75, l=75, center="dark", as_cmap=True)
+# c_map_str = LinearSegmentedColormap.from_list('diverging_k', ['#FF00FF', '#000000', '#FFFF00'])
+
+
 # plot heatmap
 sbn.heatmap(cellmorph_descriptors_zscored_clustered.T,
             vmin = heatmin,
@@ -444,7 +454,8 @@ sbn.heatmap(cellmorph_descriptors_zscored_clustered.T,
             square = False,
             xticklabels= False,
             ax = axs_clustering[2], 
-            cmap="coolwarm", 
+            cmap=c_map_str,
+            center = 0,
             yticklabels=1,
             linewidth = 0,
             cbar = False) 
@@ -463,7 +474,7 @@ ax_cbar = axs_clustering[3]
 norm = mtl.colors.Normalize(-2, 2)
 
 # create mappable cmap object
-cmap = mtl.cm.ScalarMappable(norm=norm, cmap='coolwarm')
+cmap = mtl.cm.ScalarMappable(norm=norm, cmap=c_map_str)
    
 # plot colorbar in axis
 cbar = fig_clustering.colorbar(mappable = cmap, 

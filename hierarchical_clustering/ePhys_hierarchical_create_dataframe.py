@@ -46,7 +46,7 @@ th1AP_parameters = pd.read_excel(join(cell_descrip_dir, 'ccth1AP-fst_AP_paramete
 result_freqs_df = pd.read_excel(join(cell_descrip_dir, 'ccAPs-resul_freq.xlsx'), index_col = 'frequencies')
 
 
-### TODO: load cc_IF_adapatation
+# cc_IF_adapatation
 adaptation_df = pd.read_excel(join(cell_descrip_dir, 'ccIF-spike_adaptation.xlsx'), index_col = 'cell_ID')
 
 
@@ -61,14 +61,14 @@ celldescriptors_df = activity_df.loc[:, ['v_rest', 'n_spikes']]
 celldescriptors_df = pd.concat([celldescriptors_df, passiv_properties_df, active_properties_df], axis = 1)
 
 # calc delta vrest to v_thres of ccIF rheobase spike
-celldescriptors_df['delta_vrest_to_vthres_rheobasespike'] = celldescriptors_df['v_thres_rheobase_spike'] - celldescriptors_df['v_rest']
+# celldescriptors_df['delta_vrest_to_vthres_rheobasespike'] = celldescriptors_df['v_thres_rheobase_spike'] - celldescriptors_df['v_rest']
 
 # add cc_IF rheobase spike parameter
 celldescriptors_df = pd.concat([celldescriptors_df, fstAP_df[['v_amplitude', 'FWHM', 't_toPeak', 't_rise', 'v_AHP_amplitude', 't_to_AHP']]], axis = 1)
 
 # add cc_sag
 ### celldescriptors_df = pd.concat([celldescriptors_df, sag_df[['sag_delta', 'n_reboundspikes']]], axis = 1)
-celldescriptors_df = pd.concat([celldescriptors_df, sag_df[['sag_delta', 'n_reboundspikes', 'reboundspike_v_threshold', 'reboundspike_v_amplitude', 'reboundspike_t_toPeak', 'reboundspike_t_rise', 'reboundspike_FWHM']]], axis = 1)
+# celldescriptors_df = pd.concat([celldescriptors_df, sag_df[['sag_delta', 'n_reboundspikes', 'reboundspike_v_threshold', 'reboundspike_v_amplitude', 'reboundspike_t_toPeak', 'reboundspike_t_rise', 'reboundspike_FWHM']]], axis = 1)
 
 # add cc_IF_adaptation
 celldescriptors_df = pd.concat([celldescriptors_df, adaptation_df], axis = 1)

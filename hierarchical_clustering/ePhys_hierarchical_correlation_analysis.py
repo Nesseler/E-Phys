@@ -112,7 +112,7 @@ plt.show()
 corr_fig_dir = join(hierarchical_dir, 'temp_figs')
 
 # save figure
-save_figures(corr_fig_dir, 'figure-hierarchical_clustering-correlation_matrices-all_parameter', 
+save_figures(fig_corr_heat, 'figure-hierarchical_clustering-correlation_matrices-without_sag', 
              save_dir = corr_fig_dir,
              darkmode_bool = darkmode_bool,
              figure_format = 'png')

@@ -11,11 +11,13 @@ Created on Fri Aug 30 13:11:17 2024
 
 
 # reasons to drop
+# E-061 - early experiments excluded
+# E-065 - early experiments excluded
 # E-067 - only BAOT cell with high R_input
 # E-185
 # E-188 
 
-cell_IDs_toDrop = ['E-067', 'E-185', 'E-188']# 'E-126', 'E-158']
+cell_IDs_toDrop = ['E-061', 'E-065', 'E-067', 'E-185', 'E-188']# 'E-126', 'E-158']
 
 
 

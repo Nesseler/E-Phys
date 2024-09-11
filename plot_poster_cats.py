@@ -67,86 +67,87 @@ plt_df = pd.concat([active_properties_df,
                     sag_df,
                     MetaData['Region']], axis = 1)
 
+# drop cell-IDs
+from hierarchical_clustering.ePhys_hierarchical_parameters import cell_IDs_toDrop
+
+plt_df.drop(index = cell_IDs_toDrop, inplace = True)
 
 # params_toplot = ['r_input', 'tau_mem', 'c_mem',
 #                  'rheobase_rel']
 
 # params_toplot['']
 
-# params_toplot = {'1':'r_input', 
-#                  '2' : 'tau_mem', 
-#                  '3' : 'c_mem',
+params_toplot = {'1':'r_input', 
+                  '2' : 'tau_mem', 
+                  '3' : 'c_mem',
                  
-#                  '5' : 'rheobase_rel',
-#                  '6' : 't_peaks',
-#                  '7' : 'n_rheobasespikes',
+                  '5' : 'rheobase_rel',
+                  '6' : 't_peaks',
+                  '7' : 'n_rheobasespikes',
                  
                  
-#                  # '8' : 'v_threshold',                 
-#                  # '9' : 'delta_vrest_to_vthres',
-#                  # '10': 'v_AHP_amplitude', 
-#                  # '11': 'FWHM',
+                  # '8' : 'v_threshold',                 
+                  # '9' : 'delta_vrest_to_vthres',
+                  # '10': 'v_AHP_amplitude', 
+                  # '11': 'FWHM',
                  
-#                  '8' : 'delta_vrest_to_vthres',                 
-#                  '9' : 'FWHM',
-#                  '10': 't_toPeak', 
-#                  '11': 'v_AHP_amplitude',
+                  '8' : 'delta_vrest_to_vthres',                 
+                  '9' : 'FWHM',
+                  '10': 't_toPeak', 
+                  '11': 'v_AHP_amplitude',
                  
-#                  '13': 'sag_delta',
-#                  '15': 'n_reboundspikes',
+                  '13': 'sag_delta',
+                  '15': 'n_reboundspikes',
                  
-#                  '17': 'max_freq',
-#                  '18': 'max_inst_freq',
-#                  '19': 'max_inst_initial_freq'}
+                  '17': 'max_freq',
+                  '18': 'max_inst_freq',
+                  '19': 'max_inst_initial_freq'}
 
 
-params_toplot = {'1' : 'sag_delta', 
+# params_toplot = {'1' : 'sag_delta', 
                  
-                 '5' : 'n_reboundspikes',
-                 '6' : 'reboundspike_t_toPeak',
-                 '7' : 'reboundspike_FWHM',
-                 }
+#                  '5' : 'n_reboundspikes',
+#                  '6' : 'reboundspike_t_toPeak',
+#                  '7' : 'reboundspike_FWHM',
+#                  }
 
 
 plt_df['delta_vrest_to_vthres'] = plt_df['v_threshold'] - plt_df['v_rest']
 
-# %% figure
 
+# %% initialize plotting
+
+import matplotlib as mtl
+from functions.functions_plotting import save_figures, get_colors, get_figure_size, plot_half_violin
+
+
+# set colors
 darkmode_bool = True
-
 colors_dict, region_colors = get_colors(darkmode_bool)
 
+
+
+# set regions
+regions = ['BAOT/MeA', 'MeA', 'BAOT']
+
+
 # initialize figure
-fig_cats, axs_cats = plt.subplots(nrows = 2,
+fig_cats, axs_cats = plt.subplots(nrows = 5,
                                   ncols = 4,
-                                  figsize = get_figure_size(),
+                                  figsize = get_figure_size(width = 277.25, height = 315.165),
                                   layout = 'constrained',
+                                  dpi = 600,
                                   sharex = True)
 
 
 # flatten numpy array of axis for easier handling
 axs_cats = axs_cats.flatten()
 
+# iterate through parameter
 for key, parameter in params_toplot.items():
     
-    
+    # set axis
     ax = axs_cats[int(key)]
-    
-    violin = sbn.violinplot(data = plt_df,
-                            x = 'Region',
-                            y = parameter,
-                            bw = 0.3,
-                            inner = 'quart',
-                            linewidth = 1,
-                            ax = ax,
-                            order = ['BAOT/MeA', 'MeA', 'BAOT'])
-
-    for l in violin.lines:
-        l.set_color(colors_dict['primecolor'])
-
-    for violin in violin.collections:
-        violin.set_edgecolor(colors_dict['primecolor'])
-        violin.set_facecolor('None')
 
     swarm = sbn.swarmplot(data = plt_df,
                           x = 'Region',
@@ -156,12 +157,87 @@ for key, parameter in params_toplot.items():
                           palette = region_colors,
                           size = 3,
                           color = colors_dict['primecolor'],
-                          order = ['BAOT/MeA', 'MeA', 'BAOT'])
-
+                          order = regions,
+                          zorder = 1)
+    
+    # set positions of violins
+    v_positions = [0, 1, 2]
+    
+    for r_idx, region in enumerate(regions):
+        
+        # get data
+        violin_data = plt_df[plt_df['Region'] == region]
+        violin_data = violin_data[parameter].dropna().to_list()
+        
+        # get mean, median, and std
+        mean = np.mean(violin_data)
+        median = np.median(violin_data)
+        std = np.std(violin_data)
+        n = len(violin_data)
+    
+        # set offset
+        offset = 0.20
+    
+        # set bandwidth
+        bandwidth = n**(-1./(1+2))
+        # print(n**(-1./(1+4)), bandwidth)
+        
+        # set resolution of violin in condition
+        if parameter in ['t_toPeak', 'FWHM', 'n_reboundspikes', 'n_rheobasespikes']:
+            v_resolution = 0.001
+        elif parameter == 'r_input':
+            v_resolution = 1
+        else:
+            v_resolution = 0.1
+        
+        # set violin cutoff
+        if parameter == 'v_AHP_amplitude':
+            v_abs_cutoff = [np.nan, np.nan]
+        else:
+            v_abs_cutoff = [0, np.nan]
+    
+        # plot half violin
+        plot_half_violin(data = violin_data, 
+                         ax = ax,
+                         v_resolution = v_resolution,
+                         v_kde_cutoff = 0.025,
+                         v_abs_cutoff = v_abs_cutoff,
+                         v_bandwidth = bandwidth,
+                         v_position = v_positions[r_idx],
+                         v_offset = -offset,
+                         v_width = 0.35,
+                         v_baseline = True,
+                         v_color = region_colors[region],
+                         v_zorder = 0)
+        
+        # set x position of errorbar
+        e_position = v_positions[r_idx] + offset
+        
+        # plot errorbar
+        ax.errorbar(x = e_position,
+                    y = mean,
+                    yerr = std,
+                    fmt='_', 
+                    markersize = 7,
+                    markerfacecolor = 'none',
+                    capsize = 3,
+                    color=colors_dict['primecolor'],
+                    linewidth = 1,
+                    label = '_nolegend_',
+                    zorder = 2)
+        
+        # plot median
+        ax.scatter(x = e_position,
+                    y = median,
+                    marker='D', 
+                    s = 5,
+                    color=colors_dict['primecolor'],
+                    linewidth = 1,
+                    label = '_nolegend_',
+                    zorder = 3)
+    
+    # remove legend
     ax.legend().set_visible(False)
-
-
-     
 
         
     if parameter == 'r_input':
@@ -248,7 +324,7 @@ for key, parameter in params_toplot.items():
         ax.set_yticks(np.arange(0.5, 2+.1, 0.5))
         ax.set_yticks(np.arange(0.5, 2+.1, 0.25), minor = True)
  
-        
+    # # # HCN # # #
     elif parameter == 'sag_delta':
         ax.set_ylabel('Sag potential\ndelta [mV]')
         ax.set_ylim([0-1, 17.5 +1])
@@ -291,7 +367,7 @@ for key, parameter in params_toplot.items():
         ax.set_yticks(np.arange(0.5, 2+.1, 0.5))
         ax.set_yticks(np.arange(0.5, 2+.1, 0.25), minor = True)
 
-
+    # # # frequency adapatation # # #
     elif parameter == 'max_freq':
         ax.set_ylabel('Max. frequency\n(number of spikes) [Hz]')
         ax.set_ylim([0-2, 180+2])
@@ -323,7 +399,7 @@ for key, parameter in params_toplot.items():
 
 
 
-
+# remove grid
 [ax.grid(False) for ax in axs_cats]
 
 # despine
@@ -333,36 +409,27 @@ for key, parameter in params_toplot.items():
 # x tick labels
 [ax.set_xlabel('') for ax in axs_cats]
 [ax.set_xticklabels(['BAOT/\nMeA', 'MeA', 'BAOT'], rotation = 0) for ax in axs_cats[:-4]]
-# [ax.set_xticklabels(['', '', '']) for ax in axs_cats[:-4]]
+[ax.set_xlim([-0.65, 2.5]) for ax in axs_cats]
 
-
-# set font sizes
-small_font_size = 12
-
-plt.rc('font', size = small_font_size)
-plt.rc('axes', titlesize = small_font_size, 
-               labelsize = small_font_size,
-               linewidth = 0.5)
-plt.rc('xtick', labelsize = small_font_size)
-plt.rc('ytick', labelsize = small_font_size)
-plt.rc('lines', linewidth = 1)
-
-
-
+# align labels
 fig_cats.align_labels() 
 
+# remove unused axes
 fig_cats.delaxes(axs_cats[0])
-fig_cats.delaxes(axs_cats[2])
-fig_cats.delaxes(axs_cats[3])
-# fig_cats.delaxes(axs_cats[4])
-# fig_cats.delaxes(axs_cats[16])
+fig_cats.delaxes(axs_cats[4])
+fig_cats.delaxes(axs_cats[12])
+fig_cats.delaxes(axs_cats[14])
+fig_cats.delaxes(axs_cats[16])
 
+# set font size
+mtl.rcParams.update({'font.size': 12})
 
+# display figure
 plt.show()
 
-temp_fig_dir = 'C:/Users/nesseler/Desktop/TAC-presentation_data/ePhys'
+temp_fig_dir = "C:/Users/nesseler/Desktop/Poster_iBehave"
 
-save_figures(fig_cats, 'HCN_cats', temp_fig_dir, darkmode_bool,
+save_figures(fig_cats, 'poster_ePhys_ cats', temp_fig_dir, darkmode_bool,
              figure_format= 'both',
              dataframe_to_save = plt_df, index_label = 'cell_ID', add_measures = True, axis_for_calcs = 0,
              groups_bool= True, groups= ['BAOT/MeA', 'MeA', 'BAOT'], groups_name= 'Region')
