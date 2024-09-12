@@ -23,9 +23,8 @@ MetaData = pd.read_excel(table_file,
 # load celldescriptors
 celldescriptors = pd.read_excel(join(hierarchical_dir, 'ePhys_celldescriptors.xlsx'), index_col = 'cell_ID')
 
-
-# # drop columns
-# celldescriptors.drop(columns = parameters_toDrop, inplace = True)
+# drop columns
+celldescriptors.drop(columns = parameters_toDrop, inplace = True)
 
 
 # %% initialize plotting
@@ -112,7 +111,7 @@ plt.show()
 corr_fig_dir = join(hierarchical_dir, 'temp_figs')
 
 # save figure
-save_figures(fig_corr_heat, 'figure-hierarchical_clustering-correlation_matrices-without_sag', 
+save_figures(fig_corr_heat, 'figure-hierarchical_clustering-correlation_matrices-wo_sag', 
              save_dir = corr_fig_dir,
              darkmode_bool = darkmode_bool,
              figure_format = 'png')

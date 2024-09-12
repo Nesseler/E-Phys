@@ -28,4 +28,5 @@ parameters_toDrop = ['sag_delta',
                      'reboundspike_v_amplitude',
                      'reboundspike_t_toPeak',
                      'reboundspike_t_rise',
-                     'reboundspike_FWHM']
+                     'reboundspike_FWHM',
+                     'freq_adaptation_steadystate']

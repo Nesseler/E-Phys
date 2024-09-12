@@ -293,22 +293,22 @@ def change_projection(fig, axs, ax_tochange, projection = 'polar'):
     
     
 def plot_half_violin(data, ax,
-                     data_pad_factor = 1,
-                     v_resolution = 0.1,
-                     v_kde_cutoff = 0.01,
-                     v_abs_cutoff = [np.nan, np.nan],
-                     v_bandwidth = np.nan,
-                     v_position = 0,
-                     v_direction = -1,
-                     v_offset = -0.05,
-                     v_width = 0.25,
-                     v_color = 'w',
-                     v_lw = 1,
-                     v_baseline = False,
-                     v_fill = False,
-                     v_fillcolor = 'w',
-                     v_filllw = 1,
-                     v_zorder = 0):
+                      data_pad_factor = 1,
+                      v_resolution = np.nan,
+                      v_kde_cutoff = 0.01,
+                      v_abs_cutoff = [np.nan, np.nan],
+                      v_bandwidth = np.nan,
+                      v_position = 0,
+                      v_direction = -1,
+                      v_offset = -0.05,
+                      v_width = 0.25,
+                      v_color = 'w',
+                      v_lw = 1,
+                      v_baseline = False,
+                      v_fill = False,
+                      v_fillcolor = 'w',
+                      v_filllw = 1,
+                      v_zorder = 0):
     
     """
     Function plots half violin at specified position.
@@ -318,16 +318,16 @@ def plot_half_violin(data, ax,
         data_pad_factor : Float, default is 1. Factor that data_range is multiplied
                           with for estimation of kernel density.
         
-        v_resolution : Float (data scale), default is 0.1. Resolution of violin in 
-                       data native scale.
+        v_resolution : Float (data scale), default is np.nan. Resolution of violin in 
+                        data native scale.
         v_kde_cutoff : Float (kde percentage), default is 0.01. Cutoff that is used
-                       to limit violin.
+                        to limit violin.
         v_abs_cutoff : List of floats (data scale), default is [np.nan, np.nan]. 
-                       Absolute values that can be used to limit violin. Shape of 
-                       list is [Min, Max]. When only one value is specified, the 
-                       other must be set to np.nan and here the v_kde_cutoff is used.
-                       If both values are specified the kde_cutoff must be np.nan to 
-                       take effect.
+                        Absolute values that can be used to limit violin. Shape of 
+                        list is [Min, Max]. When only one value is specified, the 
+                        other must be set to np.nan and here the v_kde_cutoff is used.
+                        If both values are specified the kde_cutoff must be np.nan to 
+                        take effect.
         v_bandwidth : Float (0-1), default is np.nan. Sets bandwidth of density.
         v_position : Float, default is 0. Position of violin on x axis.
         v_direction : -1 or 1, default is -1. Direction factor of violin on x
@@ -337,19 +337,19 @@ def plot_half_violin(data, ax,
         v_color : Str, default is 'w'. Color of violin.
         v_lw : Float, default is 1. Linewidth of violin.
         v_baseline : Boolean, default is False. Boolean to plot the baseline of
-                     the violin.
+                      the violin.
         v_fill : Boolean, default is False. Boolean to plot the fill of the violin.
         v_fillcolor : Str, default is 'w'. Color of fill.
         v_filllw : Float, default is 1. Linewidth of fill.
         v_zorder : Integer, default is 0. Z-Order of violin.
     
     Returns:
-        half_violin : List of Line and Fillobjects. Order is [violin, fill, baseline] 
+        half_violin : List of Line and Fillobjects. Order is [violin, fill] 
     """
     
     from scipy.stats import gaussian_kde
-
-    # function inputs
+    
+    # # function inputs
     # data = [5,60,85,100,140,-10,15,20,35,25,15,165,85,75,80,165,15,15,100,25,45,5]
     # ax = plt.gca()
     
@@ -358,19 +358,21 @@ def plot_half_violin(data, ax,
     # v_resolution = 0.1 # in native data scale
     # v_kde_cutoff = 0.01 # in % default is 0.01
     # v_abs_cutoff = [-50, np.nan] # in native data scale, list of [min, max] for violin cutoff
+    # v_bandwidth = np.nan
     
     # v_position = 0
+    # v_direction = -1
     # v_offset = -0.05
     # v_width = 1
     
     # v_color = 'w'
     # v_lw = 1
-    # v_baseline = False
-    # v_fill = True
+    # v_baseline = True
+    # v_fill = False
     # v_fillcolor = v_color
     # v_filllw = v_lw
     # v_zorder = 0
-
+    
     # get distribution metrics
     data_n = len(data)
     data_min = np.min(data)
@@ -389,7 +391,11 @@ def plot_half_violin(data, ax,
     # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kde.html#scipy.stats.gaussian_kde
     if not np.isnan(v_bandwidth):
         density.set_bandwidth(v_bandwidth)
-  
+        
+    # calc resolution of violin with 1000 points between min and max
+    if np.isnan(v_resolution):
+        v_resolution = data_range / 1000
+
     # get range of value for density estimation
     vs = np.arange(padded_min, padded_max + v_resolution, v_resolution)
     
@@ -434,8 +440,25 @@ def plot_half_violin(data, ax,
     # add direction, scale, offset ,and x position
     kde_withOffset = [v_direction * k * v_width + v_offset + v_position for k in kde_clipped]
     
+    # set coordinates for baseline
+    vs_baseline = vs_clipped
+    ks_baseline = [v_offset + v_position] * len(vs_clipped)
+    
+    if not v_baseline:
+        ks = kde_withOffset  # x
+        vs = vs_clipped      # y
+    
+    
+    elif v_baseline:
+        # concatenate two x and y arrays
+        halflen_baseline = int(len(vs_baseline) / 2)
+        
+        vs = vs_baseline[0:halflen_baseline][::-1] + vs_clipped + vs_baseline[halflen_baseline+1:-1][::-1]
+        ks = ks_baseline[0:halflen_baseline][::-1] + kde_withOffset + ks_baseline[halflen_baseline+1:-1][::-1]
+        
+    
     # plot half violin
-    half_violin_list = ax.plot(kde_withOffset, vs_clipped,
+    half_violin_list = ax.plot(ks, vs,
                                color = v_color,
                                linewidth = v_lw,
                                label = '_nolegend_',
@@ -444,9 +467,7 @@ def plot_half_violin(data, ax,
     # violin return objects
     half_violin = half_violin_list
     
-    # set coordinates for baseline
-    vs_baseline = vs_clipped
-    ks_baseline = [v_offset + v_position] * len(vs_clipped)
+    
     
     if v_fill:
         v_face = ax.fill_betweenx(y = vs_clipped,
@@ -458,25 +479,37 @@ def plot_half_violin(data, ax,
         
         # append to return object
         half_violin.append(v_face)
-        
     
-    # add endpoints of violin
-    vs_baseline.insert(0, vs_baseline[0])
-    vs_baseline.insert(-1, vs_baseline[-1])
-    ks_baseline.insert(0, kde_withOffset[0])
-    ks_baseline.insert(-1, kde_withOffset[-1])
-    
-    # condition to plot violin baseline
-    if v_baseline:    
-        baseline_list = ax.plot(ks_baseline, vs_baseline,
-                                color = v_color,
-                                linewidth = v_lw,
-                                label = '_nolegend_',
-                                zorder = v_zorder) 
-        
-        # append to return object
-        half_violin.append(baseline_list[0])
-    
+
     return half_violin
-    
+
+
+# # # functions to change axes # # #
+
+def apply_axis_settings(ax, axis = 'y', ax_min = 0, ax_max = 100, pad = 1, step = 10, stepminor = 10, label = 'Label [unit]'):
+    """
+    Function uses specified settings to change yaxis layout of specified subplot.
+    Parameter:
+        ax : matplotlib axis
+        axis : str, default is 'y'. Specifies axis that is edited.
+        min : float, default is 0
+        max : float, default is 100
+        pad : float, default is 1
+        step : float, default is 10,
+        stepminor : float, default is 10,
+        label : string, default is 'label [unit]'
+    """
+    if axis == 'y':
+        ax.set_ylim([ax_min - pad, ax_max + pad])
+        ax.set_yticks(ticks = np.arange(ax_min, ax_max+ stepminor, step))
+        ax.set_yticks(ticks = np.arange(ax_min, ax_max+ stepminor, stepminor), minor = True)
+        ax.spines['left'].set_bounds([ax_min, ax_max])
+        ax.set_ylabel(label)
+        
+    elif axis == 'x':
+        ax.set_xlim([ax_min - pad, ax_max + pad])
+        ax.set_xticks(ticks = np.arange(ax_min, ax_max+ stepminor, step))
+        ax.set_xticks(ticks = np.arange(ax_min, ax_max+ stepminor, stepminor), minor = True)
+        ax.spines['bottom'].set_bounds([ax_min, ax_max])
+        ax.set_xlabel(label)
     

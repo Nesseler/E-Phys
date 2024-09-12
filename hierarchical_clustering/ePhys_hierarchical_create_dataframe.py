@@ -68,7 +68,7 @@ celldescriptors_df = pd.concat([celldescriptors_df, fstAP_df[['v_amplitude', 'FW
 
 # add cc_sag
 ### celldescriptors_df = pd.concat([celldescriptors_df, sag_df[['sag_delta', 'n_reboundspikes']]], axis = 1)
-# celldescriptors_df = pd.concat([celldescriptors_df, sag_df[['sag_delta', 'n_reboundspikes', 'reboundspike_v_threshold', 'reboundspike_v_amplitude', 'reboundspike_t_toPeak', 'reboundspike_t_rise', 'reboundspike_FWHM']]], axis = 1)
+celldescriptors_df = pd.concat([celldescriptors_df, sag_df[['sag_delta', 'n_reboundspikes', 'reboundspike_v_threshold', 'reboundspike_v_amplitude', 'reboundspike_t_toPeak', 'reboundspike_t_rise', 'reboundspike_FWHM']]], axis = 1)
 
 # add cc_IF_adaptation
 celldescriptors_df = pd.concat([celldescriptors_df, adaptation_df], axis = 1)
@@ -78,7 +78,7 @@ celldescriptors_df = pd.concat([celldescriptors_df, adaptation_df], axis = 1)
 # celldescriptors_df['rheobasespike_ttospike'] = fstAP_df['t_peaks'] - cc_IF_parameters['t_pre']
 celldescriptors_df['rheobasespike_ttospike'] = fstAP_df['t_threshold'] - cc_IF_parameters['t_pre']
 celldescriptors_df['delta_vrest_to_vthres'] = fstAP_df['v_threshold'] - activity_df['v_rest']
-celldescriptors_df['t_to_AHP'] = fstAP_df['t_threshold'] - fstAP_df['t_AHP']
+celldescriptors_df['t_to_AHP'] = fstAP_df['t_AHP'] - fstAP_df['t_peaks']
 
 celldescriptors_df.rename(columns = {'n_spikes' : 'n_restspikes',
                                      'v_thres_rheobase_spike' : 'rheobasespike_vthreshold',
