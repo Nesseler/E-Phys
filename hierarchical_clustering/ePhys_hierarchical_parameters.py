@@ -29,4 +29,10 @@ parameters_toDrop = ['sag_delta',
                      'reboundspike_t_toPeak',
                      'reboundspike_t_rise',
                      'reboundspike_FWHM',
-                     'freq_adaptation_steadystate']
+                     'freq_adaptation_steadystate',
+                     # drop 2
+                     'rheobase_abs',
+                     'n_restspikes',
+                     'n_rheobasespikes',
+                     'rheobasespike_trise',
+                     'max_inst_freq']

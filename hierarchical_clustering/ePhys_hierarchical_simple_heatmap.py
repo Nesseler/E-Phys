@@ -49,6 +49,7 @@ mtl.rcParams.update({'font.size': 9})
 # z-score cellmorph matrix
 celldescriptors_zscored = (celldescriptors - celldescriptors.mean()) / celldescriptors.std()
 
+# celldescriptors_zscored.sort_values(by = ['r_input'], inplace = True)
 
 # %% heatmap
 
@@ -85,7 +86,7 @@ plt.show()
 heat_fig_dir = join(hierarchical_dir, 'temp_figs')
 
 # save figure
-save_figures(fig_heat, 'figure-hierarchical_clustering-heatmap-unsorted-wo_sag', 
+save_figures(fig_heat, 'figure-hierarchical_clustering-heatmap-unsorted-drop2', 
              save_dir = heat_fig_dir,
              darkmode_bool = darkmode_bool,
              figure_format = 'png')

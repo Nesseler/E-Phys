@@ -110,7 +110,7 @@ plt.show()
 fig_dist_dir = join(hierarchical_dir, 'temp_figs')
 
 # save figure
-save_figures(fig_dist, 'figure-hierarchical_clustering-violinplots-wo_sag', 
+save_figures(fig_dist, 'figure-hierarchical_clustering-violinplots-drop2', 
              save_dir = fig_dist_dir,
              darkmode_bool = darkmode_bool,
              figure_format = 'png')
@@ -144,8 +144,8 @@ xpad = 0.6
 
 
 # y
-ymin = -4
-ymax = 6
+ymin = -2
+ymax = 2
 ypad = 0.5
 ystep = 2
 ystepminor = 1
@@ -186,7 +186,7 @@ plt.show()
 fig_zdist_dir = join(hierarchical_dir, 'temp_figs')
 
 # save figure
-save_figures(fig_zdist, 'figure-hierarchical_clustering-violinplots-z_scored-wo_sag', 
+save_figures(fig_zdist, 'figure-hierarchical_clustering-violinplots-z_scored-drop2', 
              save_dir = fig_zdist_dir,
              darkmode_bool = darkmode_bool,
              figure_format = 'png')
