@@ -208,7 +208,7 @@ darkmode_bool = True
 colors_dict, region_colors = get_colors(darkmode_bool)
 
 # set font size
-mtl.rcParams.update({'font.size': 12})
+mtl.rcParams.update({'font.size': 9})
 
 
 
@@ -321,19 +321,19 @@ aux_cellmorph_descriptors['axons-circ_mean'] = circular_means['axons-circmean']
 aux_cellmorph_descriptors['AIS root'] = axon_data['source']
 
 # transform region to values
-aux_cellmorph_descriptors['Region'] = aux_cellmorph_descriptors['Region'].map({'MeA' : 0, 'BAOT/MeA' : 0.5, 'BAOT' : 1})
+aux_cellmorph_descriptors['Region'] = aux_cellmorph_descriptors['Region'].map({'MeA' : 0, 'BAOT' : 1})
 aux_cellmorph_descriptors['AIS root'] = aux_cellmorph_descriptors['AIS root'].map({'dendritic' : 0, 'somatic' : 1})
 
 # define dict for cmaps in heatmaps
 from cellmorphology.cellmorph_colors import spines_color_dict, neurite_color_dict
 
-heatmap_dict = {'Region'              : {'cmap' : [region_colors[region] for region in ['MeA', 'BAOT/MeA', 'BAOT']]},
+heatmap_dict = {'Region'              : {'cmap' : [region_colors[region] for region in ['MeA', 'BAOT']]},
                 'spinyness'           : {'cmap' : [spines_color_dict['both'][spinyness] for spinyness in ['low', 'moderate', 'high']]},
                 'dendrites-circ_mean' : {'cmap' : plt.get_cmap('twilight'), 'vmin' : 0, 'vmax' : np.pi * 2},
                 'axons-circ_mean'     : {'cmap' : plt.get_cmap('twilight'), 'vmin' : 0, 'vmax' : np.pi * 2},
                 'AIS root'            : {'cmap' : [neurite_color_dict[region]['axons'] for region in ['MeA', 'BAOT']]}}
 
-cbar_dict = {'Region'              : {'ticks' : [0.166, 0.5, 0.833],                  'labels' : ['MeA', '', 'BAOT'], 'range' : [0, 1]},
+cbar_dict = {'Region'              : {'ticks' : [0.25, 0.75],                         'labels' : ['MeA', 'BAOT'], 'range' : [0, 1]},
              'spinyness'           : {'ticks' : [0.333, 1.0, 1.666],                  'labels' : ['low', 'moderate', 'high'], 'range' : [0, 2]},
              'dendrites-circ_mean' : {'ticks' : np.arange(0, np.pi *2 +0.1, np.pi/2), 'labels' : ['p', 'd', 'a', 'v', 'p'],   'range' : [0, np.pi * 2]},
              'axons-circ_mean'     : {'ticks' : np.arange(0, np.pi *2 +0.1, np.pi/2), 'labels' : ['p', 'd', 'a', 'v', 'p'],   'range' : [0, np.pi * 2]},
@@ -375,12 +375,14 @@ heatmap_width_r = n_cols_heatmap / (n_cols_heatmap + n_additional_cols)
 single_col_width_r = 1 / (n_cols_heatmap + n_additional_cols)
 
 
+plt.rcParams['lines.linewidth'] = 0.5
+plt.rcParams.update()
 
 # initialise figure
 fig_clustering, axs_clustering = plt.subplots(nrows = 7,
                                               ncols = 2,
                                               layout = 'constrained',
-                                              figsize = get_figure_size(height = 136.983, width = 277.25),
+                                              figsize = get_figure_size(),
                                               width_ratios = [0.8, 0.2],
                                               height_ratios = [0.15, single_col_width_r*n_cols_heatmap, single_col_width_r, single_col_width_r, single_col_width_r, single_col_width_r, single_col_width_r],
                                               dpi = 600)
@@ -398,8 +400,8 @@ ax_dendro = axs_clustering[0]
 # set color palette for dendrogram
 #                                   0.1        0.2        0.3        0.4        0.5        0.6        0.7
 # hierarchy.set_link_color_palette(['#E6E6E6', '#CCCCCC', '#B3B3B3', '#999999', '#808080', '#666666', '#4D4D4D'])
-
-hierarchy.set_link_color_palette(['#E6E6E6', '#CCCCCC', '#B3B3B3', '#999999', '#808080', '#666666'])
+# hierarchy.set_link_color_palette(['#E6E6E6', '#CCCCCC', '#B3B3B3', '#999999', '#808080', '#666666'])
+hierarchy.set_link_color_palette(None)
 
 # plot dendrogram
 dendrogram_plot = dendrogram(Z = ward_clustering_linkage, 
@@ -415,7 +417,6 @@ ax_dendro.axhline(y = c_threshold,
                   lw = 0.75,
                   ls = 'dashed')
 
-plt.rcParams['lines.linewidth'] = 0.5 
 
 # edit axis
 ax_dendro.set_ylabel('Distance')
@@ -601,14 +602,30 @@ fig_clustering.delaxes(axs_clustering[1])
 plt.show()
 
 # save figure
-clustering_fig_dir = "C:/Users/nesseler/Desktop/Poster_iBehave"
-save_figures(fig_clustering, 'figure-hierarchical_clustering-dendrogram_heatmap_aux-z_scoring-cells_wAxon',
+from parameters.directories_win import hierarchical_dir
+
+clustering_fig_dir = join(hierarchical_dir, 'temp_figs')
+
+save_figures(fig_clustering, 'figure-cellmorphology-hierarchical_clustering-dendrogram_heatmap_aux-cells_wAxon-wo_uncategorized_cells',
               save_dir = clustering_fig_dir,
               darkmode_bool= darkmode_bool,
-              figure_format= 'both')
+              figure_format= 'png')
 
 
 # # # save dataset
 # # cellmorph_descriptors_zscored_clustered.to_excel(join(clustering_fig_dir, 'cellmorph_descriptors-cells_wAxons-z_scored-clustered.xlsx'), index_label = 'cell_ID')
 # # aux_cellmorph_descriptors_clustered.to_excel(join(clustering_fig_dir, 'cellmorph_auxillary_descriptors-cells_wAxons-z_scored-clustered.xlsx'), index_label = 'cell_ID')
+
+
+# %% save combined dataframe
+
+# get cluster association
+assigned_cluster = pd.DataFrame({'morphological_cluster' : dendrogram_plot['leaves_color_list']}, index = dendrogram_plot['ivl'])
+
+# concatenate cell descriptors, auxilliary parameter, and cluster
+cellmorph_descriptors_clustered_combined = pd.concat([cellmorph_descriptors_zscored_clustered, aux_cellmorph_descriptors, assigned_cluster], axis = 1)
+
+# write to excel
+cellmorph_descriptors_clustered_combined.to_excel(join(cell_morph_descrip_dir, 'cellmorpho_celldescriptors_n_aux_n_cluster.xlsx'), index_label = 'cell_ID')
+
 

@@ -28,5 +28,7 @@ cell_coordinates_field_of_view = 590.76 #µm
 
 # %% cell_IDs that will be excluded from analysis
 
-cell_IDs_toDrop = ['E-108', 'E-126', 'E-158']
+cell_IDs_toDrop = ['E-108', 'E-126', 'E-158',
+                    'E-065', # BAOT/MeA
+                    'E-070'] # BAOT/MeA
 

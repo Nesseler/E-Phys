@@ -95,7 +95,7 @@ sbn.heatmap(data = celldescriptors_corr_thresh,
             vmin = -1,
             vmax = 1,
             annot = False,
-            cbar_kws={'label': 'Correlation coefficient',  'ticks' : [-1, -0.8, 0.8, 1]},
+            cbar_kws={'label': 'Correlation coefficient',  'ticks' : [-1, -corr_threshold, corr_threshold, 1]},
             ax = axs_corr_heat[1])
 
 # set axis title
@@ -111,7 +111,7 @@ plt.show()
 corr_fig_dir = join(hierarchical_dir, 'temp_figs')
 
 # save figure
-save_figures(fig_corr_heat, 'figure-hierarchical_clustering-correlation_matrices-wo_sag', 
+save_figures(fig_corr_heat, f'figure-hierarchical_clustering-correlation_matrices-threshold_{str(corr_threshold).replace(".", "p")}-drop2', 
              save_dir = corr_fig_dir,
              darkmode_bool = darkmode_bool,
              figure_format = 'png')

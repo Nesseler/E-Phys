@@ -35,4 +35,4 @@ parameters_toDrop = ['sag_delta',
                      'n_restspikes',
                      'n_rheobasespikes',
                      'rheobasespike_trise',
-                     'max_inst_freq']
+                     'rheobasespike_ttoAHP']

@@ -11,7 +11,7 @@ import scipy as sc
 import numpy as np
 from os.path import join
 
-from parameters.directories_win import table_file, hierarchical_dir
+from parameters.directories_win import table_file, hierarchical_dir, cell_morph_descrip_dir
 
 
 
@@ -22,6 +22,9 @@ MetaData = pd.read_excel(table_file,
 
 # load celldescriptors
 celldescriptors = pd.read_excel(join(hierarchical_dir, 'ePhys_celldescriptors.xlsx'), index_col = 'cell_ID')
+
+# load cellmorpho clustering
+cellmorph_descriptors = pd.read_excel(join(cell_morph_descrip_dir, 'cellmorpho_celldescriptors_n_aux_n_cluster.xlsx'), index_col = 'cell_ID')
 
 # drop columns
 from hierarchical_clustering.ePhys_hierarchical_parameters import parameters_toDrop
@@ -188,7 +191,7 @@ aux_celldescriptors['Region'] = aux_celldescriptors['Region'].map({'MeA' : 0, 'B
 
 
 # set number of clusters
-n_clusters = 6
+n_clusters = 5
 
 # as halfway point between n_clusters-1 and n_clusters
 c_threshold = last_clusters_rev[n_clusters-1] + (last_clusters_rev[n_clusters-2] - last_clusters_rev[n_clusters-1]) / 2
@@ -204,10 +207,10 @@ single_col_width_r = 1 / (n_cols_heatmap + n_additional_cols)
 
 # %% set dicts for plotting
 
-heatmap_dict = {'Region'              : {'cmap' : [region_colors[region] for region in ['MeA', 'BAOT/MeA', 'BAOT']]},
+heatmap_dict = {'Region'              : {'cmap' : [region_colors[region] for region in ['MeA', 'BAOT']]},
                 'cellmorph_category'  : {'cmap' : ['#E6E6E6', '#CCCCCC', '#B3B3B3', '#999999', '#808080', '#666666']}}
 
-cbar_dict = {'Region'              : {'ticks' : [0.166, 0.5, 0.833],           'labels' : ['MeA', 'BAOT/MeA', 'BAOT'], 'range' : [0, 1]},
+cbar_dict = {'Region'              : {'ticks' : [0.25, 0.75],           'labels' : ['MeA', 'BAOT'], 'range' : [0, 1]},
              'cellmorph_category'  : {'ticks' : np.arange(0, 8, 1) + 0.5,      'labels' : ['None', '1', '2', '3', '4', '5', '6'], 'range' : [0, 6]}} 
 
 axs_dict = {'Region'              : {'heatmap' :2, 'cbar' : 5},

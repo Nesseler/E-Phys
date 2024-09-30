@@ -48,8 +48,8 @@ regions = ['BAOT/MeA', 'MeA', 'BAOT']
 from functions.functions_useful import linear_func
 
 # set parameters to plot
-parameter1 = 'rheobasespike_ttoAHP'
-parameter2 = 'rheobasespike_FWHM'
+parameter1 = 'max_inst_freq'
+parameter2 = 'max_inst_initial_freq'
 
 # create dataframe for plotting
 plt_df = pd.concat([celldescriptors.loc[:, [parameter1, parameter2]], MetaData.loc[celldescriptors.index, 'Region']], axis = 1)
