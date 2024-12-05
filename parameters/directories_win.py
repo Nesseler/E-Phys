@@ -34,7 +34,7 @@ figure_dir = ePhys_parent + '/figures'
 vplot_dir = ePhys_parent + '/vplots'
 
 # directory for heriarchical clustering
-hierarchical_dir = ePhys_parent + '/hierarchical_clustering'
+hierarchical_dir = ePhys_parent + '/clustering'
 
 
 ### cell morphology ###

@@ -180,18 +180,22 @@ save_figures(fig_elbow, 'figure-hierarchical_clustering-elbow_plot',
 # get cell_IDs from cellmorph_descriptors
 cell_IDs_clustering = celldescriptors_zscored.index.to_list()
 
+# get cell_IDs for cells with ePhys and reconstruction
+cell_IDs_ePhys_n_morpho = [cell_ID for cell_ID in cell_IDs_clustering if cell_ID in cellmorph_descriptors.index.to_list()]
+
 # create dataframe for auxillary heatmap
 aux_celldescriptors = pd.DataFrame(index = cell_IDs_clustering)
 
 # get auxillary data
 aux_celldescriptors['Region'] = MetaData.loc[cell_IDs_clustering, 'Region']
+aux_celldescriptors['cellmorph_category'] = cellmorph_descriptors.loc[cell_IDs_ePhys_n_morpho, 'morphological_cluster']
 
 # transform region to values
 aux_celldescriptors['Region'] = aux_celldescriptors['Region'].map({'MeA' : 0, 'BAOT/MeA' : 0.5, 'BAOT' : 1})
-
+aux_celldescriptors['cellmorph_category'] = aux_celldescriptors['cellmorph_category'].map({'w' : 3, 'C1' : 0, 'C2' : 1, 'C3' : 2, 'C4' : 4, 'C5' : 5, 'C5' : 5, 'C6' : 6})
 
 # set number of clusters
-n_clusters = 5
+n_clusters = 7
 
 # as halfway point between n_clusters-1 and n_clusters
 c_threshold = last_clusters_rev[n_clusters-1] + (last_clusters_rev[n_clusters-2] - last_clusters_rev[n_clusters-1]) / 2
@@ -208,10 +212,10 @@ single_col_width_r = 1 / (n_cols_heatmap + n_additional_cols)
 # %% set dicts for plotting
 
 heatmap_dict = {'Region'              : {'cmap' : [region_colors[region] for region in ['MeA', 'BAOT']]},
-                'cellmorph_category'  : {'cmap' : ['#E6E6E6', '#CCCCCC', '#B3B3B3', '#999999', '#808080', '#666666']}}
+                'cellmorph_category'  : {'cmap' : ['#FEFFB3', '#BFBBD9', '#FA8174', '#FFFFFF', '#81B1D2', '#FDB462', '#B3DE69'], 'vmin' : 0, 'vmax' : 6}}
 
-cbar_dict = {'Region'              : {'ticks' : [0.25, 0.75],           'labels' : ['MeA', 'BAOT'], 'range' : [0, 1]},
-             'cellmorph_category'  : {'ticks' : np.arange(0, 8, 1) + 0.5,      'labels' : ['None', '1', '2', '3', '4', '5', '6'], 'range' : [0, 6]}} 
+cbar_dict = {'Region'              : {'ticks' : [0.25, 0.75],                    'labels' : ['MeA', 'BAOT'], 'range' : [0, 1]},
+             'cellmorph_category'  : {'ticks' : np.arange(1/7, 6+1, 6/7) + 2/7,  'labels' : ['0', '1', '2', '3', '4', '5', '6'], 'range' : [0, 6]}} 
 
 axs_dict = {'Region'              : {'heatmap' :2, 'cbar' : 5},
             'cellmorph_category'  : {'heatmap' :3, 'cbar' : 6}}
@@ -356,7 +360,7 @@ for a_idx, aux_parameter in enumerate(aux_parameters):
         ax_cbar = axs_clustering[axs_dict[aux_parameter]['cbar']]
         
         # create color map from list of colors
-        if 'circ_mean' not in aux_parameter: 
+        if 'bla' not in aux_parameter: 
             n_colors = len(heatmap_dict[aux_parameter]['cmap'])
             cmap = LinearSegmentedColormap.from_list(aux_parameter, heatmap_dict[aux_parameter]['cmap'], N=n_colors)
         
@@ -368,8 +372,8 @@ for a_idx, aux_parameter in enumerate(aux_parameters):
             cmap = heatmap_dict[aux_parameter]['cmap']
             
             # min max normalize time for color-code
-            norm_min = 0
-            norm_max = np.pi * 2
+            norm_min = heatmap_dict[aux_parameter]['vmin']
+            norm_max = heatmap_dict[aux_parameter]['vmax']
             
         # create normalize object
         norm = mtl.colors.Normalize(norm_min, norm_max)
@@ -415,7 +419,15 @@ for a_idx, aux_parameter in enumerate(aux_parameters):
 
 
 
-
 # show plot
 plt.show()
 
+
+# set directory for figure
+fig_dir = join(hierarchical_dir, 'temp_figs')
+
+# save figure
+save_figures(fig_clustering, 'figure-hierarchical_clustering-dendro_heat_aux', 
+             save_dir = fig_dir,
+             darkmode_bool = darkmode_bool,
+             figure_format = 'png')

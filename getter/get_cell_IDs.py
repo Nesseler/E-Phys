@@ -48,7 +48,7 @@ def get_cell_IDs_all_ccAPfreqs():
 
 
 
-def get_cell_IDs_one_protocol(PGF = 'cc_IF'):
+def get_cell_IDs_one_protocol(PGF = 'cc_IF', sheet_name = 'PGFs'):
     '''
     Functions returns list of cell_IDs that contain the provided protocol.
     Parameters:
@@ -58,7 +58,7 @@ def get_cell_IDs_one_protocol(PGF = 'cc_IF'):
     '''
     
     # database as table
-    table = pd.read_excel(table_file, sheet_name="PGFs", index_col='cell_ID')
+    table = pd.read_excel(table_file, sheet_name=sheet_name, index_col='cell_ID')
 
     # limit 
     lookup_table = table.query(f'{PGF}.notnull()')

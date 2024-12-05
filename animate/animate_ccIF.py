@@ -38,7 +38,7 @@ table = pd.read_excel(table_file,
                       index_col='cell_ID')
 
 # test cell E-092
-cell_ID = 'E-122'
+cell_ID = 'E-137'
 
     
 # PGF to load
@@ -122,12 +122,18 @@ step_points = step_dur * SR_ms
 
 for idx in np.arange(0, n_steps, 1):
     start_idx = int(step_points * idx)
-    stop_idx = int(start_idx + step_points - 1)
+    stop_idx = int(start_idx + step_points)
     
     v[idx] = vf[start_idx:stop_idx]
     t[idx] = t_ms[start_idx:stop_idx]
     peaks[idx] = [(idx_peak / SR_ms) - (step_dur * idx) for idx_peak in idc_peaks if idx_peak > start_idx and idx_peak < stop_idx]
 
+
+# 
+
+v = v[1::4]
+i = i[1::4]
+t = t[::4]
 
 # %%
 
@@ -155,23 +161,23 @@ darkmode_bool = True
 
 color_dict, _ = get_colors(darkmode_bool)
 
-fig, ax = plt.subplots(2,1,
-                      height_ratios = [1,4]) 
+# fig, ax = plt.subplots(2,1,
+#                       height_ratios = [1,4]) 
 
 
-ax[0].plot(t[0], i[9], 'm')
+# ax[0].plot(t[0], i[9], 'm')
 
-segs = return_segments(t[0], v[:9])
+# segs = return_segments(t[0], v[:9])
 
-line_segments = LineCollection(segs, colors = 'grey')
+# line_segments = LineCollection(segs, colors = 'grey')
 
-ax[1].add_collection(line_segments)
+# ax[1].add_collection(line_segments)
 
-ax[1].plot(t[0], v[9])
-# ax[1].eventplot(t_peaks_s, color = 'r', lineoffsets=30, linelengths=5)
-ax[1].set_ylim([-100, 50])
+# ax[1].plot(t[0], v[31])
+# # ax[1].eventplot(t_peaks_s, color = 'r', lineoffsets=30, linelengths=5)
+# ax[1].set_ylim([-100, 50])
 
-plt.show()
+# plt.show()
 
 
 # %% where is the threshold
@@ -188,54 +194,61 @@ plt.show()
 
 # Initialise figure
 fig_ani, ax_ani = plt.subplots(2, 1, 
-                               figsize = get_figure_size(width=245.252),
-                               sharex = 'col',
-                               height_ratios = [1,4])
+                               figsize = get_figure_size(width=60, height = 45),
+                               height_ratios = [1, 5],
+                               sharex=True)
 
 # set font sizes
 set_font_sizes()
 
 # plot parameters
 ## initialise a line plot
-linesegments_v = LineCollection([], colors = 'grey', lw = 2)
+linesegments_v = LineCollection([], colors = 'grey', lw = 0.5, alpha = 0.5)
 linecollection = ax_ani[1].add_collection(linesegments_v)
 
-line_v, = ax_ani[1].plot([],[], lw = 2, color = color_dict['primecolor'])
+line_v, = ax_ani[1].plot([],[], lw = 0.5, color = color_dict['primecolor'])
 
-linesegments_i = LineCollection([], colors = 'grey', lw = 2)
+linesegments_i = LineCollection([], colors = 'grey', lw = 0.5)
 linecollection = ax_ani[0].add_collection(linesegments_i)
 
-line_i, = ax_ani[0].plot([],[], lw = 2, color = color_dict['color2'])
+line_i, = ax_ani[0].plot([],[], lw = 0.5, color = color_dict['primecolor'])
 
 ## initialise eventmarker
-events, = ax_ani[1].eventplot([], color = 'r', lineoffsets=50, linelengths=10, linewidth = 3)
+# events, = ax_ani[1].eventplot([], color = 'r', lineoffsets=50, linelengths=10, linewidth = 3)
 
 ## initialise text for threshold label
-text = ax_ani[0].text(x = 375,
-                      y = 100,
-                      s = '', 
-                      fontsize = 14,
-                      verticalalignment='center')
+# text = ax_ani[0].text(x = 375,
+#                       y = 100,
+#                       s = '', 
+#                       fontsize = 14,
+#                       verticalalignment='center')
 
 # axis settings
-ax_ani[0].set_ylabel('Current [pA]')
-ax_ani[0].set_ylim([-100, 300])
-ax_ani[0].set_yticks(ticks = np.arange(-50, 200+1, 50), 
-                     labels = [None, 0, None, 100, None, 200])
-ax_ani[0].set_yticks(np.arange(-50, 200+1, 10), minor = True)
+ax_ani[0].set_ylabel('')
+ax_ani[0].set_ylim([-50, 300])
+ax_ani[0].set_yticks([])
+# ax_ani[0].set_yticks(np.arange(-50, 200+1, 10), labels = [], minor = True)
 
-v_range = [-150, 75]
 
-ax_ani[1].set_xlabel('Time [ms]')
+
+
+
+v_range = [-110, 55]
+
+ax_ani[1].set_xlabel('')
+ax_ani[1].set_xticks(ticks = [], labels = [])
 ax_ani[1].set_xlim([0, 1500])
+# ax_ani.set_xticks(ticks = [0, 250, 500, 750, 1000, 1250, 1500], labels = [])
 
-ax_ani[1].set_ylabel('Voltage [mV]')
+ax_ani[1].set_ylabel('')
 ax_ani[1].set_ylim(v_range)
 
-ax_ani[1].set_yticks(np.arange(v_range[0], v_range[1] + 1, 50))
-ax_ani[1].set_yticks(np.arange(v_range[0], v_range[1] + 1, 25), minor = True)
+ax_ani[1].set_yticks(ticks = [], labels = [])
+# ax_ani.set_yticks(np.arange(v_range[0], v_range[1] + 1, 25), labels = [], minor = True)
 
 [ax.grid(False) for ax in ax_ani]
+
+[ax.spines[spine].set_visible(False) for spine in ['top', 'right', 'left', 'bottom'] for ax in ax_ani]
 
 # animation function 
 interval = 1   # in datapoints
@@ -258,7 +271,7 @@ def animate(frame):
     
     # eventplot
     # end_frame_s = end_frame / SR
-    events.set_positions(peaks[frame])
+    # events.set_positions(peaks[frame])
     
     # if frame >= idx_u_th:
     #     text.set_text(f'Threshold between\n{i_u_th - 10} pA and {i_u_th} pA!')
@@ -286,9 +299,9 @@ plt.show()
 # %% animation settings
 
 # Animation parameters
-duration_s = n_steps * 0.5  # Select the length of the video here
+# duration_s = n_steps * 0.5  # Select the length of the video here
  
-anim_fps = frames/duration_s
+anim_fps = 2 #frames/duration_s
  
 extra_args = [
     '-vcodec', 'libx264',  # Video codec
@@ -301,14 +314,14 @@ anim_fps_str = str(round(anim_fps, 2))
 
 # Create the video with FFMpegWriter
 writer = animation.FFMpegWriter(fps=anim_fps, bitrate=3000, 
-                                codec="h264",  extra_args=extra_args)
+                                codec="h264")#,  extra_args=extra_args)
 
 
  
 # Save path
-anim.save(f'C:/Users/nesseler/Desktop/local E-Phys/figures/{cell_ID}_{PGF}_animation-{anim_fps_str}.mp4', writer = writer)
+# anim.save(f'C:/Users/nesseler/Desktop/{cell_ID}_{PGF}_animation-{anim_fps_str}.mp4', writer = writer)
 
-# anim.save('C:/Users/nesseler/Desktop/local E-Phys/figures/video.mp4', writer=writer)
+anim.save('C:/Users/nesseler/Desktop/video.mp4', writer=writer, dpi = 300)
  
 # Print the fps and duration of the final video
 print('Video_duration (s):', frames/anim_fps)
@@ -320,7 +333,7 @@ print('Video_fps:', anim_fps)
 
 # writergif = animation.PillowWriter(fps=anim_fps, bitrate=2000)
  
-# anim.save('C:/Users/nesseler/Desktop/local E-Phys/figures/1APth_video.gif', writer=writergif)
+# anim.save('C:/Users/nesseler/Desktop/1APth_video.gif', writer=writergif)
 
 # print('Done!')
 

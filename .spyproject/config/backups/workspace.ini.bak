@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['hierarchical_clustering\\ePhys_hierarchical_two_parameter_correlation.py', 'parameters\\axis_settings.py', 'hierarchical_clustering\\ePhys_hierarchical_simple_heatmap.py', 'ePhys_hierarchical_clustering.py', 'functions\\functions_extractspike.py', 'hierarchical_clustering\\ePhys_hierarchical_parameters.py', 'parameters\\parameters.py']
+recent_files = ['clustering\\ePhys_PCA.py', 'clustering\\ePhys_hierarchical_clustering.py', 'parameters\\parameters.py', 'animate\\animate_ccIF.py', 'parameters\\directories_win.py']
 
 [main]
 version = 0.2.0
