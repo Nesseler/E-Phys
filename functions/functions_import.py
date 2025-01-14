@@ -138,3 +138,60 @@ def get_vc_data(file_path, traceIndex, scale):
     t = calc_time_series(v, SR, scale=scale)
     
     return i, v, t, SR, n_steps[0]
+
+
+
+
+
+# %%
+
+
+
+
+def get_vc_leak_data(file_path, traceIndex, scale):
+    '''
+    Function gets path to HEKA file and traceIndex and returns pandas dataframes,
+    for current, voltage, leak current and time, where each column represents a 
+    single step. The function also returns the sampling rate.
+    Parameters:
+        file_path : full path for your Heka .dat file
+        traceIndex : Index in HEKA tree structure [2,6,0,0] 
+                      [Group, Series, Sweep, Trace]
+        scale : {'ms', 's'} Time scale in which the time series is being 
+                calculated. 'ms' Milliseconds is default.    
+    Returns:
+        i : current
+        v : voltage
+        ileak : leak current
+        t : time series in specified scale (s, ms)
+        SR : sampling rate
+        n_steps 
+    '''
+    
+    # read Heka .dat file into a object
+    bundleTester = HekaBundleInfo(file_path)
+    
+    # get sampling rate
+    SR = bundleTester.getSeriesSamplingRate(traceIndex)
+    SR = int(round(SR))
+    
+    # Get data from a series
+    data = bundleTester.getSeriesData(traceIndex)
+    
+    # get data shape
+    data_shape = np.shape(data)
+    n_points, n_channels, n_steps = zip(data_shape)
+    
+    # assign current and voltage to dataframes
+    v = data[:,1,:] * 1e3
+    i = data[:,0,:] * 1e12
+    ileak = data[:,2,:] * 1e12 
+    
+    # transpose arrays
+    v = np.transpose(v)
+    i = np.transpose(i)
+    ileak = np.transpose(ileak)
+    
+    t = calc_time_series(v, SR, scale=scale)
+    
+    return i, v, ileak, t, SR, n_steps[0]

@@ -83,7 +83,7 @@ cc_sag_parameters = {'t_pre' : 250, #ms
 #                            'v_hold_pre' : -85} #mV
 
 
-# %% vc_TTX_washin / vc_TTX+Cd_washin
+# %% vc_TTX_washin / vc_TTX+Cd_washin / vc_TTX_washin_leak / vc_TTX+Cd_washin_leak
 
 vc_TTX_washin_parameters = {'t_pre' : 2490, #ms
                             't_stim': 20, #ms
@@ -91,6 +91,10 @@ vc_TTX_washin_parameters = {'t_pre' : 2490, #ms
                             'v_stim': 0 #mV
                             } 
 
-
+vc_TTX_washin_leak_parameters = {'t_pre' : 10, #ms
+                                 't_stim': 20, #ms
+                                 't_post': 10, #ms
+                                 'v_stim': 0 #mV
+                                 } 
 
 
