@@ -145,7 +145,7 @@ def calc_vmem_at_spiketrain(t, v, dvdt, spike_idc, min_ISI, SR):
 
     ### how to get the v_mem at burst ###
     
-    plotting_bool = False
+    plotting_bool = True
     
     if plotting_bool:
         plt.plot(v, dvdt)

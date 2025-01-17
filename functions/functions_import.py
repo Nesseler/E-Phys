@@ -10,11 +10,15 @@ import numpy as np
 
 from parameters.directories_win import table_dir, table_file, raw_data_dir
 
+
 def get_traceIndex_n_file(PGF = 'ccth1AP', cell_ID = 'E-092', sheet_name = 'PGFs'):
     # excel sheet with PGF indices as lookup table
     lookup_table = pd.read_excel(table_file,
                                  sheet_name = sheet_name,
                                  index_col = 'cell_ID')
+    
+    # limit lookup table to specific PGF
+    lookup_table = lookup_table.query(PGF + '.notnull()')
     
     # get indices of current cell with the dataframe containing all indices    
     group_idx = int(lookup_table.at[cell_ID, 'group'])-1
@@ -42,7 +46,6 @@ def get_onlyfiles_list(dir_path):
 
 
 
-# %% data import
 
 from HekaIO.HekaHelpers import HekaBundleInfo
 
@@ -138,13 +141,6 @@ def get_vc_data(file_path, traceIndex, scale):
     t = calc_time_series(v, SR, scale=scale)
     
     return i, v, t, SR, n_steps[0]
-
-
-
-
-
-# %%
-
 
 
 

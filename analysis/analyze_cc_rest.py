@@ -10,86 +10,133 @@ import pandas as pd
 import numpy as np
 import os.path
 import scipy as sc
-import warnings 
+import warnings
+from tqdm import tqdm
 
 # custom directories & parameters
-from parameters.directories_win import raw_data_dir, figure_dir, cell_descrip_dir, table_file
+from parameters.directories_win import cell_descrip_dir
 from parameters.parameters import min_peak_prominence, min_peak_distance
 
 # custom functions
-from functions.functions_useful import butter_filter, get_data
+from functions.functions_useful import butter_filter, calc_time_series, calc_dvdt_padded
+from functions.functions_import import get_cc_data, get_traceIndex_n_file
+from functions.get_cell_IDs import get_cell_IDs_one_protocol
 
 
+# define protocol
+PGF = 'cc_rest'
+
+# get all cell_IDs for cc_rest
+cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = 'PGFs_Syn')
+
+# get number of cells
+n_cells = len(cell_IDs)
+
+# init plotting
+from functions.initialize_plotting import * # analysis:ignore
+
+# define output
+activity_df = pd.DataFrame(index = cell_IDs, columns = ['v_rest', 'n_spikes', 't_spikes'])
+
+# verification plots
+vplots = True
 
 
-# %%
-
-## n/3 by 3 subplots with each a 30 sec resting activity plot
-
-table = pd.read_excel(table_file,
-                      sheet_name="PGFs",
-                      index_col='cell_ID')
-
-lookup_table = table.query('cc_rest.notnull()')
-
-darkmode_bool = True
-
-# %%
+# %% data loading
 
 # initialize dataframes to populate in the loop
-i_df = pd.DataFrame()
-v_df = pd.DataFrame()
-v_filtered_df = pd.DataFrame()
-t_df = pd.DataFrame()
-SR_ls = []
+v_df = pd.DataFrame(columns = cell_IDs)
+vf_df = pd.DataFrame(columns = cell_IDs)
+SR_df = pd.DataFrame(index = cell_IDs, columns = ['SR'])
 
 
+print('loading ...')
 
-# convert indices of dataframe to list to loop through
-all_cell_IDs = lookup_table.index.to_list()
-
-for cell_idx, cell_ID in enumerate(all_cell_IDs):
-    
-    print(f'loading: {cell_ID}')
-    
-    # get indices of current cell with the dataframe containing all indices    
-    group_idx = int(lookup_table.at[cell_ID, 'group'])-1
-    series_idx = int(lookup_table.at[cell_ID, 'cc_rest'])-1
-
-    # construct traceIndex with indices
-    traceIndex = [group_idx, series_idx, 0, 0]
-    
-    # call on data file with indices from dataframe above
-    current_file = lookup_table.at[cell_ID, 'file']
-    
-    data_file_path = os.path.join(raw_data_dir, current_file + '.dat')
-
-    data_file_path_str = fr"{data_file_path}"
-    
+for cell_idx, cell_ID in enumerate(tqdm(cell_IDs)):
+            
+    # get the traceIndex and the file path string for data import functions
+    traceIndex, file_path = get_traceIndex_n_file(PGF, cell_ID, sheet_name = 'PGFs_Syn')
     
     # get data with file path & trace index
-    i, v, t, SR = get_data(data_file_path_str, traceIndex, scale='s')
+    i, v, t, SR, n_step = get_cc_data(file_path, traceIndex, scale='s')
+    
+    # get first and only step of protocol
+    v = v[0]
     
     # edge case when file exceeds the 30 sec recording (E-069)
     if len(v) > (30 * SR):
         warnings.warn(str(cell_ID) + ' exceeds 30 sec and will be cut down.')
-        i = i[0:(30*SR)]
         v = v[0:(30*SR)]
-        t = t[0:(30*SR)]
         
     # filter all data with 1kHz cutoff
-    v_filtered = butter_filter(v, order=3, cutoff=1e3, sampling_rate=SR)
+    vf = butter_filter(v, order=3, cutoff=1e3, sampling_rate=SR)
 
     # populate the dataframes & lists
-    i_df[cell_idx] = i
-    v_df[cell_idx] = v
-    v_filtered_df[cell_idx] = v_filtered
-    t_df[cell_idx] = t
-    SR_ls.append(SR)
-    
+    v_df[cell_ID] = v
+    vf_df[cell_ID] = vf
+    SR_df.at[cell_ID, 'SR'] = SR
     
 
-n_cells = len(lookup_table)
+# check if all protocols have the same sampling rate
+if len(SR_df['SR'].unique()) != 1:
+    warnings.warn('Not all protocols have the same sampling rate!')
+
+else:
+    # calculate time
+    t = calc_time_series(v, sampling_rate=SR, scale = 's')
+    t_ms = calc_time_series(v, sampling_rate=SR, scale = 'ms')
+
+
+# %% find spikes
+
+cell_ID = 'E-247'
+
+# define dataframe
+spiketimes_df = pd.DataFrame(index = cell_IDs, columns=['t_spikes'])
+
+# get filtered voltage and sampling rate
+vf = vf_df[cell_ID] #[25:]
+SR = SR_df.at[cell_ID, 'SR']
+
+# find peaks
+idc_spikes, dict_peak = sc.signal.find_peaks(vf, 
+                                             prominence = min_peak_prominence, 
+                                             distance = min_peak_distance * (SR/1e3))
+    
+# calculate spike times in seconds
+t_spikes = np.divide(idc_spikes, SR)
+n_spikes = len(t_spikes)
+
+# write to dataframe
+activity_df.at[cell_ID, 't_spikes'] = list(t_spikes)
+activity_df.at[cell_ID, 'n_spikes'] = n_spikes
+
+plt.plot(vf[idc_spikes[0]-2000:idc_spikes[0]+2000])
+
+
+# %% v_rest
+
+from functions.functions_extractspike import extract_spike
+from functions.functions_spiketrains import calc_vmem_at_spiketrain
+
+# cut out spikes for resting membrane potential calc
+if n_spikes > 0:
+    
+    # calc first derivative
+    dvdt = calc_dvdt_padded(vf, t_ms)
+    
+    extract_spike(t = t_ms, 
+                  v = vf, 
+                  dvdt = dvdt, 
+                  idx_peak = idc_spikes[0])
+
+
+    
+# %%
+
+
+
+
 
 
 
@@ -164,7 +211,7 @@ v_rest_df = pd.DataFrame({'v_rest' : v_rest},
                          index = all_cell_IDs)
 
 # save dataframe as csv file
-v_rest_path = os.path.join(figure_dir, 'v_rest.csv')
+# v_rest_path = os.path.join(figure_dir, 'v_rest.csv')
 
 # v_rest_df.to_csv(v_rest_path, header = ['v_rest'])
 
@@ -180,7 +227,7 @@ v_rest_path = os.path.join(figure_dir, 'v_rest.csv')
 # %% create dict with all, active and non-active cells
 
 # concatenate v_rest and n_spikes dataframes
-activity_df = pd.concat([v_rest_df, n_spikes_df, spiketimes_df], axis = 1)
+# activity_df = pd.concat([v_rest_df, n_spikes_df, spiketimes_df], axis = 1)
 
 # add activity column for categorical plots´with silent as default value
 activity_df['activity'] = 'silent'
@@ -191,7 +238,7 @@ activity_df.loc[activity_df['n_spikes'] > 0, 'activity'] = 'spiking'
 
 
 # save activity dataframe to quant data folder
-activity_df.to_excel(os.path.join(cell_descrip_dir, 'cc_rest-activity.xlsx'), index_label='cell_ID')
+activity_df.to_excel(os.path.join(cell_descrip_dir, 'cc_rest-syn-activity.xlsx'), index_label='cell_ID')
 
 
 

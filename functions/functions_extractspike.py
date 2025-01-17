@@ -8,7 +8,6 @@ Created on Wed Feb  7 14:15:15 2024
 import matplotlib.pyplot as plt
 import numpy as np
 
-from parameters.parameters import dvdt_threshold
 
 
 def get_threshold_crossing_closest_to_peak(data, idx_peak, threshold, change_direction):
@@ -74,19 +73,25 @@ def get_threshold_crossing_closest_to_peak_and_below_value(data_v, data_dvdt, id
 
 
 
+from parameters.parameters import dvdt_threshold
+
 def extract_spike(t, v, dvdt, idx_peak):
     '''
     Uses set dvdt thresholds to define spike and returns the indices, that 
     contain the spike.
     
     '''
+    
     dvdt_p_threshold = dvdt_threshold
-    dvdt_n_threshold = -3
+    dvdt_n_threshold = -5 # -3
 
+    local_vplots = True
 
-    if False:
+    if local_vplots:
         plt.hlines([dvdt_n_threshold, dvdt_p_threshold], -100, 60, colors = 'gray', linestyle = '--', alpha = 0.5)
         plt.plot(v, dvdt, c = 'gray', linestyle = '-')
+        plt.scatter(v[idx_peak], dvdt[idx_peak], marker = 'x', c = 'r', s = 30, zorder = 4)
+        plt.show()
 
 
     ### rising phase - threshold ###
@@ -117,7 +122,11 @@ def extract_spike(t, v, dvdt, idx_peak):
     iterations = 0
     while threshold_adapt:
         try: 
-            idx_AHP = get_threshold_crossing_closest_to_peak_and_below_value(spike_v_post_peak, spike_dvdt_post_peak, 0, dvdt_n_threshold, -1) + idx_peak
+            idx_AHP = get_threshold_crossing_closest_to_peak_and_below_value(data_v = spike_v_post_peak, 
+                                                                             data_dvdt = spike_dvdt_post_peak, 
+                                                                             idx_peak = 0, 
+                                                                             threshold = dvdt_n_threshold, 
+                                                                             change_direction = -1) + idx_peak
             threshold_adapt = False
         except:
             iterations += 1
@@ -125,6 +134,9 @@ def extract_spike(t, v, dvdt, idx_peak):
             dvdt_n_threshold = dvdt_n_threshold + threshold_change
             threshold_adapt = True
             print(threshold_change)
+            
+            if iterations > 100:
+                break
             
     
     # problem 2: ohmic repolarisation of membrane during downstroke
@@ -140,7 +152,7 @@ def extract_spike(t, v, dvdt, idx_peak):
     spike_dvdt = dvdt[spike_idc] 
 
 
-    if False:
+    if local_vplots:
         plt.scatter(v[idx_th], dvdt[idx_th], marker = 'x', c = 'm')
         plt.scatter(v[idx_AHP], dvdt[idx_AHP], marker = 'x', c = 'c')
         plt.ylim([-100, 250])
@@ -148,7 +160,7 @@ def extract_spike(t, v, dvdt, idx_peak):
 
         plt.show()
     
-    if False:
+    if local_vplots:
         plt.plot(t, v, 'gray')
         plt.plot(spike_t, spike_v, 'm')
         plt.title(iterations)
