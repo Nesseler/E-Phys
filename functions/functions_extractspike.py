@@ -146,6 +146,8 @@ def extract_spike(t, v, dvdt, idx_peak):
     # construct spike index list
     spike_idc = np.arange(idx_th, idx_AHP, 1, dtype = int)
     
+    print(spike_idc)
+    
     # limit t, v, and dvdt to just the spike
     spike_t = t[spike_idc]
     spike_v = v[spike_idc]

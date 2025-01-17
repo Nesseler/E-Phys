@@ -76,6 +76,7 @@ for cell_idx, cell_ID in enumerate(tqdm(cell_IDs)):
     vf_df[cell_ID] = vf
     SR_df.at[cell_ID, 'SR'] = SR
     
+# %%
 
 # check if all protocols have the same sampling rate
 if len(SR_df['SR'].unique()) != 1:
@@ -87,7 +88,7 @@ else:
     t_ms = calc_time_series(v, sampling_rate=SR, scale = 'ms')
 
 
-# %% find spikes
+# find spikes
 
 cell_ID = 'E-247'
 
@@ -95,7 +96,8 @@ cell_ID = 'E-247'
 spiketimes_df = pd.DataFrame(index = cell_IDs, columns=['t_spikes'])
 
 # get filtered voltage and sampling rate
-vf = vf_df[cell_ID] #[25:]
+t_ms = t_ms
+vf = vf_df[cell_ID]
 SR = SR_df.at[cell_ID, 'SR']
 
 # find peaks
@@ -125,10 +127,10 @@ if n_spikes > 0:
     # calc first derivative
     dvdt = calc_dvdt_padded(vf, t_ms)
     
-    extract_spike(t = t_ms, 
-                  v = vf, 
-                  dvdt = dvdt, 
-                  idx_peak = idc_spikes[0])
+    extract_spike(t = t_ms[258304-2000:258304+2000], 
+                  v = vf_df[cell_ID].to_numpy()[258304-2000:258304+2000], 
+                  dvdt = dvdt[258304-2000:258304+2000], 
+                  idx_peak = int(2000))
 
 
     
