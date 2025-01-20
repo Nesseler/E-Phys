@@ -75,17 +75,18 @@ def get_threshold_crossing_closest_to_peak_and_below_value(data_v, data_dvdt, id
 
 from parameters.parameters import dvdt_threshold
 
-def extract_spike(t, v, dvdt, idx_peak):
+def extract_spike(t, v, dvdt, idx_peak, dvdt_n_threshold = -3):
     '''
     Uses set dvdt thresholds to define spike and returns the indices, that 
     contain the spike.
+    WARNING: This function is sensitive to input types. Stick to numpy array!
     
     '''
     
     dvdt_p_threshold = dvdt_threshold
-    dvdt_n_threshold = -5 # -3
+    # dvdt_n_threshold = -1 # -3
 
-    local_vplots = True
+    local_vplots = False
 
     if local_vplots:
         plt.hlines([dvdt_n_threshold, dvdt_p_threshold], -100, 60, colors = 'gray', linestyle = '--', alpha = 0.5)
@@ -135,18 +136,19 @@ def extract_spike(t, v, dvdt, idx_peak):
             threshold_adapt = True
             print(threshold_change)
             
+            # TODO: start plotting as soon as except statement is entered
+            # for easier debugging
+            
+            # build in break to avoid endless while loops
             if iterations > 100:
                 break
             
     
     # problem 2: ohmic repolarisation of membrane during downstroke
     
-    
             
     # construct spike index list
     spike_idc = np.arange(idx_th, idx_AHP, 1, dtype = int)
-    
-    print(spike_idc)
     
     # limit t, v, and dvdt to just the spike
     spike_t = t[spike_idc]
@@ -155,6 +157,8 @@ def extract_spike(t, v, dvdt, idx_peak):
 
 
     if local_vplots:
+        plt.hlines([dvdt_n_threshold, dvdt_p_threshold], -100, 60, colors = 'gray', linestyle = '--', alpha = 0.5)
+        plt.plot(v, dvdt, c = 'gray', linestyle = '-')
         plt.scatter(v[idx_th], dvdt[idx_th], marker = 'x', c = 'm')
         plt.scatter(v[idx_AHP], dvdt[idx_AHP], marker = 'x', c = 'c')
         plt.ylim([-100, 250])
@@ -163,7 +167,7 @@ def extract_spike(t, v, dvdt, idx_peak):
         plt.show()
     
     if local_vplots:
-        plt.plot(t, v, 'gray')
+        plt.plot(t[idx_th-2000:idx_th+2000], v[idx_th-2000:idx_th+2000], 'gray')
         plt.plot(spike_t, spike_v, 'm')
         plt.title(iterations)
         plt.ylim([-100, 60])

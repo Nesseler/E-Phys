@@ -70,6 +70,9 @@ for cell_idx, cell_ID in enumerate(tqdm(cell_IDs)):
         
     # filter all data with 1kHz cutoff
     vf = butter_filter(v, order=3, cutoff=1e3, sampling_rate=SR)
+    
+    # replace first values with nans to eliminate filter artifact
+    vf[:100] = np.nan
 
     # populate the dataframes & lists
     v_df[cell_ID] = v
@@ -88,148 +91,79 @@ else:
     t_ms = calc_time_series(v, sampling_rate=SR, scale = 'ms')
 
 
-# find spikes
+print('calc...')
 
-cell_ID = 'E-247'
+# cell_ID = 'E-247'
 
-# define dataframe
-spiketimes_df = pd.DataFrame(index = cell_IDs, columns=['t_spikes'])
+for cell_ID in tqdm(cell_IDs):
 
-# get filtered voltage and sampling rate
-t_ms = t_ms
-vf = vf_df[cell_ID]
-SR = SR_df.at[cell_ID, 'SR']
-
-# find peaks
-idc_spikes, dict_peak = sc.signal.find_peaks(vf, 
-                                             prominence = min_peak_prominence, 
-                                             distance = min_peak_distance * (SR/1e3))
+    # define dataframe
+    spiketimes_df = pd.DataFrame(index = cell_IDs, columns=['t_spikes'])
     
-# calculate spike times in seconds
-t_spikes = np.divide(idc_spikes, SR)
-n_spikes = len(t_spikes)
-
-# write to dataframe
-activity_df.at[cell_ID, 't_spikes'] = list(t_spikes)
-activity_df.at[cell_ID, 'n_spikes'] = n_spikes
-
-plt.plot(vf[idc_spikes[0]-2000:idc_spikes[0]+2000])
-
-
-# %% v_rest
-
-from functions.functions_extractspike import extract_spike
-from functions.functions_spiketrains import calc_vmem_at_spiketrain
-
-# cut out spikes for resting membrane potential calc
-if n_spikes > 0:
+    # get filtered voltage and sampling rate
+    t_ms = t_ms
+    vf = vf_df[cell_ID]
+    SR = SR_df.at[cell_ID, 'SR']
     
-    # calc first derivative
-    dvdt = calc_dvdt_padded(vf, t_ms)
-    
-    extract_spike(t = t_ms[258304-2000:258304+2000], 
-                  v = vf_df[cell_ID].to_numpy()[258304-2000:258304+2000], 
-                  dvdt = dvdt[258304-2000:258304+2000], 
-                  idx_peak = int(2000))
-
-
-    
-# %%
-
-
-
-
-
-
-
-# %% find peaks
-
-spiketimes_df = pd.DataFrame(columns=['t_spikes'])
-spiketimes_ls = []
-n_peaks = []
-
-for cell_idx, cell_ID in enumerate(all_cell_IDs):
-    idx_peaks, dict_peak = sc.signal.find_peaks(v_filtered_df[cell_idx], 
-                                                prominence = min_peak_prominence, 
-                                                distance = min_peak_distance * (SR/1e3))
-
-    t_peaks = idx_peaks / (SR_ls[cell_idx])
-    
-    spiketimes_ls.append(t_peaks)
-    spiketimes_df.at[cell_ID, 't_spikes'] = list(t_peaks)
-    
-    n_peaks.append(len(idx_peaks))
- 
-    
-# create dataframe for browsable data
-n_spikes_df = pd.DataFrame({'n_spikes' : n_peaks},
-                            index = all_cell_IDs)
-
-# %%
-
-
-
-# sort spike times list for length and therefore number of APs
-spiketimes_ls.sort(key=len)
-
-
-# %% V_REST
-
-# TODO 
- # try baseline function & filtered
- # edge cases, when spike is near start or stop for nan replacement
-
-
-v_rest = []
-
-
-for cell_idx, cell_ID in enumerate(all_cell_IDs):
-    
-    print(f'Started: {cell_ID}')
+    # find peaks
+    idc_spikes, dict_peak = sc.signal.find_peaks(vf, 
+                                                 prominence = min_peak_prominence, 
+                                                 distance = min_peak_distance * (SR/1e3))
         
-    v_cell = v_filtered_df[cell_idx].to_list()
+    # calculate spike times in seconds
+    t_spikes = np.divide(idc_spikes, SR)
+    n_spikes = len(t_spikes)
     
-    idc_peaks, dict_peak = sc.signal.find_peaks(v_cell, 
-                                                prominence = min_peak_prominence, 
-                                                distance = min_peak_distance * (SR/1e3))
-
-    # introduce NaN value at spike times for more accurate v_rest calculation
+    # write to dataframe
+    activity_df.at[cell_ID, 't_spikes'] = list(t_spikes)
+    activity_df.at[cell_ID, 'n_spikes'] = n_spikes
     
-    # time before and after peak to exclude (in ms)
-    t_pre = 5
-    t_post = 40
-    t_total = t_pre + t_post
     
-    for i, idx_peak in enumerate(idc_peaks):
-        idx_pre = idx_peak - int((t_pre * (SR_ls[cell_idx]/1e3)))
-        idx_post = idx_peak + int((t_post * (SR_ls[cell_idx]/1e3)))
+    ### v_rest
+    
+    from functions.functions_extractspike import extract_spike
+    
+    # cut out spikes for resting membrane potential calc
+    if n_spikes > 0:
         
-        v_cell[idx_pre:idx_post] = [np.nan] * int((t_total * (SR_ls[cell_idx] / 1e3)))
-       
-    v_rest.append(np.nanmean(v_cell))
-
-# create dataframe for browsable data
-v_rest_df = pd.DataFrame({'v_rest' : v_rest},
-                         index = all_cell_IDs)
-
-# save dataframe as csv file
-# v_rest_path = os.path.join(figure_dir, 'v_rest.csv')
-
-# v_rest_df.to_csv(v_rest_path, header = ['v_rest'])
-
-
-
-# %% V_REST mean & std
-
-# v_rest_mean = np.mean(v_rest_df['v_rest'])
-# v_rest_std = np.std(v_rest_df['v_rest'])
-
+        # calc first derivative
+        dvdt = calc_dvdt_padded(vf, t_ms)
+        
+        # define negative dvdt threshold, i.e.: detection of fast AHP
+        dvdt_n_threshold = -1
+        
+        # copy voltage trace to adjustable variable 
+        vf_wo_spikes = np.copy(vf)
+        
+        # iterate through spikes
+        for spike_idx in idc_spikes:
+        
+            spike_idc, _, _, _ = extract_spike(t = t_ms, 
+                                               v = vf_df[cell_ID].to_numpy(), 
+                                               dvdt = dvdt, 
+                                               idx_peak = spike_idx,
+                                               dvdt_n_threshold=dvdt_n_threshold)
+        
+            # replace spike values with nans
+            vf_wo_spikes[spike_idc] = np.nan
+        
+        if vplots:
+            plt.plot(vf, 'grey')
+            plt.plot(vf_wo_spikes, colors_dict['primecolor'])
+    
+        # calc v_rest as mean over trace
+        v_rest = np.nanmean(vf_wo_spikes)
+        
+    else:
+        # calc v_rest as mean over trace
+        v_rest = np.mean(vf)
+        
+    # write to dataframe
+    activity_df.at[cell_ID, 'v_rest'] = v_rest
+    
 
 
 # %% create dict with all, active and non-active cells
-
-# concatenate v_rest and n_spikes dataframes
-# activity_df = pd.concat([v_rest_df, n_spikes_df, spiketimes_df], axis = 1)
 
 # add activity column for categorical plots´with silent as default value
 activity_df['activity'] = 'silent'
@@ -237,11 +171,8 @@ activity_df['activity'] = 'silent'
 # change activity value of spiking cells with n_spike > 0 to 'spiking'
 activity_df.loc[activity_df['n_spikes'] > 0, 'activity'] = 'spiking'
 
-
-
 # save activity dataframe to quant data folder
 activity_df.to_excel(os.path.join(cell_descrip_dir, 'cc_rest-syn-activity.xlsx'), index_label='cell_ID')
-
 
 
 print('Finished!')

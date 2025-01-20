@@ -12,6 +12,9 @@ from parameters.directories_win import table_dir, table_file, raw_data_dir
 
 
 def get_traceIndex_n_file(PGF = 'ccth1AP', cell_ID = 'E-092', sheet_name = 'PGFs'):
+    '''
+    '''
+    
     # excel sheet with PGF indices as lookup table
     lookup_table = pd.read_excel(table_file,
                                  sheet_name = sheet_name,
@@ -22,7 +25,23 @@ def get_traceIndex_n_file(PGF = 'ccth1AP', cell_ID = 'E-092', sheet_name = 'PGFs
     
     # get indices of current cell with the dataframe containing all indices    
     group_idx = int(lookup_table.at[cell_ID, 'group'])-1
-    series_idx = int(lookup_table.at[cell_ID, f'{PGF}'])-1
+    
+    # get series index
+    series_idx = lookup_table.at[cell_ID, f'{PGF}']
+    
+    # check for multiple protocols
+    if type(series_idx) is int:
+    
+        # define single series index
+        series_idx = series_idx - 1
+    
+    elif type(series_idx) is str:
+        
+        # find series indices
+        series_idx = [int(i) - 1 for i in series_idx.split(',') if i.isdigit()]
+    
+    else:
+        raise ValueError('Series index not found. Neither int nor str!')
 
     # construct traceIndex with indices
     traceIndex = [group_idx, series_idx, 0, 0]
