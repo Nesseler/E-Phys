@@ -34,6 +34,11 @@ def get_traceIndex_n_file(PGF = 'ccth1AP', cell_ID = 'E-092', sheet_name = 'PGFs
     
         # define single series index
         series_idx = series_idx - 1
+        
+    elif type(series_idx) is np.float64:
+        
+            # define single series index
+            series_idx = int(series_idx) - 1
     
     elif type(series_idx) is str:
         
@@ -41,7 +46,8 @@ def get_traceIndex_n_file(PGF = 'ccth1AP', cell_ID = 'E-092', sheet_name = 'PGFs
         series_idx = [int(i) - 1 for i in series_idx.split(',') if i.isdigit()]
     
     else:
-        raise ValueError('Series index not found. Neither int nor str!')
+        print(type(series_idx))
+        raise ValueError(f'{cell_ID} Series index not found. Neither int nor str!')
 
     # construct traceIndex with indices
     traceIndex = [group_idx, series_idx, 0, 0]

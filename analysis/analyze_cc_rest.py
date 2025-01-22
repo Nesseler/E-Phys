@@ -178,6 +178,3 @@ activity_df.to_excel(os.path.join(cell_descrip_dir, 'cc_rest-syn-activity.xlsx')
 print('Finished!')
 
 
-
-
-

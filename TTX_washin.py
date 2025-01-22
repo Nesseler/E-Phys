@@ -15,7 +15,7 @@ from os.path import join
 PGF = 'vc_TTX_washin'
 
 # get cell IDs
-from getter.get_cell_IDs import get_cell_IDs_one_protocol
+from functions.get_cell_IDs import get_cell_IDs_one_protocol
 cell_IDs = get_cell_IDs_one_protocol(PGF, sheet_name = 'PGFs_Syn')
 cell_IDs_leak = get_cell_IDs_one_protocol(PGF + '_leak', sheet_name = 'PGFs_Syn')
 

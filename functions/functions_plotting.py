@@ -513,3 +513,9 @@ def apply_axis_settings(ax, axis = 'y', ax_min = 0, ax_max = 100, pad = 1, step 
         ax.spines['bottom'].set_bounds([ax_min, ax_max])
         ax.set_xlabel(label)
     
+    elif axis == 'z':
+        ax.set_zlim([ax_min - pad, ax_max + pad])
+        ax.set_zticks(ticks = np.arange(ax_min, ax_max+ stepminor, step))
+        ax.set_zticks(ticks = np.arange(ax_min, ax_max+ stepminor, stepminor), minor = True)
+        # ax.spines['bottom'].set_bounds([ax_min, ax_max])
+        ax.set_zlabel(label)

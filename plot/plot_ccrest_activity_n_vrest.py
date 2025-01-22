@@ -15,8 +15,10 @@ import seaborn as sbn
 from parameters.directories_win import cell_descrip_dir, figure_dir, table_file
 from functions.functions_plotting import get_colors, save_figures, set_font_sizes, get_figure_size
 
-activity_df = pd.read_excel(os.path.join(cell_descrip_dir, 'cc_rest-syn-activity.xlsx'), index_col = 'cell_ID')
+activity_df = pd.read_excel(os.path.join(cell_descrip_dir, 'cc_rest-activity.xlsx'), index_col = 'cell_ID')
+activity_df2 = pd.read_excel(os.path.join(cell_descrip_dir, 'cc_rest-syn-activity.xlsx'), index_col = 'cell_ID')
 
+activity_df = pd.concat([activity_df, activity_df2])
 
 cell_IDs = list(activity_df.index)
 
