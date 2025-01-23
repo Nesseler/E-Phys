@@ -10,7 +10,7 @@ import matplotlib as mtl
 import matplotlib.pyplot as plt
 import seaborn as sbn
 
-from functions.functions_plotting import save_figures, get_colors, get_figure_size, apply_axis_settings
+from functions.functions_plotting import save_figures, get_colors, get_figure_size, apply_axis_settings, plot_half_violin
 
 # set colors
 darkmode_bool = True
