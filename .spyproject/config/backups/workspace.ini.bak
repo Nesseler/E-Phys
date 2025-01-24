@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['analysis\\analyze_cc_rest.py', 'functions\\functions_import.py', 'generalized_procedures\\colorcode_time_xy_and_ydydx.py', 'plot\\plot_3dplot_ccrest.py', 'TTX_washin.py']
+recent_files = ['analysis\\analyze_cc_rest.py', 'functions\\functions_import.py', 'plot\\plot_3dplot_ccrest.py', 'analysis\\analyze_adaEk.py', 'parameters\\PGFs.py', 'functions\\functions_plotting.py', 'figures\\iBehave_poster\\figure_ePhys_cats.py']
 
 [main]
 version = 0.2.0
