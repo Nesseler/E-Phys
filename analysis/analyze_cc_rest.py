@@ -25,9 +25,10 @@ from functions.get_cell_IDs import get_cell_IDs_one_protocol
 
 # define protocol
 PGF = 'cc_rest'
+sheet_name = 'PGFs_Syn'
 
 # get all cell_IDs for cc_rest
-cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = 'PGFs_Syn')
+cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = sheet_name)
 
 # get number of cells
 n_cells = len(cell_IDs)
@@ -55,7 +56,7 @@ print('loading ...')
 for cell_idx, cell_ID in enumerate(tqdm(cell_IDs)):
             
     # get the traceIndex and the file path string for data import functions
-    traceIndex, file_path = get_traceIndex_n_file(PGF, cell_ID, sheet_name = 'PGFs_Syn')
+    traceIndex, file_path = get_traceIndex_n_file(PGF, cell_ID, sheet_name = sheet_name)
     
     # get data with file path & trace index
     i, v, t, SR, n_step = get_cc_data(file_path, traceIndex, scale='s')
@@ -147,9 +148,9 @@ for cell_ID in tqdm(cell_IDs):
             # replace spike values with nans
             vf_wo_spikes[spike_idc] = np.nan
         
-        if vplots:
-            plt.plot(vf, 'grey')
-            plt.plot(vf_wo_spikes, colors_dict['primecolor'])
+        # if vplots:
+        #     plt.plot(vf, 'grey')
+        #     plt.plot(vf_wo_spikes, colors_dict['primecolor'])
     
         # calc v_rest as mean over trace
         v_rest = np.nanmean(vf_wo_spikes)
@@ -172,7 +173,7 @@ activity_df['activity'] = 'silent'
 activity_df.loc[activity_df['n_spikes'] > 0, 'activity'] = 'spiking'
 
 # save activity dataframe to quant data folder
-activity_df.to_excel(os.path.join(cell_descrip_dir, 'cc_rest-syn-activity.xlsx'), index_label='cell_ID')
+activity_df.to_excel(os.path.join(cell_descrip_dir, 'cc_rest-Syn-activity.xlsx'), index_label='cell_ID')
 
 
 print('Finished!')

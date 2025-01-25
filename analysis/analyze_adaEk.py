@@ -425,7 +425,6 @@ for cell_ID in tqdm(cell_IDs_washout):
     axs[1].set_title('washout')
     axs[2].set_title('$E_k$ = -99 mV')
     
-    
     # plot original traces
     for c_idx, condition in enumerate(conditions):
         for ax in axs[c_idx:6:3]:
@@ -433,16 +432,6 @@ for cell_ID in tqdm(cell_IDs_washout):
                     lw = 0.5,
                     c = colors_dict['primecolor'])
     
-    lineplot_dict = {'ms' : 7,
-                     'marker' : 'o',
-                     'mew' : 1,
-                     'mfc' : 'k',
-                     'mec' : colors_dict['primecolor'], 
-                     'ls' : 'dashed',
-                     'dashes' : (3,4),
-                     'lw' : 1.5,
-                     'c' : colors_dict['primecolor']
-                     }
     
     # plot means
     for c_idx, condition in enumerate(conditions):
@@ -466,59 +455,20 @@ for cell_ID in tqdm(cell_IDs_washout):
                 mean_vmem_30s[condition][cell_ID].to_numpy(),
                 **lineplot_dict)
     
-        
-        
-    # y
-    ydict_full = {'ax_min' : -100,
-                  'ax_max' : 50,
-                  'pad' : 2,
-                  'step' : 50,
-                  'stepminor' : 5,
-                  'label' : '$V_{mem}$ [mV]'}
-    
-    # edit axis
+    # edit y axis
     apply_axis_settings(axs[0], axis = 'y', **ydict_full)
-    
-    
-    # y
-    ydict = {'ax_min' : -90,
-             'ax_max' : -70,
-             'pad' : 0.5,
-             'step' : 10,
-             'stepminor' : 1,
-             'label' : '$V_{mem}$ [mV]'}
-    
-    # edit axis
     apply_axis_settings(axs[3], axis = 'y', **ydict)
     apply_axis_settings(axs[6], axis = 'y', **ydict)
     apply_axis_settings(axs[9], axis = 'y', **ydict)
     
-    
-    # x (pre & post)
-    xdict_pp = {'ax_min' : 0,
-                'ax_max' : 60,
-                'pad' : 60 * 0.02,
-                'step' : 30,
-                'stepminor' : 5,
-                'label' : ''}
-    
-    # edit axis
+    # edit x axis
     for ax in axs[::3]:
         apply_axis_settings(ax, axis = 'x', **xdict_pp)
     
     for ax in axs[2::3]:
         apply_axis_settings(ax, axis = 'x', **xdict_pp)
     
-    
-    
-    # x (washin)
-    xdict_washin = {'ax_min' : 0,
-                    'ax_max' : 180,
-                    'pad' : 180*0.02,
-                    'step' : 30,
-                    'stepminor' : 5,
-                    'label' : ''}
-    
+
     # edit axis
     for ax in axs[1::3]:
         apply_axis_settings(ax, axis = 'x', **xdict_washin)
@@ -536,7 +486,6 @@ for cell_ID in tqdm(cell_IDs_washout):
         ax.tick_params(axis = 'y', size = 0)
         ax.tick_params(axis = 'y', which = 'minor', size = 0)
         
-    
     # set x label
     for ax in axs[9:11]:
         ax.set_xlabel('Time [s]')
@@ -550,10 +499,101 @@ for cell_ID in tqdm(cell_IDs_washout):
     
     # display figure
     plt.show()
+    
+    
+# %% pre post washout_pre washout_post
 
+print('creating pre post pre post figures ...')
+
+conditions = ['pre', 'post', 'pre_washout', 'post_washout']
+
+for cell_ID in tqdm(cell_IDs_washout):
+    
+    fig, axs = plt.subplots(nrows = 4,
+                            ncols = 4,
+                            figsize = get_figure_size(),
+                            dpi = 300,
+                            layout = 'constrained',
+                            width_ratios= [2, 2, 2, 2],
+                            sharex = 'col',
+                            sharey = 'row')
+    
+    fig.suptitle(cell_ID)
+    
+    # flatten array of axes
+    axs = axs.flatten()
+    
+    # set titles
+    axs[0].set_title('$E_k$ = -85 mV')
+    axs[1].set_title('$E_k$ = -99 mV')
+    axs[2].set_title('$E_k$ = -99 mV')
+    axs[3].set_title('$E_k$ = -85 mV')
+    
+    # plot original traces
+    for c_idx, condition in enumerate(conditions):
+        for ax in axs[c_idx:8:4]:
+            ax.plot(t_s[condition], v_dfs[condition][cell_ID], 
+                    lw = 0.5,
+                    c = colors_dict['primecolor'])
+    
+    
+    # edit y axis
+    apply_axis_settings(axs[0], axis = 'y', **ydict_full)
+    apply_axis_settings(axs[4], axis = 'y', **ydict)
+    apply_axis_settings(axs[8], axis = 'y', **ydict)
+    apply_axis_settings(axs[12], axis = 'y', **ydict)
+    
+    # edit x axis
+    for ax in axs:
+        apply_axis_settings(ax, axis = 'x', **xdict_pp)
+    
+    
+    # plot means
+    for c_idx, condition in enumerate(conditions):
+        
+        # define axis
+        ax = axs[c_idx+8]
+        
+        # add means
+        ax.plot(mean_vmem_int2[condition][cell_ID].index.to_numpy(), 
+                mean_vmem_int2[condition][cell_ID].to_numpy(), 
+                **lineplot_dict)
+        
+    # plot means
+    for c_idx, condition in enumerate(conditions):
+        
+        # define axis
+        ax = axs[c_idx+12]
+        
+        # add means
+        ax.plot(mean_vmem_30s[condition][cell_ID].index.to_numpy(), 
+                mean_vmem_30s[condition][cell_ID].to_numpy(),
+                **lineplot_dict)
+        
+    # remove spines
+    [ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
+    
+    for ax in axs[[1,2,3,5,6,7,9,10,11,13,14,15]]:
+        ax.spines['left'].set_visible(False)
+        ax.tick_params(axis = 'y', size = 0)
+        ax.tick_params(axis = 'y', which = 'minor', size = 0)
+        
+        
+    # set x label
+    for ax in axs[12::]:
+        ax.set_xlabel('Time [s]')
+        
+    # align labels
+    fig.align_labels()
+    
+    # create saving path and save
+    vplots_path_fig = join(vplot_dir, 'adaEk')
+    save_figures(fig, f'{cell_ID}-adaEK_onlytest', vplots_path_fig, darkmode_bool, figure_format='png')
+    
+    # display figure
+    plt.show()
 
 # %% dot plot 
-
 
 
 pre_vmem = mean_vmem_30s['pre'].loc[15]
@@ -746,6 +786,193 @@ ax.set_xticklabels(['$E_k$ = -99 mV', '$E_k$ = -85 mV'])
 # create saving path and save
 path_figure = join(figure_dir, 'temp_figs')
 save_figures(fig, f'figure-adaEk-prepost_means', path_figure, darkmode_bool, figure_format='png')
+
+plt.show()
+
+
+# %% dot plot + washout
+
+pre_vmem = mean_vmem_30s['pre'].loc[15]
+post_vmem = mean_vmem_30s['post'].loc[15]
+
+postwashout_vmem = mean_vmem_30s['post_washout'].loc[15]
+
+fig, ax = plt.subplots(nrows = 1,
+                       ncols = 1,
+                       layout = 'constrained', 
+                       figsize = get_figure_size(width = 165.5))
+
+# plot pre data points as swarm
+sbn.swarmplot(y = pre_vmem,
+              x = [0] * len(pre_vmem),
+              ax = ax,
+              facecolor = colors_dict['seccolor'],
+              **swarm_dict)
+
+# get positions of pre data points
+pre_positions = np.array(ax.collections[0].get_offsets())
+
+# plot post data points as swarm
+sbn.swarmplot(y = post_vmem,
+              x = [1] * len(post_vmem),
+              ax = ax,
+              facecolor = colors_dict['primecolor'],
+              **swarm_dict)
+
+# get positions of post data points
+post_positions = np.array(ax.collections[1].get_offsets())
+
+
+# plot post washout data points as swarm
+sbn.swarmplot(y = postwashout_vmem,
+              x = [2] * len(postwashout_vmem),
+              ax = ax,
+              facecolor = colors_dict['seccolor'],
+              **swarm_dict)
+
+# get positions of post data points
+postwashout_positions = np.array(ax.collections[2].get_offsets())
+
+# remap positions and cell_IDs
+pre_positions_df = pd.DataFrame(columns = ['x', 'y'], index = cell_IDs)
+post_positions_df = pd.DataFrame(columns = ['x', 'y'], index = cell_IDs)
+postwashout_positions_df = pd.DataFrame(columns = ['x', 'y'], index = cell_IDs)
+
+for cell_ID in cell_IDs:
+    
+    # get pre
+    pre_v = pre_vmem[cell_ID]
+    post_v = post_vmem[cell_ID]
+    
+    # find in positions
+    x_pre_idx = np.where(pre_positions == pre_v)[0][0]
+    x_post_idx = np.where(post_positions == post_v)[0][0]
+    
+    # get x position
+    x_pre = pre_positions[x_pre_idx][0]
+    x_post = post_positions[x_post_idx][0]
+    
+    # write to dataframe
+    pre_positions_df.at[cell_ID, 'x'] = x_pre
+    pre_positions_df.at[cell_ID, 'y'] = pre_v
+    post_positions_df.at[cell_ID, 'x'] = x_post
+    post_positions_df.at[cell_ID, 'y'] = post_v
+
+
+pad_perc = 0.1
+
+for cell_ID in cell_IDs:
+    # get points 
+    point1 = pre_positions_df.loc[cell_ID, ['x', 'y']]
+    point2 =  post_positions_df.loc[cell_ID, ['x', 'y']]
+    
+    # get coordinates for lines
+    line_xs, line_ys = get_lines_for_paired_data(point1, point2, pad_perc)
+    
+    # plot connecting lines
+    ax.plot(line_xs, line_ys,
+            lw = 1,
+            c = 'grey')
+    
+    
+for cell_ID in cell_IDs_washout:
+    
+    # get pre
+    post_v = post_vmem[cell_ID]
+    postwashout_v = postwashout_vmem[cell_ID]
+    
+    # find in positions
+    x_post_idx = np.where(post_positions == post_v)[0][0]
+    x_postwashout_idx = np.where(postwashout_positions == postwashout_v)[0][0]
+    
+    # get x position
+    x_post = post_positions[x_post_idx][0]
+    x_postwashout = postwashout_positions[x_postwashout_idx][0]
+    
+    # write to dataframe
+    post_positions_df.at[cell_ID, 'x'] = x_post
+    post_positions_df.at[cell_ID, 'y'] = post_v
+    postwashout_positions_df.at[cell_ID, 'x'] = x_postwashout
+    postwashout_positions_df.at[cell_ID, 'y'] = postwashout_v
+    
+    
+for cell_ID in cell_IDs_washout:
+    # get points 
+    point1 = post_positions_df.loc[cell_ID, ['x', 'y']]
+    point2 = postwashout_positions_df.loc[cell_ID, ['x', 'y']]
+    
+    # get coordinates for lines
+    line_xs, line_ys = get_lines_for_paired_data(point1, point2, pad_perc)
+    
+    # plot connecting lines
+    ax.plot(line_xs, line_ys,
+            lw = 1,
+            c = 'grey')
+    
+    
+for vmem, pos in zip([pre_vmem, post_vmem, postwashout_vmem], [0, 1, 2]):
+    
+    # plot half violin pre
+    plot_half_violin(data = vmem[vmem.notna()].to_list(), 
+                     ax = ax,
+                     v_direction = 1,
+                     v_resolution = 0.1,
+                     v_kde_cutoff = 0.1,
+                     v_abs_cutoff = [-90, np.nan],
+                     v_position = pos,
+                     v_offset = 0.15,
+                     v_width = 0.2,
+                     v_baseline = False,
+                     v_color = colors_dict['primecolor'],
+                     v_zorder = 0)  
+
+    # set position of error bar
+    e_position = pos + 0.15
+
+    # plot errorbar
+    ax.errorbar(x = e_position,
+                y = vmem.mean(),
+                yerr = vmem.std(),
+                fmt='_', 
+                markersize = 7,
+                markerfacecolor = 'none',
+                capsize = 3,
+                color=colors_dict['primecolor'],
+                linewidth = 1,
+                label = '_nolegend_',
+                zorder = 2)
+    
+    # plot median
+    ax.scatter(x = e_position,
+               y = vmem.median(),
+               marker='D', 
+               s = 11,
+               color=colors_dict['primecolor'],
+               linewidth = 1,
+               label = '_nolegend_',
+               zorder = 3)
+    
+
+# x
+xdict = {'ax_min' : 0,
+         'ax_max' : 2,
+         'pad' : 0.6,
+         'step' : 1,
+         'stepminor' : 1,
+         'label' : ''}
+
+apply_axis_settings(ax, axis = 'y', **ydict)
+apply_axis_settings(ax, axis = 'x', **xdict)
+
+# set x ticks
+ax.set_xticklabels(['$E_k$ = -99 mV', '$E_k$ = -85 mV', '$E_k$ = -99 mV'])
+
+# remove spines
+[ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
+
+# create saving path and save
+path_figure = join(figure_dir, 'temp_figs')
+save_figures(fig, f'figure-adaEk-prepostpostwashout_means', path_figure, darkmode_bool, figure_format='png')
 
 plt.show()
 
