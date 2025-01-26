@@ -9,6 +9,7 @@ import scipy as sc
 import numpy as np
 import pandas as pd
 from os.path import join
+from tqdm import tqdm
 
 
 # define protocol to analyze
@@ -22,23 +23,10 @@ cell_IDs_leak = get_cell_IDs_one_protocol(PGF + '_leak', sheet_name = 'PGFs_Syn'
 # load parameters
 from parameters.PGFs import vc_TTX_washin_parameters, vc_TTX_washin_leak_parameters
 
-# %% initialize plotting
-
-import matplotlib as mtl
-import matplotlib.pyplot as plt
-import seaborn as sbn
-
-from functions.functions_plotting import save_figures, get_colors, get_figure_size, apply_axis_settings
-
-# set colors
-darkmode_bool = True
-colors_dict, region_colors = get_colors(darkmode_bool)
-
-# set font size
-mtl.rcParams.update({'font.size': 9})
+from functions.initialize_plotting import *
 
 # verification plots
-vplots = True
+vplots = False
 
 
 # %% set peak detection parameters
@@ -65,7 +53,7 @@ lookup_table = pd.read_excel(table_file,
                              index_col = 'cell_ID')
 
 
-for cell_ID in cell_IDs + cell_IDs_leak:
+for cell_ID in tqdm(cell_IDs + cell_IDs_leak):
            
     # check if cell has leak subtraction
     if cell_ID in cell_IDs_leak:
@@ -77,7 +65,6 @@ for cell_ID in cell_IDs + cell_IDs_leak:
         traceIndex, file_path = get_traceIndex_n_file(PGF, cell_ID, sheet_name='PGFs_Syn')
         
         # load data
-        print(f'loading: {cell_ID} {PGF}')
         i, v, ileak, t, SR, n_steps = get_vc_leak_data(file_path, traceIndex, scale = 'ms')
         
     else: 
@@ -89,7 +76,6 @@ for cell_ID in cell_IDs + cell_IDs_leak:
         traceIndex, file_path = get_traceIndex_n_file(PGF, cell_ID, sheet_name='PGFs_Syn')
         
         # load data
-        print(f'loading: {cell_ID} {PGF}')
         i, v, t, SR, n_steps = get_vc_data(file_path, traceIndex, scale = 'ms')
         
 
@@ -97,15 +83,12 @@ for cell_ID in cell_IDs + cell_IDs_leak:
     # convert sampling rate
     SR_ms = SR/1000
     
-    # feedback
-    print('done loading')
-    
     # load which steps to use
     ## get steps from lookup table
     steps_str = lookup_table.at[cell_ID, PGF+'_steps']
 
     # find integers in string
-    steps_start_stop = list(map(int, re.findall('\d+', steps_str)))
+    steps_start_stop = [int(i) - 1 for i in steps_str.split('-') if i.isdigit()]
     
     # convert to indices
     steps_start_stop[0] = steps_start_stop[0]-1
@@ -228,18 +211,20 @@ peakCurrents.to_excel(join(quant_data_dir, 'TTX_washin', 'TTX_washin-peakCurrent
 # min max normalize currents
 mm_peakCurrents = (peakCurrents - peakCurrents.min()) / (peakCurrents.max() - peakCurrents.min())
 
+plt_cell_IDs = cell_IDs + cell_IDs_leak
+# plt_cell_IDs = cell_IDs_leak
 
 #  plot graph
 fig, ax = plt.subplots(nrows = 1,
                        ncols = 1,
-                       figsize = get_figure_size(width = 200, height = 150.5),
+                       figsize = get_figure_size(width = 328.67/2),
                        dpi = 300,
                        layout = 'constrained')
 
 # create x dimension
 x = np.arange(0, 120) * 5 + 2.5
 
-for cell_ID in cell_IDs + cell_IDs_leak:
+for cell_ID in plt_cell_IDs:
     
     
     if cell_ID in cell_IDs_leak:
@@ -254,8 +239,8 @@ for cell_ID in cell_IDs + cell_IDs_leak:
             ls = linestyle)
     
 # calc mean
-mean_mm_peakcurrent = mm_peakCurrents.mean(axis = 1)
-std_mm_peakcurrent = mm_peakCurrents.std(axis = 1)
+mean_mm_peakcurrent = mm_peakCurrents[plt_cell_IDs].mean(axis = 1)
+std_mm_peakcurrent = mm_peakCurrents[plt_cell_IDs].std(axis = 1)
 
 # plot mean and std
 # ax.fill_between(x = x,
@@ -298,7 +283,7 @@ plt.show()
 fig_dir = join(figure_dir, 'temp_figs')
 
 # save figure
-save_figures(fig, 'figure-TTXwashin-minmax', 
+save_figures(fig, 'figure-TTXwashin-leakonly-minmax', 
               save_dir = fig_dir,
               darkmode_bool = darkmode_bool,
               figure_format = 'both')

@@ -268,7 +268,7 @@ for cell_ID in tqdm(cell_IDs):
     # flatten array of axes
     axs = axs.flatten()
     
-    axs[0].set_title('$E_k$ = -99 mV')
+    axs[0].set_title('$E_k$ = -98 mV')
     axs[1].set_title('washin')
     axs[2].set_title('$E_k$ = -85 mV')
     
@@ -385,7 +385,7 @@ for cell_ID in tqdm(cell_IDs):
         
     
     # set x label
-    for ax in axs[9:11]:
+    for ax in axs[9:12]:
         ax.set_xlabel('Time [s]')
         
     # align labels
@@ -393,7 +393,7 @@ for cell_ID in tqdm(cell_IDs):
     
     # create saving path and save
     vplots_path_fig = join(vplot_dir, 'adaEk')
-    save_figures(fig, f'{cell_ID}-adaEK_washin', vplots_path_fig, darkmode_bool, figure_format='png')
+    save_figures(fig, f'{cell_ID}-adaEK_washin', vplots_path_fig, darkmode_bool, figure_format='both')
     
     # display figure
     plt.show()
@@ -423,7 +423,7 @@ for cell_ID in tqdm(cell_IDs_washout):
     
     axs[0].set_title('$E_k$ = -85 mV')
     axs[1].set_title('washout')
-    axs[2].set_title('$E_k$ = -99 mV')
+    axs[2].set_title('$E_k$ = -98 mV')
     
     # plot original traces
     for c_idx, condition in enumerate(conditions):
@@ -487,7 +487,7 @@ for cell_ID in tqdm(cell_IDs_washout):
         ax.tick_params(axis = 'y', which = 'minor', size = 0)
         
     # set x label
-    for ax in axs[9:11]:
+    for ax in axs[9:12]:
         ax.set_xlabel('Time [s]')
         
     # align labels
@@ -495,7 +495,7 @@ for cell_ID in tqdm(cell_IDs_washout):
     
     # create saving path and save
     vplots_path_fig = join(vplot_dir, 'adaEk')
-    save_figures(fig, f'{cell_ID}-adaEK_washout', vplots_path_fig, darkmode_bool, figure_format='png')
+    save_figures(fig, f'{cell_ID}-adaEK_washout', vplots_path_fig, darkmode_bool, figure_format='both')
     
     # display figure
     plt.show()
@@ -525,8 +525,8 @@ for cell_ID in tqdm(cell_IDs_washout):
     
     # set titles
     axs[0].set_title('$E_k$ = -85 mV')
-    axs[1].set_title('$E_k$ = -99 mV')
-    axs[2].set_title('$E_k$ = -99 mV')
+    axs[1].set_title('$E_k$ = -98 mV')
+    axs[2].set_title('$E_k$ = -98 mV')
     axs[3].set_title('$E_k$ = -85 mV')
     
     # plot original traces
@@ -588,7 +588,7 @@ for cell_ID in tqdm(cell_IDs_washout):
     
     # create saving path and save
     vplots_path_fig = join(vplot_dir, 'adaEk')
-    save_figures(fig, f'{cell_ID}-adaEK_onlytest', vplots_path_fig, darkmode_bool, figure_format='png')
+    save_figures(fig, f'{cell_ID}-adaEK_onlytest', vplots_path_fig, darkmode_bool, figure_format='both')
     
     # display figure
     plt.show()
@@ -605,10 +605,10 @@ post_vmem = mean_vmem_30s['post'].loc[15]
 fig, ax = plt.subplots(nrows = 1,
                         ncols = 1,
                         layout = 'constrained', 
-                        figsize = get_figure_size(width = 165.5))
+                        figsize = get_figure_size(height = 120, width = 120))
 
 #
-swarm_dict = {'size' : 7,
+swarm_dict = {'size' : 5,
               'marker' : 'o', 
               'edgecolor' : colors_dict['primecolor'],
               'linewidth' : 1}
@@ -778,14 +778,14 @@ xdict = {'ax_min' : 0,
 apply_axis_settings(ax, axis = 'x', **xdict)
 
 # set x ticks
-ax.set_xticklabels(['$E_k$ = -99 mV', '$E_k$ = -85 mV'])
+ax.set_xticklabels(['$E_k$ = -98 mV', '$E_k$ = -85 mV'])
 
 # remove spines
 [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
 
 # create saving path and save
 path_figure = join(figure_dir, 'temp_figs')
-save_figures(fig, f'figure-adaEk-prepost_means', path_figure, darkmode_bool, figure_format='png')
+save_figures(fig, f'figure-adaEk-prepost_means', path_figure, darkmode_bool, figure_format='both')
 
 plt.show()
 
@@ -800,7 +800,7 @@ postwashout_vmem = mean_vmem_30s['post_washout'].loc[15]
 fig, ax = plt.subplots(nrows = 1,
                        ncols = 1,
                        layout = 'constrained', 
-                       figsize = get_figure_size(width = 165.5))
+                       figsize = get_figure_size(height = 120, width = 120))
 
 # plot pre data points as swarm
 sbn.swarmplot(y = pre_vmem,
@@ -965,14 +965,14 @@ apply_axis_settings(ax, axis = 'y', **ydict)
 apply_axis_settings(ax, axis = 'x', **xdict)
 
 # set x ticks
-ax.set_xticklabels(['$E_k$ = -99 mV', '$E_k$ = -85 mV', '$E_k$ = -99 mV'])
+ax.set_xticklabels(['$E_k$\n-98 mV', '$E_k$\n-85 mV', '$E_k$\n-98 mV'])
 
 # remove spines
 [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
 
 # create saving path and save
 path_figure = join(figure_dir, 'temp_figs')
-save_figures(fig, f'figure-adaEk-prepostpostwashout_means', path_figure, darkmode_bool, figure_format='png')
+save_figures(fig, f'figure-adaEk-prepostpostwashout_means', path_figure, darkmode_bool, figure_format='both')
 
 plt.show()
 
@@ -1020,11 +1020,11 @@ for cell_ID in tqdm(cell_IDs):
 fig, ax = plt.subplots(nrows = 1,
                         ncols = 1,
                         layout = 'constrained', 
-                        figsize = get_figure_size(width = 165.5))
+                        figsize = get_figure_size(height = 120, width = 120))
 
 
 #
-swarm_dict = {'size' : 7,
+swarm_dict = {'size' : 5,
               'marker' : 'o', 
               'edgecolor' : colors_dict['primecolor'],
               'linewidth' : 1}
@@ -1103,13 +1103,13 @@ apply_axis_settings(ax, axis = 'x', **xdict)
     
 
 # set x ticks
-ax.set_xticklabels(['$E_k$ = -99 mV', '$E_k$ = -85 mV'])
+ax.set_xticklabels(['$E_k$ = -98 mV', '$E_k$ = -85 mV'])
 
 # remove spines
 [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
 
 # create saving path and save
 path_figure = join(figure_dir, 'temp_figs')
-save_figures(fig, f'figure-adaEk-prepost_activity', path_figure, darkmode_bool, figure_format='png')
+save_figures(fig, f'figure-adaEk-prepost_activity', path_figure, darkmode_bool, figure_format='both')
 
 plt.show()
