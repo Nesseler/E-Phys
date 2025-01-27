@@ -216,3 +216,41 @@ def get_vc_leak_data(file_path, traceIndex, scale):
     t = calc_time_series(v, SR, scale=scale)
     
     return i, v, ileak, t, SR, n_steps[0]
+
+
+
+
+def get_PSCs_steps(PGF = 'vc_Erest_3min_ctrl', cell_ID = 'E-304', sheet_name = 'PGFs_Syn'):
+    '''
+    This functions retrieves the steps of PSC recordings that are to be
+    included into the analysis.
+    Parameters:
+        PGF : str, name of PGF and column in lookup table
+        cell_ID : str, cell identifier (like: E-000)
+        sheet_name : str, sheet name in lookup table
+    Returns:
+        step_idc: list of int, step indices to be included
+    '''
+    
+    # add str to PGF
+    PGF = PGF + '_steps'
+    
+    # excel sheet with PGF indices as lookup table
+    lookup_table = pd.read_excel(table_file,
+                                 sheet_name = sheet_name,
+                                 index_col = 'cell_ID')
+    
+    # get listed steps
+    steps_str = lookup_table.at[cell_ID, PGF]
+    
+    # step for multiple entries per cell
+    if type(steps_str) == pd.Series:
+        steps_str = steps_str[steps_str.notna()].values[0] # .to_string()  
+ 
+    # convert to list of ints
+    steps = [int(i) - 1 for i in steps_str.split(',') if i.isdigit()]
+    
+    return steps
+    
+    
+    

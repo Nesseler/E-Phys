@@ -98,3 +98,9 @@ vc_TTX_washin_leak_parameters = {'t_pre' : 10, #ms
                                  } 
 
 
+# %% vc_Erest
+
+vc_Erest_parameters = {'SR' : 100000, #Hz
+                       't' : np.arange(0,(6*30), 1/100000), #s
+                       'n_steps' : 6,
+                       'dur_steps' : 30} #s

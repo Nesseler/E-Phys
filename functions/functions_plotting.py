@@ -67,6 +67,19 @@ def get_colors(darkmode_bool=False):
     return colors_dict, regions_c
 
 
+def get_blkr_colors(darkmode_bool=False):
+    
+    if darkmode_bool:
+        blkr_colors = {'GBZ'          : '#7b7fae',
+                       'AP5_NBQX'     : '#DB675D'}
+    else:
+        blkr_colors = {'GBZ'          : '#7b7fae',
+                       'AP5_NBQX'     : '#DB675D'}
+        
+    return blkr_colors
+
+
+
 def get_figure_size(width = 328.67, height = 165.5):
     mm = 1/25.4
     figsize=(width*mm, height*mm)
@@ -519,3 +532,42 @@ def apply_axis_settings(ax, axis = 'y', ax_min = 0, ax_max = 100, pad = 1, step 
         ax.set_zticks(ticks = np.arange(ax_min, ax_max+ stepminor, stepminor), minor = True)
         # ax.spines['bottom'].set_bounds([ax_min, ax_max])
         ax.set_zlabel(label)
+
+
+
+
+def remove_y_spines_n_ticks(axs):
+    '''
+    This function removes the spines, mayor and minor ticks of the y axis.
+    Parameters:
+        axs: list of axes objects
+    '''
+    
+    for ax in axs:
+        ax.spines['left'].set_visible(False)
+        ax.tick_params(axis = 'y', size = 0)
+        ax.tick_params(axis = 'y', which = 'minor', size = 0)
+        
+        
+        
+def hex2rgb(hex, normalize=False):
+    h = hex.strip('#')
+    rgb = np.asarray(list(int(h[i:i + 2], 16) for i in (0, 2, 4)))
+    return rgb
+
+def draw_rectangle_gradient(ax, x1, y1, width, height, color1='white', color2='blue', alpha1=0.0, alpha2=0.5, n=100):
+    # https://stackoverflow.com/questions/24976471/matplotlib-rectangle-with-color-gradient-fill
+    
+    color1 = hex2rgb(color1) / 255.  # np array
+    color2 = hex2rgb(color2) / 255.  # np array
+
+
+    # Create an array of the linear gradient between the two colors
+    gradient_colors = []
+    for segment in np.linspace(0, width, n):
+        interp_color = [(1 - segment / width) * color1[j] + (segment / width) * color2[j] for j in range(3)]
+        interp_alpha = (1 - segment / width) * alpha1 + (segment / width) * alpha2
+        gradient_colors.append((*interp_color, interp_alpha))
+    for i, color in enumerate(gradient_colors):
+        ax.add_patch(plt.Rectangle((x1 + width/n * i, y1), width/n, height, color=color, linewidth=0, zorder=0))
+    return ax
