@@ -63,6 +63,11 @@ cc_IF_parameters = {'t_pre' : 250, #ms
                     'i_start' : -50, #pA
                     'max_n_steps' : 71}
 
+cc_IF_syn_parameters = {'t_pre' : 250, #ms
+                        't_stim' : 1000, #ms
+                        't_post' : 250, #ms
+                        't' : np.arange(0, 1500, 1 / (50000/1e3)),
+                        'SR' : 50000}
 
 # %% cc_sag
 

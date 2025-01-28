@@ -24,8 +24,8 @@ from parameters.parameters import t_expo_fit, popt_guess, r_squared_thresh
 from parameters.PGFs import cc_sag_parameters
 
 from functions.functions_constructors import construct_current_array
-from functions.functions_ccIF import get_IF_data
-from functions.functions_import import get_traceIndex_n_file
+# from functions.functions_ccIF import get_IF_data
+from functions.functions_import import get_traceIndex_n_file, get_cc_data
 from functions.functions_useful import calc_time_series, butter_filter, round_to_base, exp_func, calc_rsquared_from_exp_fit
 from functions.functions_plotting import get_colors, get_figure_size, save_figures
 
@@ -48,7 +48,7 @@ def get_rinput_n_taumem_from_cc_sag(cell_ID, vplot_bool, darkmode_bool):
     traceIndex, file_path = get_traceIndex_n_file(PGF, cell_ID)
     
     # get IF data form file
-    i, v, t, SR, n_steps = get_IF_data(file_path, traceIndex, 'ms')
+    i, v, t, SR, n_steps = get_cc_data(file_path, traceIndex, 'ms')
     
     # sampling rate in ms
     SR_ms = SR / 1e3

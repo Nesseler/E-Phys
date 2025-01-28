@@ -17,11 +17,11 @@ import scipy as sc
 from parameters.directories_win import table_file, quant_data_dir, cell_descrip_dir, vplot_dir
 from parameters.parameters import min_peak_prominence_ccIF, min_peak_distance_ccIF, min_max_peak_width_ccIF, dvdt_threshold, AP_parameters, t_expo_fit, popt_guess, r_squared_thresh, n_APs_initial_inst_freq
 from parameters.PGFs import cc_IF_parameters
-from getter.get_cell_IDs import get_cell_IDs_one_protocol, get_cell_IDs_all_ccAPfreqs
+from functions.get_cell_IDs import get_cell_IDs_one_protocol, get_cell_IDs_all_ccAPfreqs
 
 from functions.functions_constructors import construct_current_array
-from functions.functions_ccIF import get_IF_data
-from functions.functions_import import get_traceIndex_n_file
+# from functions.functions_ccIF import get_IF_data
+from functions.functions_import import get_traceIndex_n_file, get_cc_data
 from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt, calc_dvdt_padded, round_to_base, exp_func, calc_rsquared_from_exp_fit
 from functions.functions_plotting import get_colors, get_figure_size, save_figures, set_font_sizes
 from functions.functions_extractspike import get_AP_parameters
@@ -77,7 +77,7 @@ for cell_ID in cell_IDs:
     traceIndex, file_path = get_traceIndex_n_file(PGF, cell_ID)
     
     # get IF data form file
-    i, v, t, SR, n_steps = get_IF_data(file_path, traceIndex, 'ms')
+    i, v, t, SR, n_steps = get_cc_data(file_path, traceIndex, 'ms')
     
     # sampling rate in ms
     SR_ms = SR / 1e3
@@ -760,7 +760,7 @@ active_properties_df['max_inst_initial_freq'] = IF_inst_initial_df.max(axis = 0)
 
 # %% save measurements to excel file
 
-if True:
+if False:
 
     passiv_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-passiv_properties.xlsx'), index_label = 'cell_ID')    
     active_properties_df.to_excel(os.path.join(cell_descrip_dir, 'ccIF-active_properties.xlsx'), index_label = 'cell_ID')   

@@ -26,6 +26,7 @@ quant_data_dir = ePhys_parent + '/quantified_data'
 
 # directory for analysed values that describe one cell
 cell_descrip_dir = ePhys_parent + '/cell_descriptors'
+cell_descrip_syn_dir = ePhys_parent + '/cell_descriptors_Syn'
 
 # directory for figures to be saved
 figure_dir = ePhys_parent + '/figures'
