@@ -60,6 +60,10 @@ if len(cell_IDs) == 0:
 # verification plots
 vplots = True
 
+if vplots:
+    
+    # load plotting functions
+    from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_rest_syn import create_cc_rest_vplot
 
 # %% data loading
 
@@ -112,8 +116,6 @@ else:
 
 print('calc...')
 
-# cell_ID = 'E-247'
-
 for cell_ID in tqdm(cell_IDs):
 
     # define dataframe
@@ -165,11 +167,7 @@ for cell_ID in tqdm(cell_IDs):
         
             # replace spike values with nans
             vf_wo_spikes[spike_idc] = np.nan
-        
-        # if vplots:
-        #     plt.plot(vf, 'grey')
-        #     plt.plot(vf_wo_spikes, colors_dict['primecolor'])
-    
+
         # calc v_rest as mean over trace
         v_rest = np.nanmean(vf_wo_spikes)
         
@@ -177,8 +175,22 @@ for cell_ID in tqdm(cell_IDs):
         # calc v_rest as mean over trace
         v_rest = np.mean(vf)
         
+        # set vf_wo_spikes
+        vf_wo_spikes = np.full_like(vf, np.nan)
+        
     # write to dataframe
     activity_df.at[cell_ID, 'v_rest'] = v_rest
+    
+            
+    # create verification plot
+    if vplots:
+        create_cc_rest_vplot(cell_ID, 
+                             t, 
+                             vf, 
+                             vf_wo_spikes, 
+                             t_spikes, 
+                             v_rest)
+            
     
 
 

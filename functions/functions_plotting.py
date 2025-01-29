@@ -253,21 +253,21 @@ def save_figures(figure, figure_name, save_dir,
      
     
     
-def set_font_sizes(small_font_size = 14, large_font_size = 16):
-    '''
-    Function sets font sizes of select text elements in figure to provided sizes.
-    Parameters:
-        small_font_size : Small font size for regular text. Default is 14.
-        large_font_size : Large font size for titles and headings. Default is 16.
-    '''
+# def set_font_sizes(small_font_size = 14, large_font_size = 16):
+#     '''
+#     Function sets font sizes of select text elements in figure to provided sizes.
+#     Parameters:
+#         small_font_size : Small font size for regular text. Default is 14.
+#         large_font_size : Large font size for titles and headings. Default is 16.
+#     '''
     
-    plt.rc('font', size = small_font_size)
-    plt.rc('axes', titlesize = small_font_size, 
-                   labelsize = small_font_size,
-                   linewidth = 0.5)
-    plt.rc('xtick', labelsize = small_font_size)
-    plt.rc('ytick', labelsize = small_font_size)
-    plt.rc('lines', linewidth = 2)
+#     plt.rc('font', size = small_font_size)
+#     plt.rc('axes', titlesize = small_font_size, 
+#                    labelsize = small_font_size,
+#                    linewidth = 0.5)
+#     plt.rc('xtick', labelsize = small_font_size)
+#     plt.rc('ytick', labelsize = small_font_size)
+#     plt.rc('lines', linewidth = 2)
 
 
 
@@ -499,7 +499,15 @@ def plot_half_violin(data, ax,
 
 # # # functions to change axes # # #
 
-def apply_axis_settings(ax, axis = 'y', ax_min = 0, ax_max = 100, pad = 1, step = 10, stepminor = 10, label = 'Label [unit]'):
+def apply_axis_settings(ax, axis = 'y', 
+                        ax_min = 0, 
+                        ax_max = 100, 
+                        pad = 1, 
+                        step = 10, 
+                        stepminor = 10, 
+                        label = 'Label [unit]',
+                        start_at_0 = False,
+                        limits_n_0 = False):
     """
     Function uses specified settings to change yaxis layout of specified subplot.
     Parameter:
@@ -512,23 +520,34 @@ def apply_axis_settings(ax, axis = 'y', ax_min = 0, ax_max = 100, pad = 1, step 
         stepminor : float, default is 10,
         label : string, default is 'label [unit]'
     """
+    
+    if start_at_0:
+        ticks = np.arange(0, ax_max+ stepminor, step)
+    elif limits_n_0:
+        ticks = [ax_min, 0, ax_max]
+    else:
+        ticks = np.arange(ax_min, ax_max+ stepminor, step)
+        
+    ticksminor = np.arange(ax_min, ax_max+ stepminor, stepminor)
+    
     if axis == 'y':
-        ax.set_ylim([ax_min - pad, ax_max + pad])
-        ax.set_yticks(ticks = np.arange(ax_min, ax_max+ stepminor, step))
-        ax.set_yticks(ticks = np.arange(ax_min, ax_max+ stepminor, stepminor), minor = True)
+        ax.set_ylim([ax_min - pad, ax_max + pad])    
+        ax.set_yticks(ticks = ticks)
+        ax.set_yticks(ticks = ticksminor, minor = True)
         ax.spines['left'].set_bounds([ax_min, ax_max])
         ax.set_ylabel(label)
         
     elif axis == 'x':
         ax.set_xlim([ax_min - pad, ax_max + pad])
-        ax.set_xticks(ticks = np.arange(ax_min, ax_max+ stepminor, step))
-        ax.set_xticks(ticks = np.arange(ax_min, ax_max+ stepminor, stepminor), minor = True)
+        ax.set_xticks(ticks = ticks)
+        ax.set_xticks(ticks = ticksminor, minor = True)
         ax.spines['bottom'].set_bounds([ax_min, ax_max])
         ax.set_xlabel(label)
     
     elif axis == 'z':
         ax.set_zlim([ax_min - pad, ax_max + pad])
-        ax.set_zticks(ticks = np.arange(ax_min, ax_max+ stepminor, step))
+        ax.set_zticks(ticks = ticks)
+        ax.set_zticks(ticks = ticksminor, minor = True)
         ax.set_zticks(ticks = np.arange(ax_min, ax_max+ stepminor, stepminor), minor = True)
         # ax.spines['bottom'].set_bounds([ax_min, ax_max])
         ax.set_zlabel(label)
@@ -536,19 +555,28 @@ def apply_axis_settings(ax, axis = 'y', ax_min = 0, ax_max = 100, pad = 1, step 
 
 
 
-def remove_y_spines_n_ticks(axs):
+def remove_spines_n_ticks(axs, axis = 'y'):
     '''
-    This function removes the spines, mayor and minor ticks of the y axis.
+    This function removes the spines, mayor and minor ticks of the given axis.
     Parameters:
         axs: list of axes objects
+        axis: str, default is y, defines the axis
     '''
     
-    for ax in axs:
-        ax.spines['left'].set_visible(False)
-        ax.tick_params(axis = 'y', size = 0)
-        ax.tick_params(axis = 'y', which = 'minor', size = 0)
+    if axis == 'y':
+        for ax in axs:
+            ax.spines['left'].set_visible(False)
+            ax.tick_params(axis = 'y', size = 0)
+            ax.tick_params(axis = 'y', which = 'minor', size = 0)
+    
+    elif axis == 'x':
+        for ax in axs:
+            ax.spines['bottom'].set_visible(False)
+            ax.tick_params(axis = 'x', size = 0)
+            ax.tick_params(axis = 'x', which = 'minor', size = 0)
         
-        
+ 
+# gradient bar functions
         
 def hex2rgb(hex, normalize=False):
     h = hex.strip('#')

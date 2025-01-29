@@ -103,8 +103,6 @@ for condition in tqdm(conditions):
 # init plotting
 from functions.initialize_plotting import *
 
-from matplotlib.patches import Rectangle
-
 fig, axs = plt.subplots(nrows = 1,
                         ncols = 3,
                         figsize = get_figure_size(height = 60),

@@ -31,6 +31,9 @@ cell_descrip_syn_dir = ePhys_parent + '/cell_descriptors_Syn'
 # directory for figures to be saved
 figure_dir = ePhys_parent + '/figures'
 
+# directory for temporary figures
+tempfigs_dir = ePhys_parent + '/figures/temp_figs'
+
 # directory for verification plots to be saved
 vplot_dir = ePhys_parent + '/vplots'
 

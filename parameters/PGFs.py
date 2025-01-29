@@ -67,7 +67,8 @@ cc_IF_syn_parameters = {'t_pre' : 250, #ms
                         't_stim' : 1000, #ms
                         't_post' : 250, #ms
                         't' : np.arange(0, 1500, 1 / (50000/1e3)),
-                        'SR' : 50000}
+                        'SR' : 50000,
+                        'idc_stim' : np.arange(250 * (50000/1e3), (1000 + 250) * (50000/1e3), dtype = int)}
 
 # %% cc_sag
 

@@ -8,9 +8,12 @@ Created on Fri Jan 17 15:34:09 2025
 
 import matplotlib as mtl
 import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
+from matplotlib.patches import Rectangle
+
 import seaborn as sbn
 
-from functions.functions_plotting import save_figures, get_colors, get_figure_size, apply_axis_settings, plot_half_violin, get_blkr_colors, remove_y_spines_n_ticks
+from functions.functions_plotting import save_figures, get_colors, get_figure_size, apply_axis_settings, plot_half_violin, get_blkr_colors, remove_spines_n_ticks
 
 # set colors
 darkmode_bool = True

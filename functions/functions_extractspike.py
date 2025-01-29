@@ -75,16 +75,28 @@ def get_threshold_crossing_closest_to_peak_and_below_value(data_v, data_dvdt, id
 
 from parameters.parameters import dvdt_threshold
 
-def extract_spike(t, v, dvdt, idx_peak, dvdt_n_threshold = -3):
+
+def extract_spike(t, v, dvdt, idx_peak):
     '''
     Uses set dvdt thresholds to define spike and returns the indices, that 
     contain the spike.
     WARNING: This function is sensitive to input types. Stick to numpy array!
-    
+    Parameter:
+        t
+        v
+        dvdt
+        idx_peak
+    Returns:
+        spike_idc
+        spike_t
+        spike_v
+        spike_dvdt
     '''
-    
+    # load dvdt thresholds
+    from parameters.parameters import dvdt_threshold
     dvdt_p_threshold = dvdt_threshold
-    # dvdt_n_threshold = -1 # -3
+    
+    from parameters.parameters import dvdt_n_threshold
 
     local_vplots = False
 
@@ -389,8 +401,41 @@ def get_AP_parameters(t_spiketrain, v_spiketrain, dvdt_spiketrain, idc_spikes, S
 
 
 
+import scipy as sc
 
+def get_spiketrain_n_ISI_parameter(t, v, dvdt, SR):
+    '''
+    This function find spike in a trace and create two dataframes, describing
+    the measurements of the spikes and the inter-spike intervals (ISIs).
+    Parameter:
+        t: numpy array, time dimension
+        v: numpy array, voltage trace for single step
+        dvdt: numpy array, first derivative of voltage trace for single step
+        SR: int, sampling rate
+    Returns:
+        spike_params : dataframe, for spike measurements
+        ISIs : dataframe, for ISI measurements
+    '''
+    
+    # spike detection
+    from parameters.parameters import min_peak_prominence_ccIF, min_peak_distance_ccIF, min_max_peak_width_ccIF
+    
+    # find peaks
+    idc_spikes, _ = sc.signal.find_peaks(v,
+                                         prominence = min_peak_prominence_ccIF,
+                                         distance = min_peak_distance_ccIF * (SR/1e3),
+                                         width = np.multiply(min_max_peak_width_ccIF, (SR/1e3)))
 
+    # get AP parameters of first spike
+    spike_params, _ = get_AP_parameters(t, v, dvdt, idc_spikes)
+
+    # create 
+    ISIs = pd.DataFrame()
+    ISIs['ISI'] = spike_params['t_peaks'].diff()
+    ISIs['inst_freq'] = (1 / ISIs['ISI']) * 1e3
+    ISIs['t_ISI'] = spike_params['t_peaks'].shift(1) + (spike_params['t_peaks'].diff() / 2)
+
+    return spike_params, ISIs
 
 
 

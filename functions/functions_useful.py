@@ -9,22 +9,6 @@ import scipy as sc
 import numpy as np
 
 
-def butter_filter(data, order = 1, cutoff = 4e3, sampling_rate = 20e3):
-    b, a = sc.signal.butter(order, cutoff, fs=sampling_rate)
-
-    data_filtered = sc.signal.lfilter(b, a, data)  
-
-    return data_filtered
-
-
-def bessel_filter(data, order = 1, cutoff = 4e3, sampling_rate = 20e3):
-    b, a = sc.signal.bessel(order, cutoff, fs=sampling_rate)
-
-    data_filtered = sc.signal.lfilter(b, a, data)  
-
-    return data_filtered
-
-
 def calc_time_series(data, sampling_rate = 20e3, scale = 'ms'):
     '''
     Calculate a time series array from given data with sampling rate.
@@ -74,57 +58,6 @@ def calc_dvdt_padded(v,t):
     return dvdt
 
     
-
-
-
-# from patchview.HekaIO.HekaHelpers import HekaBundleInfo
-
-# def get_data(file_path, traceIndex, scale = 'ms'):
-#     '''
-#     Function gets path to HEKA file and traceIndex and returns current, voltage,
-#     time, and sampling rate.
-#     Parameters:
-#         file_path : full path for your Heka .dat file
-#         traceIndex : Index in HEKA tree structure [2,6,0,0] 
-#                      [Group, Series, Sweep, Trace]
-#         scale : {'ms', 's'} Time scale in which the time series is being 
-#                 calculated. 'ms' Milliseconds is default.    
-#     Returns:
-#         i_full : current
-#         v_full : voltage
-#         t_ms : time series in milliseconds
-#         SR : sampling rate
-#     '''
-    
-#     # read Heka .dat file into a object
-#     bundleTester = HekaBundleInfo(file_path)
-    
-#     # get sampling rate
-#     SR = get_sampling_rate(bundleTester, traceIndex)
-
-#     # Get data from a series
-#     data = bundleTester.getSeriesData(traceIndex)
-
-#     # get current from series data
-#     i = data[:,1,:] * 1e12
-
-#     # calc number of points
-#     n_points = int(np.shape(i)[0] * np.shape(i)[1])
-
-#     #reshape data to have all points in one column
-#     i_full = i.reshape([n_points], order='F')
-
-#     # get voltage from series data
-#     v = data[:,0,:] * 1e3
-#     v_full = v.reshape([n_points], order='F')
-
-#     # get t
-#     t_ms = calc_time_series(i, sampling_rate=SR, scale=scale)
-    
-#     return i_full, v_full, t_ms, SR
-
-    
-
 
 def calc_normed_hist(hist):
     '''
@@ -190,6 +123,8 @@ def calc_rsquared_from_exp_fit(x_data, y_data, popt):
 # define function of liner fit
 def linear_func(x, a, b):
     return a * x + b
+
+
 
 
     
