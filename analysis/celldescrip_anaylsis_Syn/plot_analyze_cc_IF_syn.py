@@ -343,67 +343,114 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     
 # %% adaptation
 
-'''
-Parameters:
-    t_full
-    v_full
-    idx_rheo,
-    idx_maxfreq
-    idx_halfmax
-    idx_maxinitinstfreq
-    IF
-    IF_initinstfreq
-    i_rheo
-    i_maxfreq
-    i_halfmax
-    i_maxinstinitialfreq
-'''
-
-from functions.functions_useful import calc_dvdt_padded
-
-# Exter
-colors = ['#FFEC9DFF', '#FAC881FF', '#F4A464FF', '#E87444FF', '#D9402AFF',
-          '#BF2729FF', '#912534FF', '#64243EFF', '#3D1B28FF', '#161212FF']
-
-ax_keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
-
-fig, axs = plt.subplot_mosaic('ABIK;CDIK;EFJL;GHJL',
-                              layout='tight',
-                              figsize=get_figure_size(),
-                              width_ratios=[3, 1.2, 3, 3]
-                              )
-
-# set figure title
-fig.suptitle(f'{cell_ID} frequency adaptation')
-
-
-# # # traces # # # 
-# rheobase
-axs['A'].set_title('A: Rheobase', fontsize=8, loc='left')
-axs['A'].plot(t_full, v_full[idx_rheo],
-              c=colors[0],
-              lw=0.75)
-
-# max freq
-axs['C'].set_title('C: Max frequency (number of spikes)', fontsize=8, loc='left')
-axs['C'].plot(t_full, v_full[idx_maxfreq],
-              c=colors[1],
-              lw=0.75)
-
-# half max freq
-axs['E'].set_title('E: Halfmax frequency', fontsize=8, loc='left')
-axs['E'].plot(t_full, v_full[idx_halfmax],
-              c=colors[2],
-              lw=0.75)
-
-# max freq
-axs['G'].set_title('G: Max initial instantaneous frequency', fontsize=8, loc='left')
-axs['G'].plot(t_full, v_full[idx_maxinitinstfreq],
-              c=colors[3],
-              lw=0.75)
-
-# edit axis
-for ax_key in ['A','C','E','G']:
+def plot_adaptation(cell_ID, t_full, v_full,
+                    idx_rheo, idx_maxfreq, idx_halfmax, idx_maxinitinstfreq,
+                    IF, IF_inst_init,
+                    i_rheo_abs, i_maxfreq, i_halfmax, i_maxinitinstfreq, 
+                    adaptation_spikes,
+                    rheobase_spikes, maxfreq_spikes, halfmax_spikes, maxinitinstfreq_spikes,
+                    adaptation_ISIs, 
+                    rheobase_ISIs, maxfreq_ISIs, halfmax_ISIs, maxinitinstfreq_ISIs, 
+                    fst_ISI, lst_ISIs, lst_inst_freqs, freq_adaptation_ratio, popt_adapfreq, t_linfit,  freq_adaptation_incline_linearfit,
+                    fst_spike_vamplitude, lst_spike_vamplitude, spike_amplitude_adaptation,
+                    fst_spike_FWHM, lst_spike_FWHM, spike_FWHM_adaptation):
+    '''
+    This function creates the adaptation figure for the cc_IF protocol analysis.
+    Parameters:
+        cell_ID
+        t_full
+        v_full
+        idx_rheo
+        idx_maxfreq
+        idx_halfmax
+        idx_maxinitinstfreq
+        IF
+        IF_inst_init
+        i_rheo_abs
+        i_maxfreq
+        i_halfmax
+        i_maxinitinstfreq
+        adaptation_spikes
+        rheobase_spikes
+        maxfreq_spikes
+        halfmax_spikes
+        maxinitinstfreq_spikes
+        adaptation_ISIs
+        rheobase_ISIs
+        maxfreq_ISIs
+        halfmax_ISIs
+        maxinitinstfreq_ISIs
+        fst_ISI
+        lst_ISIs
+        lst_inst_freqs
+        freq_adaptation_ratio
+        popt_adapfreq
+        t_linfit
+        freq_adaptation_incline_linearfit
+        fst_spike_vamplitude
+        lst_spike_vamplitude
+        spike_amplitude_adaptation
+        fst_spike_FWHM
+        lst_spike_FWHM
+        spike_FWHM_adaptation
+    '''
+    
+    from functions.functions_useful import calc_dvdt_padded,linear_func
+    from parameters.parameters import adaptation_n_lastspikes, adaptation_popt_guess_linear_ISIs
+    
+    # Exter
+    colors = ['#FFEC9DFF', '#FAC881FF', '#F4A464FF', '#E87444FF', '#D9402AFF',
+              '#BF2729FF', '#912534FF', '#64243EFF', '#3D1B28FF', '#161212FF']
+    
+    ax_keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
+    
+    fig, axs = plt.subplot_mosaic('ABIK;CDIK;EFJL;GHJL',
+                                  layout='tight',
+                                  figsize=get_figure_size(),
+                                  width_ratios=[3, 1.2, 3, 3]
+                                  )
+    
+    # set figure title
+    fig.suptitle(f'{cell_ID} frequency adaptation')
+    
+    # set titles
+    subtitles_dict = {'fontsize' : 8,
+                      'loc' : 'left'}
+    
+    
+    # # # traces # # # 
+    # rheobase
+    axs['A'].set_title('A: Rheobase', **subtitles_dict)
+    axs['A'].plot(t_full, v_full[idx_rheo],
+                  c=colors[0],
+                  lw=0.75)
+    
+    # max freq
+    axs['C'].set_title('C: Max frequency (number of spikes)', **subtitles_dict)
+    axs['C'].plot(t_full, v_full[idx_maxfreq],
+                  c=colors[1],
+                  lw=0.75)
+    
+    # half max freq
+    axs['E'].set_title('E: Halfmax frequency', **subtitles_dict)
+    axs['E'].plot(t_full, v_full[idx_halfmax],
+                  c=colors[2],
+                  lw=0.75)
+    
+    # max freq
+    axs['G'].set_title('G: Max initial instantaneous frequency', **subtitles_dict)
+    axs['G'].plot(t_full, v_full[idx_maxinitinstfreq],
+                  c=colors[3],
+                  lw=0.75)
+    
+    # edit axis
+    # x
+    xdict_t = {'ax_min' : 0,
+               'ax_max' : 1500,
+               'pad' : 10,
+               'step' : 250,
+               'stepminor' : 50,
+               'label' : ''}
     
     ydict = {'ax_min' : -100,
               'ax_max' : 75,
@@ -412,46 +459,39 @@ for ax_key in ['A','C','E','G']:
               'stepminor' : 25,
               'label' : '',
               'limits_n_0' : True}
+        
     
-    # trace axis
-    apply_axis_settings(axs[ax_key], axis = 'y', **ydict)
+    for ax_key in ['A','C','E','G']:
+        # trace axis
+        apply_axis_settings(axs[ax_key], axis = 'y', **ydict)
+        
+        # x
+        apply_axis_settings(axs[ax_key], axis = 'x', **xdict_t)
+        
+    # remove axis 
+    for ax_key in ['A','C','E']:
+        axs[ax_key].set_xticks([])
+        remove_spines_n_ticks([axs[ax_key]], axis = 'x')
     
-# remove axis 
-for ax_key in ['A','C','E']:
-    axs[ax_key].set_xticks([])
-    remove_spines_n_ticks([axs[ax_key]], axis = 'x')
-
-# x
-apply_axis_settings(axs['G'], axis = 'x', **xdict_tfull)
-
-# set y label for traces
-fig.supylabel('Membrane potential [mV]')
-
-
-# # # phase plane # # #
-# rheobase
-axs['B'].plot(v_full[idx_rheo], calc_dvdt_padded(v_full[idx_rheo], t_full),
-              c=colors[0],
-              lw=0.75)
-
-# maxfreq
-axs['D'].plot(v_full[idx_maxfreq], calc_dvdt_padded(v_full[idx_maxfreq], t_full),
-              c=colors[1],
-              lw=0.75)
-
-# halfmax
-axs['F'].plot(v_full[idx_halfmax], calc_dvdt_padded(v_full[idx_halfmax], t_full),
-              c=colors[2],
-              lw=0.75)
-
-# max init inst freq
-axs['H'].plot(v_full[idx_maxinitinstfreq], calc_dvdt_padded(v_full[idx_maxinitinstfreq], t_full),
-              c=colors[3],
-              lw=0.75)
-
-# edit axis
-for ax_key in ['B','D','F','H']:
+    axs['G'].set_xlabel('Time [ms]')
     
+    # set y label for traces
+    fig.supylabel('Membrane potential [mV]')
+    
+    
+    # # # phase plane # # #
+    # rheobase, maxfreq, halfmax, max init inst freq
+    for ax_key, c_idx, freq_idx in zip(['B', 'D', 'F', 'H'], [0, 1, 2, 3], [idx_rheo, idx_maxfreq, idx_halfmax, idx_maxinitinstfreq]):
+        
+        # set title
+        axs[ax_key].set_title(f'{ax_key}: phase plane', **subtitles_dict)
+        
+        # plot
+        axs[ax_key].plot(v_full[freq_idx], calc_dvdt_padded(v_full[freq_idx], t_full),
+                      c=colors[c_idx],
+                      lw=0.75)
+    
+    # set dict for phase plane y axis
     dvdt_dict = {'ax_min' : -150,
                   'ax_max' : 250,
                   'pad' : 4,
@@ -460,344 +500,247 @@ for ax_key in ['B','D','F','H']:
                   'label' : '',
                   'limits_n_0' : True}
     
+    # edit axis
+    for ax_key in ['B','D','F','H']:
+        
+        # trace axis
+        apply_axis_settings(axs[ax_key], axis = 'y', **dvdt_dict)
+    
+    # remove axis 
+    for ax_key in ['B','D','F']:
+        axs[ax_key].set_xticks([])
+        remove_spines_n_ticks([axs[ax_key]], axis = 'x')
+    
     # trace axis
-    apply_axis_settings(axs[ax_key], axis = 'y', **dvdt_dict)
-
-# remove axis 
-for ax_key in ['B','D','F']:
-    axs[ax_key].set_xticks([])
-    remove_spines_n_ticks([axs[ax_key]], axis = 'x')
-
-# trace axis
-apply_axis_settings(axs['H'], axis = 'x', **ydict)
-
-
-# # # IF curves # # #  
-
-# set axis
-ax = axs['I']
-
-# IF curves
-ax.plot(IF[cell_ID].dropna(), c=colors[1])
-ax.plot(IF_inst_init[cell_ID].dropna(), c=colors[3])
-
-# mark previouse steps in IF curves
-ax.arrow(x=i_rheo_abs       , y=-5, dx=0, dy=4, color=colors[0])
-ax.arrow(x=i_maxfreq        , y=-5, dx=0, dy=4, color=colors[1])
-ax.arrow(x=i_halfmax        , y=-5, dx=0, dy=4, color=colors[2])
-ax.arrow(x=i_maxinitinstfreq, y=-5, dx=0, dy=4, color=colors[3])
-
-plot_dict = {'marker' : '.', 
-              'markersize' : 5, 
-              'ls' : '-', 
-              'lw' : 1}
-
-fit_dict = {'c' : 'grey', 
-            'ls' : '--', 
-            'lw' : 1}
-
-lines_dict = {'colors' : colors_dict['primecolor'], 
-              'linestyle' : '--', 'lw' : 1}
-
-iinput_dict = {'ax_min' : -50,
-                'ax_max' : 1000,
-                'pad' : 10,
-                'step' : 200,
-                'stepminor' : 50,
-                'label' : 'Input current [pA]',
-                'start_at_0' : True}
-
-apply_axis_settings(ax, axis = 'x', **iinput_dict)
-
-
-freq_dict = {'ax_min' : -10,
-              'ax_max' : 100,
-              'pad' : 1,
-              'step' : 20,
-              'stepminor' : 5,
-              'label' : 'Firing frequency [Hz]',
-              'start_at_0' : True}
-
-apply_axis_settings(ax, axis = 'y', **freq_dict)
-
-
-# remove spines
-[axs[ax_key].spines[spine].set_visible(False) for ax_key in ax_keys for spine in ['top', 'right']]
+    apply_axis_settings(axs['H'], axis = 'x', **ydict)
     
-# display figure
-plt.show()
-
-
-
-
-
-
-# %%
-
-
-
-
-# # max freq
-# axs['C'].plot(t_step, v_maxfreq,
-#               c=colors[1],
-#               lw=1)
-
-# axs['D'].plot(v_maxfreq, dvdt_maxfreq,
-#               c=colors[1],
-#               lw=1)
-
-# # half max freq
-# axs['E'].plot(t_step, v_halfmax,
-#               c=colors[2],
-#               lw=1)
-
-# axs['F'].plot(v_halfmax, dvdt_halfmax,
-#               c=colors[2],
-#               lw=1)
-
-# # max inst initial freq
-# axs['G'].plot(t_step, v_maxinstinitialfreq,
-#               c=colors[3],
-#               lw=1)
-
-# axs['H'].plot(v_maxinstinitialfreq, dvdt_maxinstinitialfreq,
-#               c=colors[3],
-#               lw=1)
-
-
-
-# IF curves
-axs['I'].plot(IF_df[cell_ID], c=colors[1])
-axs['I'].plot(IF_inst_initial_df[cell_ID], c=colors[3])
-
-# mark previouse steps in IF curves
-axs['I'].arrow(x=i_rheobase, y=-5, dx=0, dy=4, color=colors[0])
-axs['I'].arrow(x=i_maxfreq, y=-5, dx=0, dy=4, color=colors[1])
-axs['I'].arrow(x=i_halfmax, y=-5, dx=0, dy=4, color=colors[2])
-axs['I'].arrow(x=i_maxinstinitialfreq, y=-5, dx=0, dy=4, color=colors[3])
-
-plot_dict = {'marker' : '.', 'markersize' : 5, 'ls' : '-', 'lw' : 1}
-fit_dict = {'c' : 'grey', 'ls' : '--', 'lw' : 1}
-lines_dict = {'colors' : colors_dict['primecolor'], 'linestyle' : '--', 'lw' : 1}
-
-
-# v_amplitude
-axs['J'].plot(rheobase_spikes['t_peaks'], rheobase_spikes['v_amplitude'], 
-              c=colors[0], **plot_dict)
-axs['J'].plot(maxfreq_spikes['t_peaks'], maxfreq_spikes['v_amplitude'], 
-              c=colors[1], **plot_dict)
-axs['J'].plot(halfmax_spikes['t_peaks'], halfmax_spikes['v_amplitude'], 
-              c=colors[2], **plot_dict)
-axs['J'].plot(maxinstinitialfreq_spikes['t_peaks'], maxinstinitialfreq_spikes['v_amplitude'], 
-              c=colors[3], **plot_dict)
-
-axs['J'].hlines(y = lst_spike_vamplitude,
-                xmin = adaptation_spikes.at[len(adaptation_spikes)-n_last_spikes, 't_peaks'],
-                xmax = adaptation_spikes.at[len(adaptation_spikes)-1, 't_peaks'],
-                **lines_dict)
-
-axs['J'].vlines(x = adaptation_spikes.at[int(len(adaptation_spikes)-n_last_spikes/2), 't_peaks'],
-                ymin = lst_spike_vamplitude,
-                ymax = fst_spike_vamplitude,
-                **lines_dict)
-
-axs['J'].hlines(y = fst_spike_vamplitude,
-                xmin = adaptation_spikes.at[0, 't_peaks'],
-                xmax = adaptation_spikes.at[len(adaptation_spikes)-1, 't_peaks'],
-                **lines_dict)
-
-# ISI
-axs['K'].plot(rheobase_ISIs['t_ISI'], rheobase_ISIs['inst_freq'], 
-              c=colors[0], **plot_dict)
-axs['K'].plot(maxfreq_ISIs['t_ISI'], maxfreq_ISIs['inst_freq'], 
-              c=colors[1], **plot_dict)
-axs['K'].plot(halfmax_ISIs['t_ISI'], halfmax_ISIs['inst_freq'], 
-              c=colors[2], **plot_dict)
-axs['K'].plot(maxinstinitialfreq_ISIs['t_ISI'], maxinstinitialfreq_ISIs['inst_freq'], 
-              c=colors[3], **plot_dict)
-
-axs['K'].hlines(y = lst_ISIs,
-                xmin = adaptation_ISIs.at[len(adaptation_ISIs)-n_last_ISIs, 't_ISI'],
-                xmax = adaptation_ISIs.at[len(adaptation_ISIs)-1, 't_ISI'],
-                **lines_dict)
-
-axs['K'].vlines(x = adaptation_ISIs.at[int(len(adaptation_ISIs)-n_last_ISIs/2), 't_ISI'],
-                ymin = lst_ISIs,
-                ymax = fst_ISI,
-                **lines_dict)
-
-axs['K'].hlines(y = fst_ISI,
-                xmin = adaptation_ISIs.at[1, 't_ISI'],
-                xmax = adaptation_ISIs.at[len(adaptation_ISIs)-1, 't_ISI'],
-                **lines_dict)
-
-if len(lst_inst_freqs) > 3:
-    axs['K'].plot(t_linfit, linear_func(t_linfit, *popt), **fit_dict)
-
-
-# FWHM
-axs['L'].plot(rheobase_spikes['t_peaks'], rheobase_spikes['FWHM'], 
-              c=colors[0], **plot_dict)
-axs['L'].plot(maxfreq_spikes['t_peaks'], maxfreq_spikes['FWHM'], 
-              c=colors[1], **plot_dict)
-axs['L'].plot(halfmax_spikes['t_peaks'], halfmax_spikes['FWHM'], 
-              c=colors[2], **plot_dict)
-axs['L'].plot(maxinstinitialfreq_spikes['t_peaks'], maxinstinitialfreq_spikes['FWHM'], 
-              c=colors[3], **plot_dict)
-
-
-axs['L'].hlines(y = lst_spike_FWHM,
-                xmin = adaptation_spikes.at[len(adaptation_spikes)-n_last_spikes, 't_peaks'],
-                xmax = adaptation_spikes.at[len(adaptation_spikes)-1, 't_peaks'],
-                **lines_dict)
-
-axs['L'].vlines(x = adaptation_spikes.at[int(len(adaptation_spikes)-n_last_spikes/2), 't_peaks'],
-                ymin = lst_spike_FWHM,
-                ymax = fst_spike_FWHM,
-                **lines_dict)
-
-axs['L'].hlines(y = fst_spike_FWHM,
-                xmin = adaptation_spikes.at[0, 't_peaks'],
-                xmax = adaptation_spikes.at[len(adaptation_spikes)-1, 't_peaks'],
-                **lines_dict)
-
-
-
-# format axis
-v_range = [-100, 75]
-
-axs['A'].set_title('A: Rheobase', fontsize='small', loc='left')
-axs['C'].set_title('C: Max frequency (number of spikes)', fontsize='small', loc='left')
-axs['E'].set_title('E: Halfmax frequency', fontsize='small', loc='left')
-axs['G'].set_title('G: Max initial instantaneous spiking frequency', fontsize='small', loc='left')
-
-for ax_idx in ['A', 'C', 'E']:
-    # x
-    axs[ax_idx].set_xlim([0, 1500])
-    axs[ax_idx].set_xticks(np.arange(0, 1500+1, 250), minor=True)
-    axs[ax_idx].set_xticks(np.arange(0, 1500+1, 500), labels=[])
-
-for ax_idx in ['G', 'J', 'K', 'L']:
-    # x
-    axs[ax_idx].set_xlim([0, 1500])
-    axs[ax_idx].set_xticks(np.arange(0, 1500+1, 250), minor=True)
-    axs[ax_idx].set_xticks(np.arange(0, 1500+1, 500))
-    axs[ax_idx].set_xlabel('Time [ms]')
-
-for ax_idx in ['A', 'C', 'E', 'G']:
-    # y
-    axs[ax_idx].set_ylim(v_range)
-    axs[ax_idx].set_yticks(
-        np.arange(v_range[0], v_range[1]+1, 25), minor=True)
-
-fig.supylabel('Voltage [mV]')
-axs['G'].set_xlabel('Time [ms]')
-
-for ax_idx in ['B', 'D', 'F', 'H']:
-    # x dvdt
-    axs[ax_idx].set_title(f'{ax_idx}: phase plane', fontsize='small', loc='left')        
-    axs[ax_idx].set_xlim(v_range)
-    axs[ax_idx].set_xticks(np.arange(v_range[0], v_range[1] + 1, 100))
-    axs[ax_idx].set_xticks(np.arange(v_range[0], v_range[1] + 1, 25), minor=True)
-    # y dvdt
-    # axs[ax_idx].set_ylabel('Rate of membrane potential change [mV/ms]')
-    axs[ax_idx].set_ylim([-150, 250])
-    axs[ax_idx].set_yticks(np.arange(0, 250 + 1, 200))
-    axs[ax_idx].set_yticks(np.arange(-150, 250 + 1, 50), minor=True)
-
-axs['H'].set_xlabel('Voltage [mV]')
-# axs['F'].set_ylabel('Rate of membrane potential change [mV/ms]')
-
-
-# # combine all spikes df to find min or max
-# all_spikes = pd.concat([rheobase_spikes, maxfreq_spikes, halfmax_spikes, maxinstinitialfreq_spikes], axis = 0)
-# all_ISIs = pd.concat([rheobase_ISIs, maxfreq_ISIs, halfmax_ISIs, maxinstinitialfreq_ISIs], axis = 0)
-
-# ### IF axes ###
-# IF_xmin = round_to_base(IF_df[cell_ID].dropna().index[0], 50)
-# IF_xmax = round_up_to_base(IF_df[cell_ID].dropna().index[-1], 50)
-
-# IF_ymax = round_up_to_base(active_properties_df.at[cell_ID, 'max_inst_initial_freq'], 20)
-
-# axs['I'].set_title('I: Input current - frequency',
-#                    fontsize='small', loc='left')
-# # x
-# axs['I'].set_xlabel('Input current [pA]')
-# axs['I'].set_xlim([IF_xmin, IF_xmax])
-# axs['I'].set_xticks(np.arange(0, IF_xmax+1, 100))
-# axs['I'].set_xticks(np.arange(IF_xmin, IF_xmax+1, 25), minor = True)
-
-# # y
-# axs['I'].set_ylabel('Firing frequency [Hz]')
-# axs['I'].set_ylim([-10, IF_ymax])
-# axs['I'].set_yticks(np.arange(0, IF_ymax+1, 20))
-# axs['I'].set_yticks(np.arange(0, IF_ymax+1, 5), minor = True)    
-
-
-### v_amplitude ###
-amp_ymax = round_up_to_base(all_spikes['v_amplitude'].max(), 10)
-amp_ymin = round_down_to_base(all_spikes['v_amplitude'].min(), 10)
-
-axs['J'].set_title('J: Spike amplitude adaptation',
-                    fontsize='small', loc='left')
-
-# y
-axs['J'].set_ylabel('Spike amplitude [mV]')
-axs['J'].set_ylim([amp_ymin, amp_ymax])
-axs['J'].set_yticks(np.arange(amp_ymin, amp_ymax+1, 20))
-axs['J'].set_yticks(np.arange(amp_ymin, amp_ymax+1, 10), minor = True) 
-
-axs['J'].text(x = 1450,
-              y = amp_ymin + (amp_ymax - amp_ymin)*0.05,
-              s = "freq. adap.:\n %.2f" % spike_amplitude_adaptation,
-              ha = 'right', va = 'bottom',
-              fontsize = 8)
-
-
-### ISI / Frequency ###
-freq_ymax = round_up_to_base(all_ISIs['inst_freq'].max(), 10)
-#freq_ymin = round_down_to_base(rheobase_ISIs['inst_freq'].min(), 10)
-freq_ymin = 0
-
-axs['K'].set_title('K: Spike frequency adaptation',
-                    fontsize='small', loc='left')
-
     
-axs['K'].text(x = 1450,
-              y = freq_ymin + (freq_ymax - freq_ymin)*0.05,
-              s = "freq. adap.: %.2f" % freq_adaptation_ratio + '\n' + 'freq. incline: %.2f' % freq_adaptation_incline_linearfit + ' Hz/s',
-              ha = 'right', va = 'bottom',
-              fontsize = 8)
-
-# y
-axs['K'].set_ylabel('instantaneous spike\nfrequency [Hz]')
-axs['K'].set_ylim([freq_ymin, freq_ymax])
-axs['K'].set_yticks(np.arange(freq_ymin, freq_ymax+1, 20))
-axs['K'].set_yticks(np.arange(freq_ymin, freq_ymax+1, 10), minor = True) 
-
-
-### FWHM ###
-FWHM_ymax = round_up_to_base(all_spikes['FWHM'].max(), 1) + .5
-FWHM_ymin = round_down_to_base(all_spikes['FWHM'].min(), 1)
-
-axs['L'].set_title('L: Spike FWHM adaptation',
-                    fontsize='small', loc='left')
-
-axs['L'].text(x = 1450,
-              y = 0.75,
-              s = "FWHM. adap.:\n%.2f" % spike_FWHM_adaptation,
-              ha = 'right', va = 'bottom',
-              fontsize = 8)
-
-# y
-axs['L'].set_ylabel('Spike FHWM [ms]')
-axs['L'].set_ylim([0.5, FWHM_ymax])
-axs['L'].set_yticks(np.arange(1, FWHM_ymax+.1, 1))
-axs['L'].set_yticks(np.arange(0.5, FWHM_ymax+.1, .25), minor = True)
-
-fig.align_labels()
-
-vplots_path_fig = join(vplot_dir, 'cc_IF', 'freq_adaptation')
-save_figures(fig, f'{cell_ID}-frequency_adaptation', vplots_path_fig, darkmode_bool, figure_format='both')
-
-plt.show()
+    # define plotting dicts
+    plot_dict = {'marker' : '.', 
+                 'markersize' : 6, 
+                 'ls' : '-', 
+                 'lw' : 0.75,
+                 'markerfacecolor' : 'k',
+                 'markeredgewidth' : '0.75'}
+    
+    fit_dict = {'c' : 'grey', 
+                'ls' : '--', 
+                'lw' : 1}
+    
+    lines_dict = {'colors' : colors_dict['primecolor'], 
+                  'linestyle' : '--', 'lw' : 1}
+    
+    
+    # # # IF curves # # #  
+    
+    # set axis
+    ax = axs['I']
+    
+    # set title
+    ax.set_title('I: Input current - frequency', **subtitles_dict)
+    
+    # IF curves
+    ax.plot(IF[cell_ID].dropna(), c=colors[1], lw = 0.75)
+    ax.plot(IF_inst_init[cell_ID].dropna(), c=colors[3], lw = 0.75)
+    
+    # mark previouse steps in IF curves
+    ax.arrow(x=i_rheo_abs       , y=-5, dx=0, dy=4, color=colors[0], lw = 0.5)
+    ax.arrow(x=i_maxfreq        , y=-5, dx=0, dy=4, color=colors[1], lw = 0.5)
+    ax.arrow(x=i_halfmax        , y=-5, dx=0, dy=4, color=colors[2], lw = 0.5)
+    ax.arrow(x=i_maxinitinstfreq, y=-5, dx=0, dy=4, color=colors[3], lw = 0.5)
+    
+    # edit axis
+    iinput_dict = {'ax_min' : -50,
+                   'ax_max' : 1000,
+                   'pad' : 10,
+                   'step' : 200,
+                   'stepminor' : 50,
+                   'label' : 'Input current [pA]',
+                   'start_at_0' : True}
+    
+    apply_axis_settings(ax, axis = 'x', **iinput_dict)
+    
+    freq_dict = {'ax_min' : -10,
+                 'ax_max' : 140,
+                 'pad' : 1,
+                 'step' : 20,
+                 'stepminor' : 5,
+                 'label' : 'Firing frequency [Hz]',
+                 'start_at_0' : True}
+    
+    apply_axis_settings(ax, axis = 'y', **freq_dict)
+    
+    
+    # # # spike frequency adaptation # # #
+    
+    # set title
+    axs['K'].set_title('K: Spike frequency adaptation', **subtitles_dict)
+    
+    # plot
+    for idx_freq, ISIs in enumerate([rheobase_ISIs, maxfreq_ISIs, halfmax_ISIs, maxinitinstfreq_ISIs]):
+        
+        axs['K'].plot(ISIs['t_ISI'], ISIs['inst_freq'],
+                      c = colors[idx_freq],
+                      **plot_dict)
+    
+        
+        
+    # plot measurements
+    
+    
+    if freq_adaptation_ratio != 1.0:
+        # line for first AP
+        axs['K'].hlines(y = fst_ISI,
+                        xmin = adaptation_ISIs.at[1, 't_ISI'],
+                        xmax = adaptation_ISIs.tail(adaptation_n_lastspikes)['t_ISI'].iloc[-1],
+                        **lines_dict)
+        
+        # vertical line connecting first and last
+        axs['K'].vlines(x = adaptation_ISIs.tail(adaptation_n_lastspikes)['t_ISI'].iloc[-1],
+                        ymin = lst_ISIs,
+                        ymax = fst_ISI,
+                        **lines_dict)
+        
+        # line for average of last APs
+        axs['K'].hlines(y = lst_ISIs,
+                        xmin = adaptation_ISIs.tail(adaptation_n_lastspikes)['t_ISI'].iloc[1],
+                        xmax = adaptation_ISIs.tail(adaptation_n_lastspikes)['t_ISI'].iloc[-1],
+                        **lines_dict)
+    
+    # plot fit
+    if len(lst_inst_freqs) > 3:
+        axs['K'].plot(t_linfit, linear_func(t_linfit, *popt_adapfreq), **fit_dict)
+    
+    # edit axis
+    apply_axis_settings(axs['K'], axis = 'y', **freq_dict)
+    
+    xdict_t = {'ax_min' : 250,
+               'ax_max' : 1250,
+               'pad' : 15,
+               'step' : 250,
+               'stepminor' : 50,
+               'label' : 'Time [ms]'}
+    
+    for ax_key in ['K','J','L']:
+        # x
+        apply_axis_settings(axs[ax_key], axis = 'x', **xdict_t)
+        
+    # add text
+    axs['K'].text(x = xdict_t['ax_max'],
+                  y = freq_dict['ax_min'],
+                  s = f'freq. adap.: {round(freq_adaptation_ratio, 2)}\nfreq. incline: {round(freq_adaptation_incline_linearfit, 2)} Hz/s',
+                  ha = 'right', va = 'bottom',
+                  fontsize = 8)
+        
+    
+    # # # spike amplitude adaptation # # #
+    
+    # set title
+    axs['J'].set_title('J: Spike amplitude adaptation', **subtitles_dict)
+    
+    # plot
+    for idx_freq, spikes in enumerate([rheobase_spikes, maxfreq_spikes, halfmax_spikes, maxinitinstfreq_spikes]):
+        
+        axs['J'].plot(spikes['t_peaks'], spikes['v_amplitude'],
+                      c = colors[idx_freq],
+                      **plot_dict)
+    
+    # plot measurements
+    # line for first AP
+    axs['J'].hlines(y = fst_spike_vamplitude,
+                    xmin = adaptation_spikes.at[0, 't_peaks'],
+                    xmax = adaptation_spikes.at[len(adaptation_spikes)-1, 't_peaks'],
+                    **lines_dict)
+    
+    # vertical line connecting first and last
+    axs['J'].vlines(x = adaptation_spikes.at[int(len(adaptation_spikes)-adaptation_n_lastspikes/2), 't_peaks'],
+                    ymin = lst_spike_vamplitude,
+                    ymax = fst_spike_vamplitude,
+                    **lines_dict)
+    
+    # line for average of last APs
+    axs['J'].hlines(y = lst_spike_vamplitude,
+                    xmin = adaptation_spikes.at[len(adaptation_spikes)-adaptation_n_lastspikes, 't_peaks'],
+                    xmax = adaptation_spikes.at[len(adaptation_spikes)-1, 't_peaks'],
+                    **lines_dict)
+    
+    # edit axis
+    ampl_dict = {'ax_min' : 0,
+                 'ax_max' : 140,
+                 'pad' : 1.4,
+                 'step' : 40,
+                 'stepminor' : 5,
+                 'label' : 'Spike amplitude [mV]'}
+    
+    apply_axis_settings(axs['J'], axis = 'y', **ampl_dict)
+    
+    # add text
+    axs['J'].text(x = xdict_t['ax_max'],
+                  y = ampl_dict['ax_min'],
+                  s = "freq. adap.: %.2f" % spike_amplitude_adaptation,
+                  ha = 'right', va = 'bottom',
+                  fontsize = 8)
+    
+    
+    # # # spike FWHM adaptation # # #
+    
+    # set title
+    axs['L'].set_title('L: Spike width adaptation', **subtitles_dict)
+    
+    # plot
+    for idx_freq, spikes in enumerate([rheobase_spikes, maxfreq_spikes, halfmax_spikes, maxinitinstfreq_spikes]):
+        
+        axs['L'].plot(spikes['t_peaks'], spikes['FWHM'],
+                      c = colors[idx_freq],
+                      **plot_dict)
+    
+    # plot measurements
+    # line for first AP
+    axs['L'].hlines(y = fst_spike_FWHM,
+                    xmin = adaptation_spikes.at[0, 't_peaks'],
+                    xmax = adaptation_spikes.at[len(adaptation_spikes)-1, 't_peaks'],
+                    **lines_dict)
+    
+    # vertical line connecting first and last
+    axs['L'].vlines(x = adaptation_spikes.at[int(len(adaptation_spikes)-adaptation_n_lastspikes/2), 't_peaks'],
+                    ymin = lst_spike_FWHM,
+                    ymax = fst_spike_FWHM,
+                    **lines_dict)
+    
+    # line for average of last APs
+    axs['L'].hlines(y = lst_spike_FWHM,
+                    xmin = adaptation_spikes.at[len(adaptation_spikes)-adaptation_n_lastspikes, 't_peaks'],
+                    xmax = adaptation_spikes.at[len(adaptation_spikes)-1, 't_peaks'],
+                    **lines_dict)
+    
+    # edit axis
+    FWHM_dict = {'ax_min' : 0,
+                 'ax_max' : 7,
+                 'pad' : 0.07,
+                 'step' : 1,
+                 'stepminor' : 0.5,
+                 'label' : 'Spike FWHM [ms]'}
+    
+    apply_axis_settings(axs['L'], axis = 'y', **FWHM_dict)
+    
+    # add text
+    axs['L'].text(x = xdict_t['ax_max'],
+                  y = FWHM_dict['ax_min'],
+                  s = "FWHM. adap.: %.2f" % spike_FWHM_adaptation,
+                  ha = 'right', va = 'bottom',
+                  fontsize = 8)
+    
+    # remove spines
+    [axs[ax_key].spines[spine].set_visible(False) for ax_key in ax_keys for spine in ['top', 'right']]
+    
+    # align labels
+    fig.align_labels()
+    
+    # create saving path and save
+    from parameters.directories_win import vplot_dir
+    path_fig = join(vplot_dir, 'cc_IF', 'adaptation')
+    save_figures(fig, f'{cell_ID}-cc_IF-adaptation', path_fig, darkmode_bool, figure_format='png')
+        
+    # display figure
+    plt.show()
+    
