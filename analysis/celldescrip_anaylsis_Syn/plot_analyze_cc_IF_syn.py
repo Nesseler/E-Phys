@@ -244,7 +244,7 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     
     # plot rheobase spike
     ax.plot(rheospike_t, rheospike_v,
-            color = colors_dict['color2'],
+            color = '#FFEC9DFF',
             lw = 0.5)
     
     # trace axis
@@ -280,7 +280,7 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     
     # plot rheobase spike
     ax_inset.plot(rheospike_t, rheospike_v,
-                  color = colors_dict['color2'],
+                  color = '#FFEC9DFF',
                   lw = 0.5)
     
     # x
@@ -292,6 +292,8 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     ax_inset.set_yticks(ticks = np.arange(-100, 60+5, 20), labels = [])
     ax_inset.set_yticks(ticks = np.arange(-100, 60, 5), labels = [], minor = True)
     ax_inset.set_ylim([box_ymin, box_ymin + box_height])
+    
+    # # # dvdt # # #
     
     # set axis
     ax = axs[1]
@@ -309,7 +311,7 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     
     # plot rheobase spike
     ax.plot(rheospike_v, rheospike_dvdt,
-            color = colors_dict['color2'],
+            color = '#FFEC9DFF',
             lw = 0.5)
     
     # edit axes
@@ -346,7 +348,8 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
 def plot_adaptation(cell_ID, t_full, v_full,
                     idx_rheo, idx_maxfreq, idx_halfmax, idx_maxinitinstfreq,
                     IF, IF_inst_init,
-                    i_rheo_abs, i_maxfreq, i_halfmax, i_maxinitinstfreq, 
+                    i_rheo_abs, i_maxfreq, i_halfmax, i_maxinitinstfreq,
+                    n_lastspikes,
                     adaptation_spikes,
                     rheobase_spikes, maxfreq_spikes, halfmax_spikes, maxinitinstfreq_spikes,
                     adaptation_ISIs, 
@@ -370,6 +373,7 @@ def plot_adaptation(cell_ID, t_full, v_full,
         i_maxfreq
         i_halfmax
         i_maxinitinstfreq
+        n_lastspikes
         adaptation_spikes
         rheobase_spikes
         maxfreq_spikes
@@ -592,19 +596,19 @@ def plot_adaptation(cell_ID, t_full, v_full,
         # line for first AP
         axs['K'].hlines(y = fst_ISI,
                         xmin = adaptation_ISIs.at[1, 't_ISI'],
-                        xmax = adaptation_ISIs.tail(adaptation_n_lastspikes)['t_ISI'].iloc[-1],
+                        xmax = adaptation_ISIs.tail(n_lastspikes)['t_ISI'].iloc[-1],
                         **lines_dict)
         
         # vertical line connecting first and last
-        axs['K'].vlines(x = adaptation_ISIs.tail(adaptation_n_lastspikes)['t_ISI'].iloc[-1],
+        axs['K'].vlines(x = adaptation_ISIs.tail(n_lastspikes)['t_ISI'].iloc[-1],
                         ymin = lst_ISIs,
                         ymax = fst_ISI,
                         **lines_dict)
         
         # line for average of last APs
         axs['K'].hlines(y = lst_ISIs,
-                        xmin = adaptation_ISIs.tail(adaptation_n_lastspikes)['t_ISI'].iloc[1],
-                        xmax = adaptation_ISIs.tail(adaptation_n_lastspikes)['t_ISI'].iloc[-1],
+                        xmin = adaptation_ISIs.tail(n_lastspikes)['t_ISI'].iloc[0],
+                        xmax = adaptation_ISIs.tail(n_lastspikes)['t_ISI'].iloc[-1],
                         **lines_dict)
     
     # plot fit
@@ -649,19 +653,19 @@ def plot_adaptation(cell_ID, t_full, v_full,
     # line for first AP
     axs['J'].hlines(y = fst_spike_vamplitude,
                     xmin = adaptation_spikes.at[0, 't_peaks'],
-                    xmax = adaptation_spikes.at[len(adaptation_spikes)-1, 't_peaks'],
+                    xmax = adaptation_spikes.tail(n_lastspikes)['t_peaks'].iloc[-1],
                     **lines_dict)
     
     # vertical line connecting first and last
-    axs['J'].vlines(x = adaptation_spikes.at[int(len(adaptation_spikes)-adaptation_n_lastspikes/2), 't_peaks'],
+    axs['J'].vlines(x = adaptation_spikes.tail(n_lastspikes)['t_peaks'].iloc[-1],
                     ymin = lst_spike_vamplitude,
                     ymax = fst_spike_vamplitude,
                     **lines_dict)
     
     # line for average of last APs
     axs['J'].hlines(y = lst_spike_vamplitude,
-                    xmin = adaptation_spikes.at[len(adaptation_spikes)-adaptation_n_lastspikes, 't_peaks'],
-                    xmax = adaptation_spikes.at[len(adaptation_spikes)-1, 't_peaks'],
+                    xmin = adaptation_spikes.tail(n_lastspikes)['t_peaks'].iloc[0],
+                    xmax = adaptation_spikes.tail(n_lastspikes)['t_peaks'].iloc[-1],
                     **lines_dict)
     
     # edit axis
@@ -677,7 +681,7 @@ def plot_adaptation(cell_ID, t_full, v_full,
     # add text
     axs['J'].text(x = xdict_t['ax_max'],
                   y = ampl_dict['ax_min'],
-                  s = "freq. adap.: %.2f" % spike_amplitude_adaptation,
+                  s = "spike ampl. adap.: %.2f" % spike_amplitude_adaptation,
                   ha = 'right', va = 'bottom',
                   fontsize = 8)
     
@@ -698,19 +702,19 @@ def plot_adaptation(cell_ID, t_full, v_full,
     # line for first AP
     axs['L'].hlines(y = fst_spike_FWHM,
                     xmin = adaptation_spikes.at[0, 't_peaks'],
-                    xmax = adaptation_spikes.at[len(adaptation_spikes)-1, 't_peaks'],
+                    xmax =  adaptation_spikes.tail(n_lastspikes)['t_peaks'].iloc[-1],
                     **lines_dict)
     
     # vertical line connecting first and last
-    axs['L'].vlines(x = adaptation_spikes.at[int(len(adaptation_spikes)-adaptation_n_lastspikes/2), 't_peaks'],
+    axs['L'].vlines(x =  adaptation_spikes.tail(n_lastspikes)['t_peaks'].iloc[-1],
                     ymin = lst_spike_FWHM,
                     ymax = fst_spike_FWHM,
                     **lines_dict)
     
     # line for average of last APs
     axs['L'].hlines(y = lst_spike_FWHM,
-                    xmin = adaptation_spikes.at[len(adaptation_spikes)-adaptation_n_lastspikes, 't_peaks'],
-                    xmax = adaptation_spikes.at[len(adaptation_spikes)-1, 't_peaks'],
+                    xmin = adaptation_spikes.tail(n_lastspikes)['t_peaks'].iloc[0],
+                    xmax = adaptation_spikes.tail(n_lastspikes)['t_peaks'].iloc[-1],
                     **lines_dict)
     
     # edit axis

@@ -63,7 +63,7 @@ if vplots:
     
 # %% load
 
-for cell_ID in tqdm(['E-223']):
+for cell_ID in tqdm(['E-247']):
 
     # load IF protocol
     # get the traceIndex and the file path string for data import functions
@@ -253,7 +253,6 @@ for cell_ID in tqdm(['E-223']):
     maxinitinstfreq_spikes, maxinitinstfreq_ISIs = get_spiketrain_n_ISI_parameter(t_stim, v_maxinitinstfreq, dvdt_maxinitinstfreq, SR)
     
     
-    # %%
     
     from parameters.parameters import adaptation_n_lastspikes, adaptation_popt_guess_linear_ISIs
     from functions.functions_useful import linear_func
@@ -263,6 +262,14 @@ for cell_ID in tqdm(['E-223']):
     adaptation_spikes = maxfreq_spikes
     adaptation_ISIs = maxfreq_ISIs
     
+    # get number of spikes in max freq step
+    n_spikes_maxfreq = adaptation_spikes.shape[0]
+    
+    #
+    if n_spikes_maxfreq < adaptation_n_lastspikes - 1:
+        n_lastspikes = n_spikes_maxfreq -1
+    else:
+        n_lastspikes = adaptation_n_lastspikes
     
     # # # spike amplitude adaptation # # #
     
@@ -270,7 +277,7 @@ for cell_ID in tqdm(['E-223']):
     fst_spike_vamplitude = adaptation_spikes.at[0, 'v_amplitude']
     
     # get amplitude of last 4 spikes & calc mean
-    lst_spike_vamplitude = adaptation_spikes.tail(adaptation_n_lastspikes)['v_amplitude'].mean()
+    lst_spike_vamplitude = adaptation_spikes.tail(n_lastspikes)['v_amplitude'].mean()
     
     # calc ratio of first to last spikes
     spike_amplitude_adaptation = lst_spike_vamplitude / fst_spike_vamplitude
@@ -280,7 +287,7 @@ for cell_ID in tqdm(['E-223']):
     
     # compare first and mean of last few spikes
     fst_spike_FWHM = adaptation_spikes.at[0, 'FWHM']
-    lst_spike_FWHM = adaptation_spikes.tail(adaptation_n_lastspikes)['FWHM'].mean()
+    lst_spike_FWHM = adaptation_spikes.tail(n_lastspikes)['FWHM'].mean()
     spike_FWHM_adaptation = lst_spike_FWHM / fst_spike_FWHM
     
     
@@ -291,10 +298,13 @@ for cell_ID in tqdm(['E-223']):
     
     # compare first and mean of last few ISIs
     fst_ISI = adaptation_ISIs.at[1, 'inst_freq']
-    lst_ISIs = adaptation_ISIs.tail(adaptation_n_lastspikes)['inst_freq'].mean()
+    lst_ISIs = adaptation_ISIs.tail(n_lastspikes)['inst_freq'].mean()
     freq_adaptation_ratio = lst_ISIs / fst_ISI
     
-    ## linear fit to ISIs between 500 and 1000 ms
+    
+    # # # spike frequency adaptation steady state # # #
+    
+    ## linear fit to ISIs between 500 and 1250 ms
     # limit dataframe to ISIs to ISIs later in step
     ISIs_for_linear_fit = adaptation_ISIs.query('t_ISI > 500')
     
@@ -325,14 +335,6 @@ for cell_ID in tqdm(['E-223']):
         t_linfit = np.nan
         popt_adapfreq = np.nan
         
-        # TODO: DEFAULT values!!!!
-    
-        
-    
-    
-        
-        
-    
     ## save values to dataframe
     adaptation.at[cell_ID, 'spike_amplitude_adaptation_ratio'] = spike_amplitude_adaptation
     adaptation.at[cell_ID, 'spike_FWHM_adaptation_ratio'] = spike_FWHM_adaptation
@@ -343,7 +345,8 @@ for cell_ID in tqdm(['E-223']):
         plot_adaptation(cell_ID, t_full, v_full, 
                         idx_rheo, idx_maxfreq, idx_halfmax, idx_maxinitinstfreq, 
                         IF, IF_inst_init, 
-                        i_rheo_abs, i_maxfreq, i_halfmax, i_maxinitinstfreq, 
+                        i_rheo_abs, i_maxfreq, i_halfmax, i_maxinitinstfreq,
+                        n_lastspikes,
                         adaptation_spikes, 
                         rheobase_spikes, maxfreq_spikes, halfmax_spikes, maxinitinstfreq_spikes, 
                         adaptation_ISIs, 

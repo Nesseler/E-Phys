@@ -15,7 +15,8 @@ from parameters.directories_win import cell_descrip_syn_dir
 from parameters.parameters import min_peak_prominence, min_peak_distance
 
 # custom functions
-from functions.functions_useful import butter_filter, calc_time_series, calc_dvdt_padded
+from functions.functions_filter import butter_filter
+from functions.functions_useful import calc_time_series, calc_dvdt_padded
 from functions.functions_import import get_cc_data, get_traceIndex_n_file
 from functions.get_cell_IDs import get_cell_IDs_one_protocol
 
