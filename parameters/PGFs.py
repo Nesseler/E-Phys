@@ -45,7 +45,10 @@ cc_th1Ap_parameters = {'t_pre' : 240.,
                        't_stim': 10.,
                        't_post': 250.,
                        'i_delta' : 10,
-                       'i_start' : 0}
+                       'i_start' : 0,
+                       'SR' : 100000,
+                       't' : np.arange(0, 500, 1 / (100000/1e3)),
+                       'idc_stim' : np.arange(240 * (100000/1e3), (240 + 10) * (100000/1e3), dtype = int)}
 
 
 # %% cc_cnt_rest

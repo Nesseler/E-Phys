@@ -63,7 +63,7 @@ def get_threshold_crossing_closest_to_peak_and_below_value(data_v, data_dvdt, id
     
     above_repol_end_threshold = True
     while above_repol_end_threshold:
-        if data_v[idx_th] > -20:
+        if data_v[idx_th] > -10:
             idx_th = data_th_crossings[idx_min-1]
         else:
             above_repol_end_threshold = False

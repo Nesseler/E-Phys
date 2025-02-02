@@ -33,7 +33,8 @@ def construct_current_array(i_hold, n_steps, parameters_dict, SR_ms):
 
 
 def construct_I_array(cell_ID, n_steps, PGF = 'cc_IF', sheet_name = 'PGFs_Syn', 
-                      parameters = {'t_pre' : 250, 't_stim' : 1000, 't_post' : 250, 'SR' : 50000}):
+                      parameters = {'t_pre' : 250, 't_stim' : 1000, 't_post' : 250, 'SR' : 50000},
+                      i_hold = None, i_delta = None, i_start = None):
     '''
     This function constructs an array that rebuilds the current applied during
     one protocol.
@@ -44,6 +45,8 @@ def construct_I_array(cell_ID, n_steps, PGF = 'cc_IF', sheet_name = 'PGFs_Syn',
         sheet_name : str, default is 'PGFs_Syn', sheet name in ePhys database
         parameters : dict, dictionary that includes t_start, t_stim, t_stop 
                      in ms and sampling rate
+        i_hold : float, holding current, default is None. If left at default 
+                 the function will look up i_hold.
     Returns:
         i : numpy ndarray, containing the applied current over each step
         i_steps : numpy ndarray, containing one value of current for each step
@@ -74,12 +77,27 @@ def construct_I_array(cell_ID, n_steps, PGF = 'cc_IF', sheet_name = 'PGFs_Syn',
     if type(lookup_cell) == pd.DataFrame:
         lookup_cell = lookup_cell.iloc[0]
     
-    # get i_hold and i_step
-    i_hold  = lookup_cell[PGF + '-hold']
-    i_delta = lookup_cell[PGF + '-stepdelta']
+    # get i_hold and i_step and i_start
+    # i_hold
+    if 'i_hold' in parameters.keys():
+        i_hold = parameters['i_delta']
+    else:
+        i_hold  = lookup_cell[PGF + '-hold']
+        
+    # i_start
+    if 'i_start' in parameters.keys():
+        i_start = parameters['i_start']
+    else:
+        i_start = i_hold
+    
+    # i_delta
+    if 'i_delta' in parameters.keys():
+        i_delta = parameters['i_delta']
+    else:
+        i_delta = lookup_cell[PGF + '-stepdelta']
     
     # calc i_steps
-    i_steps = np.arange(i_hold, i_hold + (i_delta * n_steps), i_delta)
+    i_steps = np.arange(i_start, i_start + (i_delta * n_steps), i_delta)
     
     # get duration and sampling rate and calculate the number of points
     dur = parameters['t_pre'] + parameters['t_stim'] + parameters['t_post']

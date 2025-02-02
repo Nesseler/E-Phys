@@ -206,7 +206,7 @@ activity_df.loc[activity_df['n_spikes'] > 0, 'activity'] = 'spiking'
 # %% saving
 
 
-export_filename = 'cc_rest-Syn-activity.xlsx'
+export_filename = 'cc_rest-syn-activity.xlsx'
 
 try:
     loaded_activity_df = pd.read_excel(join(cell_descrip_syn_dir, export_filename),

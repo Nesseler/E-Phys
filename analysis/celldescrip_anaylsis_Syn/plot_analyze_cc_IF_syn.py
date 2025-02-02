@@ -328,12 +328,39 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     
     apply_axis_settings(ax, axis = 'y', **dvdt_dict)
     
+    # add inset
+    ## ([left, bottom, width, height]), percentages
+    ax_inset2 = fig.add_axes([0.625, 0.73, 0.13, 0.2])
+    
+    
+    # plot full trace
+    ax_inset2.plot(v, dvdt,
+                  color = colors_dict['primecolor'],
+                  lw = 0.5)
+    
+    # plot rheobase spike
+    ax_inset2.plot(rheospike_v, rheospike_dvdt,
+                  color = '#FFEC9DFF',
+                  lw = 0.5)
+    
+    # x
+    ax_inset2.set_xticks(ticks = np.arange(-60, -50, 20), labels = [])
+    ax_inset2.set_xticks(ticks = np.arange(-75, -50, 5), labels = [], minor = True)
+    ax_inset2.set_xlim([-75, -50])
+    
+    # y
+    ax_inset2.set_yticks(ticks = np.arange(-10, 10, 10), labels = [])
+    ax_inset2.set_yticks(ticks = np.arange(-10, 10, 2), labels = [], minor = True)
+    ax_inset2.set_ylim([-10, 10])
+    
+     
     # remove inset spines
     [ax_inset.spines[spine].set_visible(False) for spine in ['top', 'right']]
+    [ax_inset2.spines[spine].set_visible(False) for spine in ['top', 'right']]
     
     # remove spines
     [ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
-
+    
     # create saving path and save
     from parameters.directories_win import vplot_dir
     path_fig = join(vplot_dir, 'cc_IF', 'rheobase_1stAP')

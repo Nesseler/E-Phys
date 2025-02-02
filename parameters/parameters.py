@@ -18,7 +18,7 @@ min_peak_prominence = 40 #(mV)
 min_peak_distance = 1 #ms
 
 dvdt_threshold = 5
-dvdt_n_threshold = -1
+dvdt_n_threshold = -3
 
 
 AP_parameters = ['v_peaks',
