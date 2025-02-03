@@ -515,7 +515,8 @@ def apply_axis_settings(ax, axis = 'y',
         axis : str, default is 'y'. Specifies axis that is edited.
         min : float, default is 0
         max : float, default is 100
-        pad : float, default is 1
+        pad : float, default is 1, if set to None pad will be calculated as 1 %
+              of range between min and max
         step : float, default is 10,
         stepminor : float, default is 10,
         label : string, default is 'label [unit]'
@@ -529,6 +530,10 @@ def apply_axis_settings(ax, axis = 'y',
         ticks = np.arange(ax_min, ax_max+ stepminor, step)
         
     ticksminor = np.arange(ax_min, ax_max+ stepminor, stepminor)
+    
+    # set padding as 1 % 
+    if not pad:
+        pad = (abs(ax_min) + abs(ax_max)) / 100
     
     if axis == 'y':
         ax.set_ylim([ax_min - pad, ax_max + pad])    

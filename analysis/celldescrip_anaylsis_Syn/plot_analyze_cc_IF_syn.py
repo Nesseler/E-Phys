@@ -54,7 +54,8 @@ def plot_full_IF(cell_ID, t, v, i, i_input, gradient = True):
                             layout = 'constrained',
                             figsize = get_figure_size(width = 160, height = 100),
                             sharex = True,
-                            height_ratios = [1, 5])
+                            height_ratios = [1, 5],
+                            dpi = 300)
     
     # set axis title
     axs[0].set_title(f'{cell_ID} cc_IF',
@@ -226,7 +227,8 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     fig, axs = plt.subplots(nrows = 1,
                             ncols = 2,
                             layout = 'constrained',
-                            figsize = get_figure_size(width = 200, height = 100))
+                            figsize = get_figure_size(width = 200, height = 100),
+                            dpi = 300)
     
     # set axis
     ax = axs[0]
@@ -328,9 +330,23 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     
     apply_axis_settings(ax, axis = 'y', **dvdt_dict)
     
-    # add inset
+    # inset marker
+    box_xmin   = -75
+    box_width  = 30 
+    box_ymin   = -10
+    box_height = 20
+    
+    # add rectangle marker
+    ax.add_patch(Rectangle(xy = (box_xmin, box_ymin), 
+                           width = box_width, 
+                           height = box_height,
+                           fill = False,
+                           color = colors_dict['primecolor'],
+                           linestyle = '--',
+                           lw = 0.5))
+    
     ## ([left, bottom, width, height]), percentages
-    ax_inset2 = fig.add_axes([0.625, 0.73, 0.13, 0.2])
+    ax_inset2 = fig.add_axes([0.632, 0.79, 0.13, 0.145])
     
     
     # plot full trace
@@ -340,19 +356,18 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     
     # plot rheobase spike
     ax_inset2.plot(rheospike_v, rheospike_dvdt,
-                  color = '#FFEC9DFF',
-                  lw = 0.5)
+                   color = '#FFEC9DFF',
+                   lw = 1)
     
     # x
-    ax_inset2.set_xticks(ticks = np.arange(-60, -50, 20), labels = [])
-    ax_inset2.set_xticks(ticks = np.arange(-75, -50, 5), labels = [], minor = True)
-    ax_inset2.set_xlim([-75, -50])
+    ax_inset2.set_xticks(ticks = np.arange(box_xmin, box_xmin + box_width, 20), labels = [])
+    ax_inset2.set_xticks(ticks = np.arange(box_xmin, box_xmin + box_width, 5), labels = [], minor = True)
+    ax_inset2.set_xlim([box_xmin, box_xmin + box_width])
     
     # y
-    ax_inset2.set_yticks(ticks = np.arange(-10, 10, 10), labels = [])
-    ax_inset2.set_yticks(ticks = np.arange(-10, 10, 2), labels = [], minor = True)
-    ax_inset2.set_ylim([-10, 10])
-    
+    ax_inset2.set_yticks(ticks = np.arange(box_ymin, box_ymin + box_height, 10), labels = [])
+    ax_inset2.set_yticks(ticks = np.arange(box_ymin, box_ymin + box_height, 2), labels = [], minor = True)
+    ax_inset2.set_ylim([box_ymin, box_ymin + box_height])
      
     # remove inset spines
     [ax_inset.spines[spine].set_visible(False) for spine in ['top', 'right']]
@@ -438,8 +453,8 @@ def plot_adaptation(cell_ID, t_full, v_full,
     fig, axs = plt.subplot_mosaic('ABIK;CDIK;EFJL;GHJL',
                                   layout='tight',
                                   figsize=get_figure_size(),
-                                  width_ratios=[3, 1.2, 3, 3]
-                                  )
+                                  width_ratios=[3, 1.2, 3, 3],
+                                  dpi = 300)
     
     # set figure title
     fig.suptitle(f'{cell_ID} frequency adaptation')

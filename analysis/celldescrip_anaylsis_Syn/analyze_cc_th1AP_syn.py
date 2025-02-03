@@ -37,9 +37,33 @@ cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = sheet_name)
         
 # %% define output
 
-idc_spikes = []
+th1AP_rheobase = pd.DataFrame(columns = ['rheobase_abs', 'rheobase_rel'],
+                              index = cell_IDs)
+th1AP_rheobase.index.name = 'cell_IDs'
+
+from parameters.parameters import AP_parameters
+rheospike_params = pd.DataFrame(columns = AP_parameters,
+                                index = cell_IDs)
+rheospike_params.index.name = 'cell_IDs'
+
 
 # %% check for new cells to be analyzed
+
+# load anaylsis worksheet
+from parameters.directories_win import table_file
+analyzed = pd.read_excel(table_file,
+                         sheet_name = 'analyzed',
+                         index_col = 'cell_ID')
+
+# get list of cell_IDs already analyzed
+analyzed_cell_IDs = analyzed.loc[analyzed[PGF].notna()][PGF].index.to_list()
+
+# redefine cell_IDs list
+cell_IDs = [cell_ID for cell_ID in cell_IDs if cell_ID not in analyzed_cell_IDs]
+
+# raise error
+if len(cell_IDs) == 0:
+    raise ValueError('Nothing new to analyze!')
 
 
 # %% initialize plotting and verificaiton plots
@@ -51,12 +75,12 @@ from functions.initialize_plotting import *
 vplots = True
 if vplots:
     # load plotting functions
-    from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_th1AP_syn import plot_full_th1AP
+    from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_th1AP_syn import plot_full_th1AP, plot_rheospike
 
 
 # %% load
 
-cell_IDs = ['E-213']
+# cell_IDs = ['E-213']
 
 for cell_ID in tqdm(cell_IDs):
 
@@ -71,12 +95,9 @@ for cell_ID in tqdm(cell_IDs):
     v = merge_filter_split_steps(v, SR)
     
     # limit time and voltage to stimulation period
-    idc_stim = cc_th1Ap_parameters['idc_stim']
     v_full = np.copy(v)
     t_full = np.copy(t)
-    v_stim = v_full[:, idc_stim]
-    t_stim = t_full[idc_stim]
-    
+
     # calc dvdt for all steps
     dvdt_full = np.empty_like(v_full)
     for step in range(n_steps):
@@ -89,7 +110,7 @@ for cell_ID in tqdm(cell_IDs):
                                         sheet_name = sheet_name,
                                         parameters = cc_th1Ap_parameters)
     
-    if vplots:
+    if True:
         plot_full_th1AP(cell_ID, 
                         t = t_full, 
                         v = v_full, 
@@ -98,11 +119,19 @@ for cell_ID in tqdm(cell_IDs):
         
 # %% spike detection
 
+    idc_spikes = []
+    
+    # limit range for spike detection 
+    idc_detection = np.arange(cc_th1Ap_parameters['t_pre'] * (SR / 1e3), cc_th1Ap_parameters['t_pre'] + cc_th1Ap_parameters['t_stim']*2, dtype=int)
+
     # iterate through steps
     for step in range(n_steps):
         
         # define voltage trace for step
         v_step = v_full[step]
+        
+        # limit range for spike detection
+        v_step_spike = v_step[idc_detection]
         
         # define current 
         i_step = i_input[step]
@@ -123,6 +152,18 @@ for cell_ID in tqdm(cell_IDs):
 
     # get rheobase step
     idx_rheo = next(idx for idx, idc_spike in enumerate(idc_spikes) if idc_spike > 0)
+    
+    # get voltage and dvdt
+    v_rheo = v_full[idx_rheo]
+    dvdt_rheo = dvdt_full[idx_rheo]
+    
+    # get input currents
+    i_hold = i_calc[0][0]
+    i_rheo_abs = i_input[idx_rheo]
+    i_rheo_rel = i_rheo_abs - i_hold
+    
+    # write to dataframe
+    th1AP_rheobase.loc[cell_ID, ['rheobase_abs', 'rheobase_rel']] = [i_rheo_abs, i_rheo_rel]
 
     # get AP parameters of first spike
     spike_params, _ = get_AP_parameters(t_spiketrain = t, 
@@ -136,19 +177,59 @@ for cell_ID in tqdm(cell_IDs):
                                                     v = v_full[idx_rheo], 
                                                     dvdt = dvdt_full[idx_rheo],
                                                     idx_peak = idc_spikes[idx_rheo])
-        
+    
+    # write to dataframe
+    rheospike_params.loc[cell_ID, :] = spike_params.loc[0, :]
+    
     # first spike vplot        
+    if vplots:
+        plot_rheospike(cell_ID, 
+                       t = t_full, 
+                       v = v_rheo, 
+                       dvdt = dvdt_rheo, 
+                       spike_t = spike_t, 
+                       spike_v = spike_v, 
+                       spike_dvdt = spike_dvdt)
+        
+
+# %% saving
+
+print('saving...')
+
+# tobe saved
+export_vars = {'rheobase' : th1AP_rheobase, 
+               'rheobasespike_parameters' : rheospike_params}
+
+export_prefix = 'cc_th1AP-syn-'
+export_extension = '.xlsx'
 
 
-# save
+for export_name, export_var in export_vars.items():
+    
+    rows = export_var.index.to_list()
+    cols = export_var.columns.to_list()
+    index_label = export_var.index.name
+    
+    # try loading and writing or create new file
+    try:
+        loaded_export_var = pd.read_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension),
+                                          index_col = index_label)
+        
+        # find out how to combine both dataframes
+        loaded_export_var.loc[rows, cols] = export_var.loc[rows, cols].values
+        
+        # save activity dataframe
+        loaded_export_var.to_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension), 
+                                   index_label=index_label)
+    
+    except FileNotFoundError:
+        # save activity dataframe
+        export_var.to_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension), 
+                            index_label=index_label)
 
-# compare to rheobase AP
 
-# for step in range(n_steps):
-#     plt.plot(v_full[step], dvdt_full[step])
+# %% update analyzed cells
 
-
-step = idx_rheo
-
-plt.plot(v_full[step], dvdt_full[step])
-plt.plot(spike_v, spike_dvdt)
+from functions.update_database import update_analyzed_sheet
+    
+update_analyzed_sheet(cell_IDs, PGF = PGF)

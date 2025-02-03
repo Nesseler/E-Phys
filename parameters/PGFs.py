@@ -81,7 +81,18 @@ cc_sag_parameters = {'t_pre' : 250, #ms
                      'i_delta' : 10, #pA
                      'i_start' : -100, #pA
                      'max_n_steps' : 21,
-                     'v_hold_pre' : -85} #mV
+                     'v_hold_pre' : -85, #mV
+                     'SR' : 50000,
+                     't' : np.arange(0, 1500, 1 / (50000/1e3)),
+                     'idc_stim' : np.arange(250 * (50000/1e3), (1000 + 250) * (50000/1e3), dtype = int)} 
+
+
+cc_sag_syn_parameters = {'t_pre' : 250, #ms
+                         't_stim' : 1000, #ms
+                         't_post' : 250, #ms
+                         'SR' : 50000,
+                         't' : np.arange(0, 1500, 1 / (50000/1e3)),
+                         'idc_stim' : np.arange(250 * (50000/1e3), (1000 + 250) * (50000/1e3), dtype = int)} 
 
 # %% vc_rest_EPSC_parameters
 

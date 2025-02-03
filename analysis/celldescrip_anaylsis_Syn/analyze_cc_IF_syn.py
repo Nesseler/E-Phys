@@ -97,7 +97,8 @@ if vplots:
     
 # %% load
 
-# cell_IDs = ['E-300']
+# 223, 276, 300, 315
+# cell_IDs = ['E-223']
 
 for cell_ID in tqdm(cell_IDs):
 
@@ -113,6 +114,12 @@ for cell_ID in tqdm(cell_IDs):
     
     # limit time and voltage to stimulation period
     idc_stim = cc_IF_syn_parameters['idc_stim']
+    
+    # add 100 ms after stimulation period to include APs at the end of the step
+    t_additional = 50 #ms
+    idc_additional = np.arange(idc_stim[-1] +1, idc_stim[-1] +1 + (t_additional * (SR/1e3)), dtype = int)
+    idc_stim = np.append(idc_stim, idc_additional)
+    
     v_full = np.copy(v)
     t_full = np.copy(t)
     v_stim = v_full[:, idc_stim]
@@ -176,7 +183,7 @@ for cell_ID in tqdm(cell_IDs):
             init_spikes = [t_spike for t_spike in t_spikes if t_spike <= t_init_inst_freq]
             
             # check for spikes in initial time frame
-            if len(init_spikes) > 1:
+            if len(init_spikes) > 2:
                 # calc ISIs
                 init_ISIs = np.diff(init_spikes)
             
@@ -267,13 +274,19 @@ for cell_ID in tqdm(cell_IDs):
     if IF_inst_init[cell_ID].dropna().shape[0] == 1:
         i_maxinitinstfreq    = IF_inst_init[cell_ID].dropna().index.values[0]
         idx_maxinitinstfreq  = np.where(IF[cell_ID].dropna().index == i_maxinitinstfreq)[0][0]
+    
+    # condition for E-223
+    elif IF_inst_init[cell_ID].dropna().shape[0] == 0:
+        i_maxinitinstfreq    = IF_inst[cell_ID].dropna().index.values[0]
+        idx_maxinitinstfreq  = np.where(IF[cell_ID].dropna().index == i_maxinitinstfreq)[0][0]
+        
     else:
         i_maxinitinstfreq   = IF_inst_init[cell_ID].dropna().index[IF_inst_init[cell_ID].dropna().argmax()]
         idx_maxinitinstfreq = np.where((IF[cell_ID].dropna().index == i_maxinitinstfreq) == True)[0][0]
         
     v_maxinitinstfreq    = v_stim[idx_maxinitinstfreq]
     dvdt_maxinitinstfreq = calc_dvdt_padded(v_maxinitinstfreq, t_stim)
-    
+        
     
     # step half-way between rheobase and max inst initial freq
     idx_halfmax  = int(((idx_maxinitinstfreq - idx_rheo) / 2) + idx_rheo)
@@ -419,10 +432,6 @@ export_prefix = 'cc_IF-syn-'
 export_extension = '.xlsx'
 
 
-# def export_vars_to_celldescriptors(export_vars_dict, export_prefix, export_extension, index_label):
-    
-#     from parameters.directories_win import cell_descrip_syn_dir
-
 for export_name, export_var in export_vars.items():
     
     rows = export_var.index.to_list()
@@ -447,11 +456,9 @@ for export_name, export_var in export_vars.items():
                             index_label=index_label)
 
 
-# export_vars_to_celldescriptors(export_vars_cols, export_prefix, export_extension, 'i_input')
 
 # %% update analyzed cells
 
 from functions.update_database import update_analyzed_sheet
     
-
 update_analyzed_sheet(cell_IDs, PGF = PGF)
