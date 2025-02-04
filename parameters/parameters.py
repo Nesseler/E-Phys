@@ -8,18 +8,7 @@ Parameters files
     contains hard coded variables for analysis
 """
 
-
-# cc_APs
-cc_APs_t_post_stim = 10 # in ms
-
-
-# set parameters to find peaks
-min_peak_prominence = 40 #(mV)
-min_peak_distance = 1 #ms
-
-dvdt_threshold = 5
-dvdt_n_threshold = -3
-
+# %% list of spike parameters
 
 AP_parameters = ['v_peaks',
                  't_peaks',
@@ -39,6 +28,48 @@ AP_parameters = ['v_peaks',
                   't1_HM',
                   't2_HM']
 
+# %% cc_IF
+
+# spikes
+
+# set parameters to find peaks
+min_peak_prominence_ccIF = 33 #(mV)
+min_peak_distance_ccIF = 1 #ms
+min_max_peak_width_ccIF = [0.5, 10]
+dvdt_threshold = 5
+dvdt_n_threshold = -3
+
+# time period for initial inst freq
+t_init_inst_freq = 100 # ms
+
+# number of spikes to calculate the initial instant. firing rate
+# n_APs_initial_inst_freq = 3
+
+# cc_IF adapation
+
+# initial guesses for linear fit in ISIs
+adaptation_popt_guess_linear_ISIs = [-1, 25]
+adaptation_n_lastspikes = 4
+
+# cc_sag / cc_IF passive properties
+# set a guess for exponential fit
+popt_guess = [50, 0.01, -100]
+
+# useful step r_squared threshold
+r_squared_thresh = 0.98
+
+# useful step v_min threshold
+v_expfit_thresh = -117
+
+# t_expo_fit = 150. #ms
+
+
+# %% cc_APs
+
+# time post stimulation for spike detection
+cc_APs_t_post_stim = 10 # in ms
+
+
 # %% cnt_rest
 
 min_spikes_tobe_active = 2
@@ -46,39 +77,5 @@ min_spikes_tobe_active = 2
 min_spike_in_burst = 4
 
 bin_size_ISI_poisson = 25e-3
-
-
-
-# %% cc_IF
-# number of spikes to calculate the initial instant. firing rate
-n_APs_initial_inst_freq = 3
-
-# time period for initial inst freq
-t_init_inst_freq = 100 # ms
-
-t_expo_fit = 150. #ms
-
-# set a guess for exponential fit
-popt_guess = [50, 0.01, -100]
-
-# useful step r_squared threshold
-r_squared_thresh = 0.9
-
-# useful step v_min threshold
-v_expfit_thresh = -115
-
-# set parameters to find peaks
-min_peak_prominence_ccIF = 33 #(mV)
-min_peak_distance_ccIF = 1 #ms
-min_max_peak_width_ccIF = [0.5, 10]
-
-
-# cc_IF adapation
-
-# initial guesses for linear fit in ISIs
-adaptation_popt_guess_linear_ISIs = [-1, 25]
-
-adaptation_n_lastspikes = 4
-
 
 

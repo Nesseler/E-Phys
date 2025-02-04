@@ -90,7 +90,7 @@ def create_cc_rest_vplot(cell_ID, t, vf, vf_wo_spikes, t_spikes, v_rest):
     
     # create saving path and save
     from parameters.directories_win import vplot_dir
-    path_fig = join(vplot_dir, 'cc_rest')
+    path_fig = join(vplot_dir, 'cc_rest-v_rest')
     save_figures(fig, f'{cell_ID}-v_rest', path_fig, darkmode_bool, figure_format='png')
     
     # display figure

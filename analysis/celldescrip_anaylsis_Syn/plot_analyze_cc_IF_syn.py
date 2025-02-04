@@ -121,7 +121,7 @@ def plot_full_IF(cell_ID, t, v, i, i_input, gradient = True):
     
     # create saving path and save
     from parameters.directories_win import vplot_dir
-    path_fig = join(vplot_dir, 'cc_IF', 'traces')
+    path_fig = join(vplot_dir, 'cc_IF-traces')
     save_figures(fig, f'{cell_ID}-cc_IF', path_fig, darkmode_bool, figure_format='png')
     
     # display figure
@@ -378,8 +378,8 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     
     # create saving path and save
     from parameters.directories_win import vplot_dir
-    path_fig = join(vplot_dir, 'cc_IF', 'rheobase_1stAP')
-    save_figures(fig, f'{cell_ID}-cc_IF-rheobase_1stAP', path_fig, darkmode_bool, figure_format='png')
+    path_fig = join(vplot_dir, 'cc_IF-rheobase_spike')
+    save_figures(fig, f'{cell_ID}-cc_IF-rheobase_spike', path_fig, darkmode_bool, figure_format='png')
     
     # display figure
     plt.show()
@@ -784,7 +784,7 @@ def plot_adaptation(cell_ID, t_full, v_full,
     
     # create saving path and save
     from parameters.directories_win import vplot_dir
-    path_fig = join(vplot_dir, 'cc_IF', 'adaptation')
+    path_fig = join(vplot_dir, 'cc_IF-adaptation')
     save_figures(fig, f'{cell_ID}-cc_IF-adaptation', path_fig, darkmode_bool, figure_format='png')
         
     # display figure

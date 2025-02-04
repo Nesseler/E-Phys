@@ -21,7 +21,7 @@ colors_dict, region_colors = get_colors(darkmode_bool)
 blkr_colors = get_blkr_colors(darkmode_bool)
 
 # set font size
-mtl.rcParams.update({'font.size': 9})
+mtl.rcParams.update({'font.size': 6})
 
 
 

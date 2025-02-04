@@ -36,7 +36,8 @@ cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = sheet_name)
 # %% define output
 
 # passive properties
-
+passive_properties = pd.DataFrame(columns=['r_input', 'tau_mem', 'c_mem'], 
+                                  index = cell_IDs)
 
 # %% check for new cells to be analyzed
 
@@ -50,16 +51,16 @@ from functions.initialize_plotting import *
 vplots = True
 if vplots:
     # load plotting functions
-    from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_sag_syn import plot_full_sag, plot_passiv_props_calc
+    from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_sag_syn import plot_full_sag, plot_passive_props_calc
 
   
     
 # %% load
 
-# to check: E-231, 236
-cell_IDs = ['E-236']
+# to check: E-231, 236, 248, 290
+# cell_IDs = ['E-317']
 
-for cell_ID in cell_IDs:
+for cell_ID in tqdm(cell_IDs):
 
     # load IF protocol
     # get the traceIndex and the file path string for data import functions
@@ -86,7 +87,7 @@ for cell_ID in cell_IDs:
                                         sheet_name = sheet_name,
                                         parameters = PGF_parameters)
     
-    if False:
+    if vplots:
         plot_full_sag(cell_ID, 
                       t = t_full, 
                       v = v_full, 
@@ -182,17 +183,25 @@ for cell_ID in cell_IDs:
         # write measurements to dataframe
         passive_props_calcs.loc[step, :] = [r_input, tau_mem, c_mem, v_min, idx_vmin, t_vmin, popt, r_squared, useable_step]
         
-        # get first 3 useful steps
-        passive_props_calcs = passive_props_calcs.query('useable == 1').head(3)
+    # get first 3 useful steps
+    passive_props_calcs = passive_props_calcs.query('useable == 1').head(3)
+    
+    # raise warning if less than three steps are usable
+    if passive_props_calcs.shape[0] < 3:
+        warnings.warn(f'{cell_ID} used less than 3 hyperpolarising steps for passive properties!')
 
-
-    # TODO: get mean of measurements and write to export dataframe        
-
+    # get passive properties as means of first 3 useable steps
+    passive_properties['r_input'] = passive_props_calcs['r_input'].mean()
+    passive_properties['tau_mem'] = passive_props_calcs['tau_mem'].mean()
+    passive_properties['c_mem']   = passive_props_calcs['c_mem'].mean()
+    
     if vplots:
-        plot_passiv_props_calc(cell_ID,
-                               t_full,
-                               v_full,
-                               t_stim,
-                               v_stim,
-                               passive_props_calcs,
-                               SR)
+        plot_passive_props_calc(cell_ID,
+                                t_full,
+                                v_full,
+                                t_stim,
+                                v_stim,
+                                passive_props_calcs,
+                                SR)
+        
+# %% 

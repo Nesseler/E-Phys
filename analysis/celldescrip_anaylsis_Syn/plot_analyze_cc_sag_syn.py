@@ -127,7 +127,7 @@ def plot_full_sag(cell_ID, t, v, i, i_input, gradient = True):
     
     # create saving path and save
     from parameters.directories_win import vplot_dir
-    path_fig = join(vplot_dir, 'cc_sag', 'traces')
+    path_fig = join(vplot_dir, 'cc_sag-traces')
     save_figures(fig, f'{cell_ID}-cc_sag', path_fig, darkmode_bool, figure_format='png')
     
     # display figure
@@ -137,7 +137,7 @@ def plot_full_sag(cell_ID, t, v, i, i_input, gradient = True):
 # %% passive properties verification plot
 
 
-def plot_passiv_props_calc(cell_ID, t_full, v_full, t_stim, v_stim, passive_props_calcs, SR):
+def plot_passive_props_calc(cell_ID, t_full, v_full, t_stim, v_stim, passive_props_calcs, SR):
     '''
     This function creates a figure displaying the hyperpolarising steps for 
     the calculation of passive membrane properties.
@@ -153,7 +153,8 @@ def plot_passiv_props_calc(cell_ID, t_full, v_full, t_stim, v_stim, passive_prop
     '''
 
     from functions.functions_useful import exp_func
-
+    from parameters.parameters import v_expfit_thresh
+    
     # init figure and axes
     fig, axs = plt.subplots(nrows = 2,
                             ncols = 3,
@@ -167,14 +168,24 @@ def plot_passiv_props_calc(cell_ID, t_full, v_full, t_stim, v_stim, passive_prop
     fig.suptitle(f'{cell_ID} passive properties measurements',
                  fontsize = 9)
     
+    # x
+    xdict = {'ax_min' : 0,
+             'ax_max' : 1500,
+             'pad' : None,
+             'step' : 500,
+             'stepminor' : 100,
+             'label' : ''}
+    
+    # y
+    ydict = {'ax_min' : -150,
+             'ax_max' : -75,
+             'pad' : None,
+             'step' : 20,
+             'stepminor' : 5,
+             'label' : ''}
+    
     # iterate through useable steps
-    for step in passive_props_calcs.index:
-        
-        # get popt for step
-        popt = passive_props_calcs.at[step, 'popt']
-        
-        # index of voltag minimum
-        idx_vmin = passive_props_calcs.at[step, 'idx_vmin']
+    for step in np.arange(1, 7, dtype = int):
         
         # flatten axes array
         axs = axs.flatten()
@@ -194,27 +205,15 @@ def plot_passiv_props_calc(cell_ID, t_full, v_full, t_stim, v_stim, passive_prop
                 lw = 0.5,
                 color = colors_dict['primecolor'])
         
-        # plot trace to min
-        ax.plot(t_stim[:idx_vmin], v_stim[step][:idx_vmin],
-                lw = 0.75,
-                color = colors_dict['color3'],
-                linestyle = 'solid')
-               
-        # plot exponential fit
-        ax.plot(t_stim, exp_func(np.arange(0, 1000 * (SR/1e3)), *popt),
-                lw = 0.5,
-                color = colors_dict['color2'],
-                linestyle = 'dashed')
-    
         # add inset
         # inset marker
         box_xmin   = 240
         box_width  = 250 
-        box_ymin   = -115
-        box_height = 35
+        box_ymin   = v_expfit_thresh
+        box_height = 40
            
         ## ([left, bottom, width, height]), percentages
-        ax_inset = ax.inset_axes([0.10, 0.05, 0.6, 0.40],
+        ax_inset = ax.inset_axes([0.07, 0.05, 0.55, 0.35],
                                  xlim=(box_xmin, box_xmin+box_width), 
                                  ylim=(box_ymin, box_ymin+box_height), 
                                  xticklabels=[], 
@@ -236,26 +235,11 @@ def plot_passiv_props_calc(cell_ID, t_full, v_full, t_stim, v_stim, passive_prop
                                lw = 0.5,
                                alpha = 0.5))
         
-        # set axis
-        ax = ax_inset
-        
         # plot
-        ax.plot(t_full, v_full[step],
-                lw = 0.5,
-                color = colors_dict['primecolor'])
-        
-        # plot trace to min
-        ax.plot(t_stim[:idx_vmin], v_stim[step][:idx_vmin],
-                lw = 0.75,
-                color = colors_dict['color3'],
-                linestyle = 'solid')
-            
-        # plot exponential fit
-        ax.plot(t_stim, exp_func(np.arange(0, 1000 * (SR/1e3)), *popt),
-                lw = 0.5,
-                color = colors_dict['color2'],
-                linestyle = 'dashed')
-        
+        ax_inset.plot(t_full, v_full[step],
+                      lw = 0.5,
+                    color = colors_dict['primecolor'])
+           
         # x
         ax_inset.set_xticks(ticks = np.arange(box_xmin, box_xmin + box_width, 500), labels = [])
         ax_inset.set_xticks(ticks = np.arange(box_xmin, box_xmin + box_width, 50), labels = [], minor = True)
@@ -269,36 +253,69 @@ def plot_passiv_props_calc(cell_ID, t_full, v_full, t_stim, v_stim, passive_prop
         # remove inset spines
         [ax_inset.spines[spine].set_visible(False) for spine in ['top', 'right']]
         
-        # TODO: add text of measurements
+        # add measurements to plot if step can be used       
+        if step in passive_props_calcs.index:
+            # get popt for step
+            popt = passive_props_calcs.at[step, 'popt']
+            
+            # index of voltag minimum
+            idx_vmin = passive_props_calcs.at[step, 'idx_vmin']
+            
+            # plot trace to min
+            ax.plot(t_stim[:idx_vmin], v_stim[step][:idx_vmin],
+                    lw = 0.75,
+                    color = 'gray',
+                    linestyle = 'solid')
+                   
+            # plot exponential fit
+            ax.plot(t_stim, exp_func(np.arange(0, 1000 * (SR/1e3)), *popt),
+                    lw = 0.5,
+                    color = colors_dict['color2'],
+                    linestyle = 'dashed')
+            
+            # plot trace to min
+            ax_inset.plot(t_stim[:idx_vmin], v_stim[step][:idx_vmin],
+                          lw = 0.75,
+                          color = 'gray',
+                          linestyle = 'solid')
+                
+            # plot exponential fit
+            ax_inset.plot(t_stim, exp_func(np.arange(0, 1000 * (SR/1e3)), *popt),
+                          lw = 0.5,
+                          color = colors_dict['color2'],
+                          linestyle = 'dashed')
+            
+            # add text
+            ax.text(x = xdict['ax_max'],
+                    y = ydict['ax_min'],
+                    s = f'r_input: {round(passive_props_calcs.at[step, "r_input"], 2)} MOhm\ntau_mem: {round(passive_props_calcs.at[step, "tau_mem"], 2)} ms\nc_mem: {round(passive_props_calcs.at[step, "c_mem"], 2)} pF\n$r^2$: {round(passive_props_calcs.at[step, "r_squared"], 4)}\npopt0: {round(popt[0], 3)}\npopt1: {round(popt[1], 5)}\npopt2: {round(popt[2], 3)}',
+                    ha = 'right', va = 'bottom',
+                    fontsize = 3)
         
-    
-    # x
-    xdict = {'ax_min' : 0,
-             'ax_max' : 1500,
-             'pad' : None,
-             'step' : 500,
-             'stepminor' : 100,
-             'label' : ''}
-    
     [apply_axis_settings(ax, axis = 'x', **xdict) for ax in axs]
-    
-    # y
-    ydict = {'ax_min' : -150,
-             'ax_max' : -75,
-             'pad' : None,
-             'step' : 20,
-             'stepminor' : 5,
-             'label' : ''}
     
     [apply_axis_settings(ax, axis = 'y', **ydict) for ax in axs]
     
     # remove spines
     [ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
     
+    # remove axis
+    # for ax in axs[:3]:
+    remove_spines_n_ticks(axs = axs[:3], axis = 'x')
+    remove_spines_n_ticks(axs = axs[1:3], axis = 'y')
+    remove_spines_n_ticks(axs = axs[4:6], axis = 'y')
+    
+    # set axis labels
+    fig.supylabel('Membrane potential [mV]')
+    fig.supxlabel('Time [ms]')
+    
     # align labels
     fig.align_labels()
     
-    # TODO: saving
+    # create saving path and save
+    from parameters.directories_win import vplot_dir
+    path_fig = join(vplot_dir, 'cc_sag-passive_properties')
+    save_figures(fig, f'{cell_ID}-cc_sag-passive_properties', path_fig, darkmode_bool, figure_format='png')
     
     # display figure
     plt.show()

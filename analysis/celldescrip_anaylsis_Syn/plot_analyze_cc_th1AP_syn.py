@@ -125,7 +125,7 @@ def plot_full_th1AP(cell_ID, t, v, i, i_input, gradient = True):
     
     # create saving path and save
     from parameters.directories_win import vplot_dir
-    path_fig = join(vplot_dir, 'cc_th1AP', 'traces')
+    path_fig = join(vplot_dir, 'cc_th1AP-traces')
     save_figures(fig, f'{cell_ID}-cc_th1AP', path_fig, darkmode_bool, figure_format='png')
     
     # display figure
@@ -274,7 +274,7 @@ def plot_rheospike(cell_ID, t, v, dvdt, spike_t, spike_v, spike_dvdt):
     
     # create saving path and save
     from parameters.directories_win import vplot_dir
-    path_fig = join(vplot_dir, 'cc_th1AP', 'rheobase_spike')
+    path_fig = join(vplot_dir, 'cc_th1AP-rheobase_spike')
     save_figures(fig, f'{cell_ID}-cc_th1AP-rheobase_spike', path_fig, darkmode_bool, figure_format='png')
     
     # display figure
