@@ -5,6 +5,9 @@ Created on Thu Feb  8 10:51:40 2024
 @author: nesseler
 """
 
+import warnings
+warnings.warn('Script not up-to-date!')
+# %%
 
 import pandas as pd
 import matplotlib.pyplot as plt

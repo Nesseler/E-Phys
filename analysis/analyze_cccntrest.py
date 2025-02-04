@@ -5,6 +5,10 @@ Created on Wed Jan 31 09:41:30 2024
 @author: nesseler
 """
 
+import warnings
+warnings.warn('Script not up-to-date!')
+# %%
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np

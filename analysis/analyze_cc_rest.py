@@ -6,6 +6,10 @@ Created on Thu Oct 26 14:02:40 2023
 @author: moritznesseler
 """
 
+import warnings
+warnings.warn('Script not up-to-date!')
+# %%
+
 import pandas as pd
 import numpy as np
 import os.path

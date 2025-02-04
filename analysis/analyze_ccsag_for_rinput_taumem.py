@@ -5,12 +5,10 @@ Created on Wed Mar 13 15:55:49 2024
 @author: nesseler
 """
 
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Feb 21 09:16:29 2024
 
-@author: nesseler
-"""
+import warnings
+warnings.warn('Script not up-to-date!')
+# %%
 
 import os
 import pandas as pd

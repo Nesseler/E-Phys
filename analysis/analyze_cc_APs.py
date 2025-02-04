@@ -12,6 +12,11 @@ plots and save them to the vplots directory.
 
 """
 
+
+import warnings
+warnings.warn('Script not up-to-date!')
+# %%
+
 import os
 import pandas as pd
 import matplotlib.pyplot as plt

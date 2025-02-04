@@ -4,6 +4,11 @@ Created on Fri Jan 19 18:41:12 2024
 
 @author: nesseler
 """
+
+import warnings
+warnings.warn('Script not up-to-date!')
+# %%
+
 import os
 import pandas as pd
 import matplotlib.pyplot as plt

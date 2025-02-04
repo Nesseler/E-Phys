@@ -16,6 +16,7 @@ from functions.get_cell_IDs import get_cell_IDs_one_protocol
 from functions.functions_import import get_cc_data, get_traceIndex_n_file
 from functions.functions_filter import merge_filter_split_steps
 from functions.functions_useful import calc_dvdt_padded, exp_func, calc_rsquared_from_exp_fit
+from functions.functions_extractspike import extract_spike, get_AP_parameters
 
 # PGF specific
 from parameters.PGFs import cc_sag_syn_parameters as PGF_parameters
@@ -38,6 +39,22 @@ cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = sheet_name)
 # passive properties
 passive_properties = pd.DataFrame(columns=['r_input', 'tau_mem', 'c_mem'], 
                                   index = cell_IDs)
+passive_properties.index.name = 'cell_IDs'
+
+# sag properties
+sag_properties = pd.DataFrame(columns=['sagdelta', 
+                                       'n_reboundspikes', 
+                                       'reboundspike_t_peak', 
+                                       'reboundspike_t_threshold',
+                                       'reboundspike_v_threshold',
+                                       'reboundspike_v_amplitude',
+                                       'reboundspike_t_toPeak',
+                                       'reboundspike_t_rise',
+                                       'reboundspike_FWHM',
+                                       'reboundspike_AHP_amplitude'], 
+                              index = cell_IDs)
+sag_properties.index.name = 'cell_IDs'
+
 
 # %% check for new cells to be analyzed
 
@@ -51,14 +68,14 @@ from functions.initialize_plotting import *
 vplots = True
 if vplots:
     # load plotting functions
-    from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_sag_syn import plot_full_sag, plot_passive_props_calc
+    from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_sag_syn import plot_full_sag, plot_passive_props_calc, plot_sag_n_reboundspikes
 
   
     
 # %% load
 
-# to check: E-231, 236, 248, 290
-# cell_IDs = ['E-317']
+# to check: E-231, 236, 248, 290, 213, 258
+# cell_IDs = ['E-214']
 
 for cell_ID in tqdm(cell_IDs):
 
@@ -96,8 +113,8 @@ for cell_ID in tqdm(cell_IDs):
     
 # %% passive properties
 
-    passive_props_calcs = pd.DataFrame(columns = ['r_input', 'tau_mem', 'c_mem', 'v_min', 'idx_vmin', 't_vmin', 'popt', 'r_squared', 'useable'],
-                                       index = np.arange(1, n_steps, dtype = int))
+    passive_props_calcs_steps = pd.DataFrame(columns = ['r_input', 'tau_mem', 'c_mem', 'v_min', 'idx_vmin', 't_vmin', 'popt', 'r_squared', 'useable'],
+                                             index = np.arange(1, n_steps, dtype = int))
     
     for step in np.arange(1, n_steps, dtype = int):
     
@@ -143,7 +160,7 @@ for cell_ID in tqdm(cell_IDs):
     
     
         ### INPUT RESISTANCE    
-        # U=R*I -> R = ΔU / ΔI
+        # U = R * I -> R = ΔU / ΔI
     
         # calculate r input in MOhm
         r_input = (delta_v / delta_i) * 1e3
@@ -181,19 +198,19 @@ for cell_ID in tqdm(cell_IDs):
             useable_step = 0
         
         # write measurements to dataframe
-        passive_props_calcs.loc[step, :] = [r_input, tau_mem, c_mem, v_min, idx_vmin, t_vmin, popt, r_squared, useable_step]
+        passive_props_calcs_steps.loc[step, :] = [r_input, tau_mem, c_mem, v_min, idx_vmin, t_vmin, popt, r_squared, useable_step]
         
     # get first 3 useful steps
-    passive_props_calcs = passive_props_calcs.query('useable == 1').head(3)
+    passive_props_calcs = passive_props_calcs_steps.query('useable == 1').head(3)
     
     # raise warning if less than three steps are usable
     if passive_props_calcs.shape[0] < 3:
         warnings.warn(f'{cell_ID} used less than 3 hyperpolarising steps for passive properties!')
 
     # get passive properties as means of first 3 useable steps
-    passive_properties['r_input'] = passive_props_calcs['r_input'].mean()
-    passive_properties['tau_mem'] = passive_props_calcs['tau_mem'].mean()
-    passive_properties['c_mem']   = passive_props_calcs['c_mem'].mean()
+    passive_properties.at[cell_ID, 'r_input'] = passive_props_calcs['r_input'].mean()
+    passive_properties.at[cell_ID, 'tau_mem'] = passive_props_calcs['tau_mem'].mean()
+    passive_properties.at[cell_ID, 'c_mem']   = passive_props_calcs['c_mem'].mean()
     
     if vplots:
         plot_passive_props_calc(cell_ID,
@@ -204,4 +221,163 @@ for cell_ID in tqdm(cell_IDs):
                                 passive_props_calcs,
                                 SR)
         
-# %% 
+# %% sag potential 
+
+    # sag deltas
+    sagdeltas = pd.DataFrame(columns=['v_min', 't_vmin', 'sagdelta', 'v_steadystate'], 
+                             index = np.arange(1, n_steps, dtype = int))
+    sagdeltas.index.name = 'step_idx'
+
+    # steady state
+    from parameters.parameters import perc_step_steadystate
+    
+    # get indices for steady state
+    idc_steadystate = idc_stim[-(int(len(idc_stim)*perc_step_steadystate)):]
+
+    # calculate sag delta for each step
+    for step in np.arange(1, n_steps, dtype = int):
+        
+        # get vmin
+        v_min = passive_props_calcs_steps.at[step, 'v_min']
+        tv_min = passive_props_calcs_steps.at[step, 't_vmin']
+        
+        # get steady-state voltage
+        v_steady = v_full[step][idc_steadystate]
+        
+        # get mean of steady-state
+        v_steadystate = np.mean(v_steady)
+        
+        # calc sag delta
+        sagdelta = np.absolute(v_steadystate - v_min)
+        
+        # write to dataframe
+        sagdeltas.loc[step, ['v_min', 't_vmin', 'sagdelta', 'v_steadystate']] = [v_min, t_vmin, sagdelta, v_steadystate]
+    
+    # get sagdelta for cell
+    from parameters.parameters import min_potential_for_sag, cc_sag_holding_potential
+
+    # get input resistance of cell
+    r_input = passive_properties.at[cell_ID, 'r_input'] 
+    
+    # # calc current necessary to hyperpolarize cell to min_potential_for_sag (-130 mV)
+    # # U = R * I -> ΔI = ΔU / R
+    # delta_i_sag = (np.absolute(cc_sag_holding_potential - min_potential_for_sag) / r_input) *1e3 # pA
+    
+    # get first step where the local minimum of the step surpasses min_potential_for_sag
+    sag_step = passive_props_calcs_steps[passive_props_calcs_steps['v_min'] < min_potential_for_sag].index.values[0]
+
+    # get sagdelta
+    sagdelta = sagdeltas.at[sag_step, 'sagdelta']
+    
+    # write to dataframe
+    sag_properties.at[cell_ID, 'sagdelta'] = sagdelta
+
+    
+# %% reboundspike
+
+    from parameters.parameters import min_peak_prominence_ccIF, min_peak_distance_ccIF, min_max_peak_width_ccIF
+    from parameters.parameters import AP_parameters
+    
+    # sag_step = 5
+
+    # get indices for post-stim period
+    idc_post = np.arange((PGF_parameters['t_pre'] + PGF_parameters['t_stim']) * (SR/1e3),
+                         (PGF_parameters['t_pre'] + PGF_parameters['t_stim'] + PGF_parameters['t_post']) * (SR/1e3),
+                         dtype = int)
+
+    # get voltage trace for post period
+    vsag_post = v_full[sag_step][idc_post]
+    t_post = t_full[idc_post]
+    dvdt_post = calc_dvdt_padded(vsag_post, t_post)
+
+    # detect reboundspike
+    idc_spikes, dict_spikes = sc.signal.find_peaks(vsag_post, 
+                                                   prominence = min_peak_prominence_ccIF, 
+                                                   distance = min_peak_distance_ccIF * (SR/1e3),
+                                                   width = np.multiply(min_max_peak_width_ccIF, (SR/1e3)))
+    
+    # calculate spike times in seconds
+    t_spikes = np.divide(idc_spikes, (SR/1e3)) + PGF_parameters['t_pre'] + PGF_parameters['t_stim']
+
+    
+    # measure reboundspike if present
+    if len(idc_spikes) > 0:
+        
+        # get reboundspike
+        _, reboundspike_t, reboundspike_v, reboundspike_dvdt = extract_spike(t_post, vsag_post, dvdt_post, idc_spikes[0])
+        
+        # measure the rheobase spike
+        reboundspike_params, _ = get_AP_parameters(t_post, vsag_post, dvdt_post, [idc_spikes[0]])
+        
+    else:
+        # create the same empty dataframe
+        reboundspike_params = pd.DataFrame(columns = AP_parameters, index = [0])
+        reboundspike_t = np.nan 
+        reboundspike_v = np.nan
+        reboundspike_dvdt = np.nan
+        
+    # write to dataframe
+    sag_properties.at[cell_ID, 'n_reboundspikes']            = len(idc_spikes)
+    sag_properties.at[cell_ID, 'reboundspike_t_peak']        = reboundspike_params.at[0, 't_peaks']
+    sag_properties.at[cell_ID, 'reboundspike_t_threshold']   = reboundspike_params.at[0, 't_threshold']
+    sag_properties.at[cell_ID, 'reboundspike_v_threshold']   = reboundspike_params.at[0, 'v_threshold']
+    sag_properties.at[cell_ID, 'reboundspike_v_amplitude']   = reboundspike_params.at[0, 'v_amplitude']
+    sag_properties.at[cell_ID, 'reboundspike_t_toPeak']      = reboundspike_params.at[0, 't_toPeak']
+    sag_properties.at[cell_ID, 'reboundspike_t_rise']        = reboundspike_params.at[0, 't_rise']
+    sag_properties.at[cell_ID, 'reboundspike_FWHM']          = reboundspike_params.at[0, 'FWHM']
+    sag_properties.at[cell_ID, 'reboundspike_AHP_amplitude'] = reboundspike_params.at[0, 'v_AHP_amplitude']
+    
+    # verification plot
+    if vplots:
+        plot_sag_n_reboundspikes(cell_ID, 
+                                 t_full, 
+                                 v_full, 
+                                 sag_step, 
+                                 sagdeltas, 
+                                 t_spikes, 
+                                 idc_post, 
+                                 vsag_post, 
+                                 dvdt_post,
+                                 reboundspike_t, 
+                                 reboundspike_v,
+                                 reboundspike_dvdt)
+                                        
+    # save sagdeltas per cell
+    from parameters.directories_win import quant_data_dir
+    sagdeltas.to_excel(join(quant_data_dir, 'cc_sag-sagdeltas', f'{cell_ID}-sagdeltas.xlsx'),
+                       index_label = 'step_idx')
+    
+# %% saving
+
+print('\nsaving...')
+
+# tobe saved
+export_vars = {'passive_properties' : passive_properties, 
+               'sag_properties' : sag_properties}
+
+export_prefix = 'cc_sag-syn-'
+export_extension = '.xlsx'
+
+
+for export_name, export_var in export_vars.items():
+    
+    rows = export_var.index.to_list()
+    cols = export_var.columns.to_list()
+    index_label = export_var.index.name
+    
+    # try loading and writing or create new file
+    try:
+        loaded_export_var = pd.read_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension),
+                                          index_col = index_label)
+        
+        # find out how to combine both dataframes
+        loaded_export_var.loc[rows, cols] = export_var.loc[rows, cols].values
+        
+        # save activity dataframe
+        loaded_export_var.to_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension), 
+                                    index_label=index_label)
+    
+    except FileNotFoundError:
+        # save activity dataframe
+        export_var.to_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension), 
+                            index_label=index_label)

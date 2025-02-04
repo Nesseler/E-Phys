@@ -533,7 +533,7 @@ def apply_axis_settings(ax, axis = 'y',
     
     # set padding as 1 % 
     if not pad:
-        pad = (abs(ax_min) + abs(ax_max)) / 100
+        pad = abs(ax_max - ax_min) / 100
     
     if axis == 'y':
         ax.set_ylim([ax_min - pad, ax_max + pad])    

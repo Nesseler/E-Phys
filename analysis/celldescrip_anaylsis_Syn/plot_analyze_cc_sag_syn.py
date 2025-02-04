@@ -319,3 +319,300 @@ def plot_passive_props_calc(cell_ID, t_full, v_full, t_stim, v_stim, passive_pro
     
     # display figure
     plt.show()
+    
+    
+# %% sag potential verification plot
+
+def plot_sag_n_reboundspikes(cell_ID, t_full, v_full, sag_step, sagdeltas, t_spikes, idc_post, vsag_post, dvdt_post, reboundspike_t, reboundspike_v, reboundspike_dvdt):
+    '''
+    This functions creates the verifcation plot for the analysis of the HCN
+    activating step in cc_sag.
+    Parameters:
+        cell_ID: str, like 'E-303', unifque cell identifier
+        t_full: numpy array, time dimension
+        v_full: numpy nd array, voltage traces for all steps
+        sag_step: int, step index for sag step
+        sagdeltas: pandas dataframe, describing sag measurements
+        t_spikes: list of floats, spike times of reboundspikes
+        idc_post: list of ints, indices for post-stimulus time period
+        vsag_post: numpy array, voltage trace for post-stimulus
+        dvdt_post: numpy array, first derivative of the voltage trace for post-stimulus
+        reboundspike_t: numpy array, time dimension of reboundspike
+        reboundspike_v: numpy array, voltage trace of reboundspike
+        reboundspike_dvdt: numpy array, first derivative of the voltage trace of reboundspike        
+    '''
+    from parameters.PGFs import cc_sag_syn_parameters as PGF_parameters
+    from parameters.parameters import perc_step_steadystate
+    from parameters.parameters import min_potential_for_sag
+    
+    # init figure and axes
+    fig, axs = plt.subplots(nrows = 1,
+                            ncols = 2,
+                            layout = 'constrained',
+                            figsize = get_figure_size(width = 160, height = 100),
+                            width_ratios = [2, 1.2],
+                            dpi = 300)
+    
+    # set figure title
+    fig.suptitle(f'{cell_ID} sag',
+              fontsize = 9)
+    
+    # set axis
+    ax = axs[0]
+    
+    # set axis title
+    ax.set_title(f'sag potential step (step {sag_step})',
+                  fontsize=6, 
+                  loc='left',
+                  x = 0.01,
+                  y = 0.975)
+    
+    # plot
+    ax.plot(t_full, v_full[sag_step],
+            lw = 0.5,
+            color = colors_dict['primecolor'])
+    
+    # sag horizontal line
+    ax.hlines(y = sagdeltas.at[sag_step, 'v_min'], 
+              xmin = sagdeltas.at[sag_step, 't_vmin'], 
+              xmax = PGF_parameters['t_pre'] + PGF_parameters['t_stim'], 
+              colors = colors_dict['color3'],
+              lw = 0.75)
+    
+    # sag delta vertical line
+    ax.vlines(x = PGF_parameters['t_pre'] + PGF_parameters['t_stim'] * (1 - (perc_step_steadystate/2)),
+              ymin = sagdeltas.at[sag_step, 'v_min'],
+              ymax = sagdeltas.at[sag_step, 'v_steadystate'],
+              colors = colors_dict['color3'], 
+              lw = 0.75)
+    
+    # steadystate horizontal line
+    ax.hlines(y = sagdeltas.at[sag_step, 'v_steadystate'], 
+              xmin = PGF_parameters['t_pre'] + PGF_parameters['t_stim'] * (1 - (perc_step_steadystate)), 
+              xmax = PGF_parameters['t_pre'] + PGF_parameters['t_stim'], 
+              colors = colors_dict['color3'],
+              lw = 0.75)
+    
+    # reboundspikes eventplot
+    ax.eventplot(t_spikes, 
+                 orientation = 'horizontal', 
+                 lineoffsets = 46, 
+                 linelengths= 4,
+                 linewidths = 1,
+                 color = colors_dict['color3'])
+    
+    # edit axis
+    # y
+    ydict = {'ax_min' : -150,
+              'ax_max' : 50,
+              'pad' : None,
+              'step' : 50,
+              'stepminor' : 5,
+              'label' : ''}
+    
+    apply_axis_settings(ax, axis = 'y', **ydict)
+    
+    # x
+    xdict = {'ax_min' : 0,
+              'ax_max' : 1500,
+              'pad' : None,
+              'step' : 250,
+              'stepminor' : 50,
+              'label' : ''}
+    
+    apply_axis_settings(ax, axis = 'x', **xdict)
+    
+    
+    # sag inset
+    
+    # inset marker
+    box_xmin   = 250
+    box_width  = 1000 
+    box_ymin   = min_potential_for_sag - 10
+    box_height = 35
+       
+    ## ([left, bottom, width, height]), percentages
+    ax_inset = ax.inset_axes([0.08, 0.50, 0.65, 0.42],
+                              xlim=(box_xmin, box_xmin+box_width), 
+                              ylim=(box_ymin, box_ymin+box_height), 
+                              xticklabels=[], 
+                              yticklabels=[])
+    
+    # edit linewidth of inset axis and its ticks
+    [ax_inset.spines[spine].set_linewidth(0.5) for spine in ['left', 'bottom']]
+    ax_inset.tick_params(width=0.5)
+    ax_inset.tick_params(which = 'minor', width=0.25)
+    
+    # add rectangle marker
+    ax.add_patch(Rectangle(xy = (box_xmin, box_ymin), 
+                            width = box_width, 
+                            height = box_height,
+                            fill = False,
+                            color = colors_dict['primecolor'],
+                            linestyle = '--',
+                            lw = 0.5,
+                            alpha = 0.5))
+    
+    # plot
+    ax_inset.plot(t_full, v_full[sag_step],
+                  lw = 0.5,
+                  color = colors_dict['primecolor'])
+    
+    # sag horizontal line
+    ax_inset.hlines(y = sagdeltas.at[sag_step, 'v_min'], 
+                    xmin = sagdeltas.at[sag_step, 't_vmin'], 
+                    xmax = PGF_parameters['t_pre'] + PGF_parameters['t_stim'], 
+                    colors = colors_dict['color3'],
+                    lw = 0.75)
+    
+    # sag delta vertical line
+    ax_inset.vlines(x = PGF_parameters['t_pre'] + PGF_parameters['t_stim'] * (1 - (perc_step_steadystate/2)),
+                    ymin = sagdeltas.at[sag_step, 'v_min'],
+                    ymax = sagdeltas.at[sag_step, 'v_steadystate'],
+                    colors = colors_dict['color3'], 
+                    lw = 0.75)
+    
+    # steadystate horizontal line
+    ax_inset.hlines(y = sagdeltas.at[sag_step, 'v_steadystate'], 
+                    xmin = PGF_parameters['t_pre'] + PGF_parameters['t_stim'] * (1 - (perc_step_steadystate)), 
+                    xmax = PGF_parameters['t_pre'] + PGF_parameters['t_stim'], 
+                    colors = colors_dict['color3'],
+                    lw = 0.75)
+       
+    # x
+    ax_inset.set_xticks(ticks = np.arange(0, 1500, 250), labels = [])
+    ax_inset.set_xticks(ticks = np.arange(0, 1500, 50), labels = [], minor = True)
+    ax_inset.set_xlim([box_xmin, box_xmin + box_width])
+    
+    # y
+    ax_inset.set_yticks(ticks = np.arange(-140, 50, 10), labels = [])
+    ax_inset.set_yticks(ticks = np.arange(-150, 50, 5), labels = [], minor = True)
+    ax_inset.set_ylim([box_ymin, box_ymin + box_height])
+    
+    # remove inset spines
+    [ax_inset.spines[spine].set_visible(False) for spine in ['top', 'right']]
+    
+    
+    # add text
+    ax_inset.text(x = PGF_parameters['t_pre'] + PGF_parameters['t_stim'],
+                  y = box_ymin +0.5,
+                  s = f'sagdelta: {round(sagdeltas.at[sag_step, "sagdelta"], 2)} mV\n v_min: {round(sagdeltas.at[sag_step, "v_min"], 2)} mV\n v_steady: {round(sagdeltas.at[sag_step, "v_steadystate"], 2)} mV',
+                  ha = 'right', va = 'bottom',
+                  fontsize = 4)
+    
+    
+    # # # rebound spike # # #
+    
+    # x
+    xdict = {'ax_min' : 1250,
+              'ax_max' : 1400,
+              'pad' : None,
+              'step' : 50,
+              'stepminor' : 10,
+              'label' : ''}
+    
+    # add rectangle marker
+    ax.add_patch(Rectangle(xy = (xdict['ax_min'], -150), 
+                            width = xdict['ax_max'] - xdict['ax_min'], 
+                            height = 200,
+                            fill = False,
+                            color = colors_dict['primecolor'],
+                            linestyle = '--',
+                            lw = 0.5,
+                            alpha = 0.5))
+    # set axis
+    ax = axs[1]
+    
+    # set axis title
+    ax.set_title(f'reboundspike',
+                  fontsize=6, 
+                  loc='left',
+                  x = 0.01,
+                  y = 0.975)
+    
+    # plot
+    ax.plot(t_full[idc_post], v_full[sag_step][idc_post],
+            lw = 0.5,
+            color = colors_dict['primecolor'])
+    
+    ax.plot(reboundspike_t, reboundspike_v,
+            lw = 0.5,
+            color = colors_dict['color3'])
+    
+    # reboundspikes eventplot
+    ax.eventplot(t_spikes, 
+                  orientation = 'horizontal', 
+                  lineoffsets = 46, 
+                  linelengths= 4,
+                  linewidths = 1,
+                  color = colors_dict['color3'])
+    
+    # edit axis
+    # y
+    apply_axis_settings(ax, axis = 'y', **ydict)
+    
+    
+    apply_axis_settings(ax, axis = 'x', **xdict)
+    
+    
+    # phaseplane inset
+    
+    # inset marker
+    box_xmin   = -150
+    box_width  = 200 
+    box_ymin   = -150
+    box_height = 400
+       
+    ## ([left, bottom, width, height]), percentages
+    ax_inset2 = ax.inset_axes([0.4, 0.05, 0.55, 0.26],
+                              xlim=(box_xmin, box_xmin+box_width), 
+                              ylim=(box_ymin, box_ymin+box_height), 
+                              xticklabels=[], 
+                              yticklabels=[])
+    
+    # edit linewidth of inset axis and its ticks
+    [ax_inset2.spines[spine].set_linewidth(0.5) for spine in ['left', 'bottom']]
+    ax_inset2.tick_params(width=0.5)
+    ax_inset2.tick_params(which = 'minor', width=0.25)
+    
+    # plot
+    ax_inset2.plot(vsag_post, dvdt_post,
+                  lw = 0.5,
+                  color = colors_dict['primecolor'])
+    
+    ax_inset2.plot(reboundspike_v, reboundspike_dvdt,
+                   lw = 0.5,
+                   color = colors_dict['color3'])
+       
+    # x
+    ax_inset2.set_xticks(ticks = np.arange(-150, 50, 50), labels = [])
+    ax_inset2.set_xticks(ticks = np.arange(-150, 50, 10), labels = [], minor = True)
+    ax_inset2.set_xlim([box_xmin, box_xmin + box_width])
+    
+    # y
+    ax_inset2.set_yticks(ticks = np.arange(box_ymin, box_ymin+box_height, 100), labels = [])
+    ax_inset2.set_yticks(ticks = np.arange(box_ymin, box_ymin+box_height, 50), labels = [], minor = True)
+    ax_inset2.set_ylim([box_ymin, box_ymin + box_height])
+    
+    # remove inset spines
+    [ax_inset2.spines[spine].set_visible(False) for spine in ['top', 'right']]
+    
+    
+    # set axis labels
+    fig.supylabel('Membrane potential [mV]')
+    fig.supxlabel('Time [ms]')
+    
+    # align labels
+    fig.align_labels()
+    
+    # remove spines
+    [ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
+    
+    # create saving path and save
+    from parameters.directories_win import vplot_dir
+    path_fig = join(vplot_dir, 'cc_sag-sag')
+    save_figures(fig, f'{cell_ID}-cc_sag-sag', path_fig, darkmode_bool, figure_format='png')
+    
+    # display figure
+    plt.show()
+        
