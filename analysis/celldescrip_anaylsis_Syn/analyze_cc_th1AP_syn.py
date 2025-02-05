@@ -19,7 +19,7 @@ from functions.functions_useful import calc_dvdt_padded
 from functions.functions_extractspike import get_AP_parameters, extract_spike
 
 # spike detection
-from parameters.parameters import min_peak_prominence_ccIF, min_peak_distance_ccIF, min_max_peak_width_ccIF
+from parameters.parameters import min_peak_prominence, min_peak_distance, min_max_peak_width
 
 # PGF specific
 from parameters.PGFs import cc_th1Ap_parameters
@@ -39,12 +39,12 @@ cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = sheet_name)
 
 th1AP_rheobase = pd.DataFrame(columns = ['rheobase_abs', 'rheobase_rel'],
                               index = cell_IDs)
-th1AP_rheobase.index.name = 'cell_IDs'
+th1AP_rheobase.index.name = 'cell_ID'
 
 from parameters.parameters import AP_parameters
 rheospike_params = pd.DataFrame(columns = AP_parameters,
                                 index = cell_IDs)
-rheospike_params.index.name = 'cell_IDs'
+rheospike_params.index.name = 'cell_ID'
 
 
 # %% check for new cells to be analyzed
@@ -110,7 +110,7 @@ for cell_ID in tqdm(cell_IDs):
                                         sheet_name = sheet_name,
                                         parameters = cc_th1Ap_parameters)
     
-    if True:
+    if vplots:
         plot_full_th1AP(cell_ID, 
                         t = t_full, 
                         v = v_full, 
@@ -138,9 +138,9 @@ for cell_ID in tqdm(cell_IDs):
         
         # find peaks
         idc_spike, dict_spike = sc.signal.find_peaks(v_step, 
-                                                     prominence = min_peak_prominence_ccIF, 
-                                                     distance = min_peak_distance_ccIF * (SR/1e3),
-                                                     width = np.multiply(min_max_peak_width_ccIF, (SR/1e3)))        
+                                                     prominence = min_peak_prominence, 
+                                                     distance = min_peak_distance * (SR/1e3),
+                                                     width = np.multiply(min_max_peak_width, (SR/1e3)))        
         
         # write to list
         if len(idc_spike) > 0:
@@ -159,8 +159,8 @@ for cell_ID in tqdm(cell_IDs):
     
     # get input currents
     i_hold = i_calc[0][0]
-    i_rheo_abs = i_input[idx_rheo]
-    i_rheo_rel = i_rheo_abs - i_hold
+    i_rheo_abs = np.int64(i_input[idx_rheo])
+    i_rheo_rel = np.int64(i_rheo_abs - i_hold)
     
     # write to dataframe
     th1AP_rheobase.loc[cell_ID, ['rheobase_abs', 'rheobase_rel']] = [i_rheo_abs, i_rheo_rel]
@@ -194,38 +194,18 @@ for cell_ID in tqdm(cell_IDs):
 
 # %% saving
 
-print('saving...')
+# print('\nsaving...')
 
 # tobe saved
 export_vars = {'rheobase' : th1AP_rheobase, 
                'rheobasespike_parameters' : rheospike_params}
 
 export_prefix = 'cc_th1AP-syn-'
-export_extension = '.xlsx'
 
+# get export function
+from functions.functions_export import write_exportvars_to_excel
 
-for export_name, export_var in export_vars.items():
-    
-    rows = export_var.index.to_list()
-    cols = export_var.columns.to_list()
-    index_label = export_var.index.name
-    
-    # try loading and writing or create new file
-    try:
-        loaded_export_var = pd.read_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension),
-                                          index_col = index_label)
-        
-        # find out how to combine both dataframes
-        loaded_export_var.loc[rows, cols] = export_var.loc[rows, cols].values
-        
-        # save activity dataframe
-        loaded_export_var.to_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension), 
-                                   index_label=index_label)
-    
-    except FileNotFoundError:
-        # save activity dataframe
-        export_var.to_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension), 
-                            index_label=index_label)
+write_exportvars_to_excel(export_vars, export_prefix)
 
 
 # %% update analyzed cells

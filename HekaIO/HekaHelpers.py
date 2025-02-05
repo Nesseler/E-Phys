@@ -137,9 +137,9 @@ class HekaBundleInfo(object):
                 idx_[3] = t  ## change sweeep level index
                 data_ = self.getSingleTraceData(idx_)
                 if len(data_) != nSamples:
-                    print(
-                        "Sweep:", sweep, "Trace:", t + 1, "# of samples: ", len(data_)
-                    )
+                    # print(
+                    #     "Sweep:", sweep, "Trace:", t + 1, "# of samples: ", len(data_)
+                    # )
                     data_ = 0  # np.nan
                 data[:, t, sweep] = data_
 

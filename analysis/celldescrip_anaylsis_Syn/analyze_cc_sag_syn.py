@@ -39,7 +39,7 @@ cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = sheet_name)
 # passive properties
 passive_properties = pd.DataFrame(columns=['r_input', 'tau_mem', 'c_mem'], 
                                   index = cell_IDs)
-passive_properties.index.name = 'cell_IDs'
+passive_properties.index.name = 'cell_ID'
 
 # sag properties
 sag_properties = pd.DataFrame(columns=['sagdelta', 
@@ -53,10 +53,26 @@ sag_properties = pd.DataFrame(columns=['sagdelta',
                                        'reboundspike_FWHM',
                                        'reboundspike_AHP_amplitude'], 
                               index = cell_IDs)
-sag_properties.index.name = 'cell_IDs'
+sag_properties.index.name = 'cell_ID'
 
 
 # %% check for new cells to be analyzed
+
+# load anaylsis worksheet
+from parameters.directories_win import table_file
+analyzed = pd.read_excel(table_file,
+                         sheet_name = 'analyzed',
+                         index_col = 'cell_ID')
+
+# get list of cell_IDs already analyzed
+analyzed_cell_IDs = analyzed.loc[analyzed[PGF].notna()][PGF].index.to_list()
+
+# redefine cell_IDs list
+cell_IDs = [cell_ID for cell_ID in cell_IDs if cell_ID not in analyzed_cell_IDs]
+
+# raise error
+if len(cell_IDs) == 0:
+    raise ValueError('Nothing new to analyze!')
 
 
 # %% initialize plotting and verificaiton plots
@@ -275,7 +291,7 @@ for cell_ID in tqdm(cell_IDs):
     
 # %% reboundspike
 
-    from parameters.parameters import min_peak_prominence_ccIF, min_peak_distance_ccIF, min_max_peak_width_ccIF
+    from parameters.parameters import min_peak_prominence, min_peak_distance, min_max_peak_width
     from parameters.parameters import AP_parameters
     
     # sag_step = 5
@@ -292,9 +308,9 @@ for cell_ID in tqdm(cell_IDs):
 
     # detect reboundspike
     idc_spikes, dict_spikes = sc.signal.find_peaks(vsag_post, 
-                                                   prominence = min_peak_prominence_ccIF, 
-                                                   distance = min_peak_distance_ccIF * (SR/1e3),
-                                                   width = np.multiply(min_max_peak_width_ccIF, (SR/1e3)))
+                                                   prominence = min_peak_prominence, 
+                                                   distance = min_peak_distance * (SR/1e3),
+                                                   width = np.multiply(min_max_peak_width, (SR/1e3)))
     
     # calculate spike times in seconds
     t_spikes = np.divide(idc_spikes, (SR/1e3)) + PGF_parameters['t_pre'] + PGF_parameters['t_stim']
@@ -349,35 +365,22 @@ for cell_ID in tqdm(cell_IDs):
     
 # %% saving
 
-print('\nsaving...')
+# print('\nsaving...')
 
 # tobe saved
-export_vars = {'passive_properties' : passive_properties, 
-               'sag_properties' : sag_properties}
+export_vars = {'sag_properties' : sag_properties,
+               'passive_properties' : passive_properties}
 
 export_prefix = 'cc_sag-syn-'
-export_extension = '.xlsx'
+
+# get export function
+from functions.functions_export import write_exportvars_to_excel
+
+write_exportvars_to_excel(export_vars, export_prefix)
 
 
-for export_name, export_var in export_vars.items():
+# %% update analyzed cells
+
+from functions.update_database import update_analyzed_sheet
     
-    rows = export_var.index.to_list()
-    cols = export_var.columns.to_list()
-    index_label = export_var.index.name
-    
-    # try loading and writing or create new file
-    try:
-        loaded_export_var = pd.read_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension),
-                                          index_col = index_label)
-        
-        # find out how to combine both dataframes
-        loaded_export_var.loc[rows, cols] = export_var.loc[rows, cols].values
-        
-        # save activity dataframe
-        loaded_export_var.to_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension), 
-                                    index_label=index_label)
-    
-    except FileNotFoundError:
-        # save activity dataframe
-        export_var.to_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension), 
-                            index_label=index_label)
+update_analyzed_sheet(cell_IDs, PGF = PGF)

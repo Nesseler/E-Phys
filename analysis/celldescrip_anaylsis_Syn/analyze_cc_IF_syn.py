@@ -11,7 +11,7 @@ from functions.initialize_packages import *
 from parameters.directories_win import cell_descrip_syn_dir
 
 # spike detection
-from parameters.parameters import min_peak_prominence_ccIF, min_peak_distance_ccIF, min_max_peak_width_ccIF
+from parameters.parameters import min_peak_prominence, min_peak_distance, min_max_peak_width
 
 # IF characteristation
 from parameters.parameters import t_init_inst_freq
@@ -25,9 +25,9 @@ from functions.functions_useful import calc_dvdt_padded
 from functions.functions_extractspike import get_AP_parameters, extract_spike, get_spiketrain_n_ISI_parameter
 
 # PGF specific
-from parameters.PGFs import cc_IF_syn_parameters
-t = cc_IF_syn_parameters['t']
-SR = cc_IF_syn_parameters['SR']
+from parameters.PGFs import cc_IF_syn_parameters as PGF_parameters
+t = PGF_parameters['t']
+SR = PGF_parameters['SR']
     
 
 # define protocol
@@ -61,7 +61,7 @@ adaptation = pd.DataFrame(index = cell_IDs)
 
 # set index label
 for df in [IF_dict, IF_rheobase, adaptation]:
-    df.index.name = 'cell_IDs'
+    df.index.name = 'cell_ID'
 
 
 # %% check for new cells to be analyzed
@@ -113,7 +113,7 @@ for cell_ID in tqdm(cell_IDs):
     v = merge_filter_split_steps(v, SR)
     
     # limit time and voltage to stimulation period
-    idc_stim = cc_IF_syn_parameters['idc_stim']
+    idc_stim = PGF_parameters['idc_stim']
     
     # add 100 ms after stimulation period to include APs at the end of the step
     t_additional = 50 #ms
@@ -130,7 +130,7 @@ for cell_ID in tqdm(cell_IDs):
     i_calc, i_input = construct_I_array(cell_ID, n_steps,
                                         PGF = PGF,
                                         sheet_name = sheet_name,
-                                        parameters = cc_IF_syn_parameters)
+                                        parameters = PGF_parameters)
     
     if vplots:
         plot_full_IF(cell_ID, 
@@ -154,16 +154,16 @@ for cell_ID in tqdm(cell_IDs):
         
         # find peaks
         idc_spikes, dict_spikes = sc.signal.find_peaks(v_step, 
-                                                       prominence = min_peak_prominence_ccIF, 
-                                                       distance = min_peak_distance_ccIF * (SR/1e3),
-                                                       width = np.multiply(min_max_peak_width_ccIF, (SR/1e3)))
+                                                       prominence = min_peak_prominence, 
+                                                       distance = min_peak_distance * (SR/1e3),
+                                                       width = np.multiply(min_max_peak_width, (SR/1e3)))
             
         # calculate spike times in seconds
         t_spikes = np.divide(idc_spikes, (SR/1e3))
         n_spikes = len(t_spikes)
         
         # calc freq as number of APs over 1000 ms
-        freq = n_spikes / (cc_IF_syn_parameters['t_stim'] / 1e3)
+        freq = n_spikes / (PGF_parameters['t_stim'] / 1e3)
     
            
         # calculate ISI
@@ -207,7 +207,7 @@ for cell_ID in tqdm(cell_IDs):
         IF_inst.at[i_step, cell_ID] = inst_freq
         IF_inst_init.at[i_step, cell_ID] = init_inst_freq
         
-        if True:
+        if vplots:
             plot_IF_step_spike_detection(cell_ID,
                                          step, 
                                          t = t_stim,
@@ -230,14 +230,14 @@ for cell_ID in tqdm(cell_IDs):
     
     # get rheobase current
     i_hold = i_input[0]  
-    i_rheo_abs = i_input[idx_rheo]
-    i_rheo_rel = i_input[idx_rheo] - i_hold
+    i_rheo_abs = np.int64(i_input[idx_rheo])
+    i_rheo_rel = np.int64(i_input[idx_rheo] - i_hold)
     
     # find rheobase spike
     idc_spikes, dict_spikes = sc.signal.find_peaks(v_rheo, 
-                                                   prominence = min_peak_prominence_ccIF, 
-                                                   distance = min_peak_distance_ccIF * (SR/1e3),
-                                                   width = np.multiply(min_max_peak_width_ccIF, (SR/1e3)))
+                                                   prominence = min_peak_prominence, 
+                                                   distance = min_peak_distance * (SR/1e3),
+                                                   width = np.multiply(min_max_peak_width, (SR/1e3)))
     
     # get rheospike
     _, rheospike_t, rheospike_v, rheospike_dvdt = extract_spike(t_full, v_rheo, dvdt_rheo, idc_spikes[0])
@@ -245,7 +245,7 @@ for cell_ID in tqdm(cell_IDs):
     # measure the rheobase spike
     rheospike_params, _ = get_AP_parameters(t_full, v_rheo, dvdt_rheo, [idc_spikes[0]])
     
-    if True:
+    if vplots:
         plot_rheobase(cell_ID, 
                       idx_rheo,
                       t = t_full,
@@ -295,14 +295,14 @@ for cell_ID in tqdm(cell_IDs):
     i_halfmax    = i_input[idx_halfmax]
     
     # write to dataframe
-    IF_dict.at[cell_ID, 'i_rheobase']          = i_rheo_abs - i_hold
-    IF_dict.at[cell_ID, 'idx_rheobase']        = idx_rheo
-    IF_dict.at[cell_ID, 'i_maxfreq']           = i_maxfreq - i_hold
-    IF_dict.at[cell_ID, 'idx_maxfreq']         = idx_maxfreq
-    IF_dict.at[cell_ID, 'i_halfmax']           = i_halfmax - i_hold
-    IF_dict.at[cell_ID, 'idx_halfmax']         = idx_halfmax
-    IF_dict.at[cell_ID, 'i_maxinitinstfreq']   = i_maxinitinstfreq - i_hold
-    IF_dict.at[cell_ID, 'idx_maxinitinstfreq'] = idx_maxinitinstfreq
+    IF_dict.at[cell_ID, 'i_rheobase']          = np.int64(i_rheo_abs - i_hold)
+    IF_dict.at[cell_ID, 'idx_rheobase']        = np.int64(idx_rheo)
+    IF_dict.at[cell_ID, 'i_maxfreq']           = np.int64(i_maxfreq - i_hold)
+    IF_dict.at[cell_ID, 'idx_maxfreq']         = np.int64(idx_maxfreq)
+    IF_dict.at[cell_ID, 'i_halfmax']           = np.int64(i_halfmax - i_hold)
+    IF_dict.at[cell_ID, 'idx_halfmax']         = np.int64(idx_halfmax)
+    IF_dict.at[cell_ID, 'i_maxinitinstfreq']   = np.int64(i_maxinitinstfreq - i_hold)
+    IF_dict.at[cell_ID, 'idx_maxinitinstfreq'] = np.int64(idx_maxinitinstfreq)
 
         
     from functions.functions_extractspike import get_spiketrain_n_ISI_parameter
@@ -390,7 +390,7 @@ for cell_ID in tqdm(cell_IDs):
         freq_adaptation_incline_linearfit = freq_adaptation_incline_linearfit * 1e3
     
     else:
-        print(f'{cell_ID} linear fit not achieved. Number of spikes after 250 ms to low.')
+        # print(f'\n\t{cell_ID} linear fit not achieved. Number of spikes after 250 ms to low.')
         freq_adaptation_incline_linearfit = np.nan
         t_linfit = np.nan
         popt_adapfreq = np.nan
@@ -401,7 +401,7 @@ for cell_ID in tqdm(cell_IDs):
     adaptation.at[cell_ID, 'freq_adaptation_ratio'] = freq_adaptation_ratio
     adaptation.at[cell_ID, 'freq_adaptation_steadystate'] = freq_adaptation_incline_linearfit
     
-    if True:
+    if vplots:
         plot_adaptation(cell_ID, t_full, v_full, 
                         idx_rheo, idx_maxfreq, idx_halfmax, idx_maxinitinstfreq, 
                         IF, IF_inst_init, 
@@ -418,7 +418,7 @@ for cell_ID in tqdm(cell_IDs):
 
 # %% saving
 
-print('saving...')
+# print('\nsaving...')
 
 # tobe saved
 export_vars = {'IF' : IF, 
@@ -429,32 +429,11 @@ export_vars = {'IF' : IF,
                'adaptation' : adaptation}
 
 export_prefix = 'cc_IF-syn-'
-export_extension = '.xlsx'
 
+# get export function
+from functions.functions_export import write_exportvars_to_excel
 
-for export_name, export_var in export_vars.items():
-    
-    rows = export_var.index.to_list()
-    cols = export_var.columns.to_list()
-    index_label = export_var.index.name
-    
-    # try loading and writing or create new file
-    try:
-        loaded_export_var = pd.read_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension),
-                                          index_col = index_label)
-        
-        # find out how to combine both dataframes
-        loaded_export_var.loc[rows, cols] = export_var.loc[rows, cols].values
-        
-        # save activity dataframe
-        loaded_export_var.to_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension), 
-                                   index_label=index_label)
-    
-    except FileNotFoundError:
-        # save activity dataframe
-        export_var.to_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension), 
-                            index_label=index_label)
-
+write_exportvars_to_excel(export_vars, export_prefix)
 
 
 # %% update analyzed cells

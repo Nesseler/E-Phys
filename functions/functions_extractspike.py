@@ -262,7 +262,7 @@ def get_AP_parameters(t_spiketrain, v_spiketrain, dvdt_spiketrain, idc_spikes, S
 
     keys_ls = ['idx_peak_in_spiketrain',
                'v_peaks', 't_peaks', 
-               'v_threshold', 't_threshold', 'idc_threshold',
+               'v_threshold', 't_threshold', 'idx_threshold',
                'v_amplitude', 
                't_toPeak', 't_rise', 
                'FWHM', 'v_HM', 't1_HM', 't2_HM',
@@ -304,7 +304,7 @@ def get_AP_parameters(t_spiketrain, v_spiketrain, dvdt_spiketrain, idc_spikes, S
             
             # get index of threshold
             idx_threshold = spike_idc[0]
-            APs_dataframe.at[i, 'idc_threshold'] = idx_threshold
+            APs_dataframe.at[i, 'idx_threshold'] = idx_threshold
         
             # get voltage at threshold
             v_threshold = v_spiketrain[idx_threshold]
@@ -418,13 +418,13 @@ def get_spiketrain_n_ISI_parameter(t, v, dvdt, SR):
     '''
     
     # spike detection
-    from parameters.parameters import min_peak_prominence_ccIF, min_peak_distance_ccIF, min_max_peak_width_ccIF
+    from parameters.parameters import min_peak_prominence, min_peak_distance, min_max_peak_width
     
     # find peaks
     idc_spikes, _ = sc.signal.find_peaks(v,
-                                         prominence = min_peak_prominence_ccIF,
-                                         distance = min_peak_distance_ccIF * (SR/1e3),
-                                         width = np.multiply(min_max_peak_width_ccIF, (SR/1e3)))
+                                         prominence = min_peak_prominence,
+                                         distance = min_peak_distance * (SR/1e3),
+                                         width = np.multiply(min_max_peak_width, (SR/1e3)))
 
     # get AP parameters of first spike
     spike_params, _ = get_AP_parameters(t, v, dvdt, idc_spikes)

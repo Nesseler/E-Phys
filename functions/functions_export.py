@@ -1,59 +1,70 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jan 16 10:41:05 2024
+Created on Wed Feb 02 14:40:13 2025
 
 @author: nesseler
 """
  
 import pandas as pd
-import os
-
-# custom directories & parameters
-from parameters.directories_win import cell_descrip_dir, cell_descrip_file
+from os.path import join
 
 
-# test variables
-# n_APs_path = os.path.join(cell_descrip_dir, 'n_APs.xlsx')
-# add_df = pd.read_excel(n_APs_path, index_col = 'frequency')
-# add_header_ext = 'nAPs'
-
-# function to add additional parameter to cell descriptive values
-def set_df_to_cell_descrips(add_df, add_header_ext = ''):
+def write_exportvars_to_excel(export_vars, export_prefix):
     '''
-    Function gets dataframe that is to be added to the excel sheet containing
-    cell descriptive values. Additional extension to the header can be parsed 
-    if header alone is not self-explanatory.
+    This function takes export variables in the provided dictionary and
+    writes them to the corresponding excel files. If the file does not exist, 
+    a new version will be created. If that file does exist, the new values will
+    be concatnated if the values are not already included or written in the same
+    position if the values are alreay included.
     Parameters:
-        add_df : Dataframe that is to be added.
-        add_header_ext : String extension that will be added to the exsisting header.
-                          Default is '' (empty).
-    Returns:
-        nothing, excel file is changed.
+        export_vars: dict, containing the pandas dataframes for export and the
+                     name of their file as key.
+        export_prefix: str, prefix of filenames
     '''
-    
-    # get cell descriptor table
-    cells_df = pd.read_excel(cell_descrip_file, index_col = 'cell_ID')
-    
-    # test if index or header are cell_IDs
-    if add_df.columns[0][:2] == 'E-':
-        add_df = add_df.transpose()
-    
-    if add_header_ext != '':
-        # rename header elements when add_header_ext is parsed
-        rename_dict = {col_str: str(col_str) + '-' + add_header_ext for i, col_str in enumerate(add_df.columns)}
-        add_df = add_df.rename(columns = rename_dict)       
-        
-    # test if data is already contained in dataframe
-    if all(x in cells_df.columns.to_list() for x in add_df.columns.to_list()):
-        cells_df.update(add_df)
-        print('cell_descrips.xlsx has been updated')
-    else:
-        cells_df = pd.concat([cells_df, add_df], axis = 1)
-        print('cell_descrips.xlsx has been extended')
-    
-    # save dataframe to excel file 
-    cells_df.to_excel(cell_descrip_file, index_label='cell_ID')
 
+    # set filename extension to excel fileformat
+    export_extension = '.xlsx'
+    
+    from parameters.directories_win import cell_descrip_syn_dir
+    
+    for export_name, export_var in export_vars.items():
+        
+        # get index label
+        index_label = export_var.index.name
+        
+        # check for non unique cols
+        cols = export_var.nunique()[export_var.nunique() > 0].index.to_list()
+        
+        # use these columns to check for rows
+        if index_label == 'cell_ID':
+            rows = export_var.nunique(axis = 1)[export_var.nunique(axis = 1) > 0].index.to_list()
+            concat_axis = 0
+        else:
+            rows = export_var.index.to_list()
+            concat_axis = 1
+    
+        # try loading and writing or create new file
+        try:
+            loaded_export_var = pd.read_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension),
+                                              index_col = index_label)
+          
+            # break
+            try:
+                # combine both dataframes
+                loaded_export_var.loc[rows, cols] = export_var.loc[rows, cols].values
+    
+            # if values not yet in file, append/concat new values
+            except KeyError:
+                loaded_export_var = pd.concat([loaded_export_var, export_var.loc[rows, cols]], axis = concat_axis)
+                    
+            # save activity dataframe
+            loaded_export_var.to_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension), 
+                                        index_label=index_label)
+        
+        except FileNotFoundError:
+            # save activity dataframe
+            export_var.to_excel(join(cell_descrip_syn_dir, export_prefix + export_name + export_extension), 
+                                index_label=index_label)
 
 
 

@@ -21,7 +21,7 @@ AP_parameters = ['v_peaks',
                   't_AHP',
                   'idx_AHP',
                   'v_AHP_amplitude',
-                  't_to_AHP',
+                  't_toAHP',
                   't_rise',
                   'FWHM',
                   'v_HM',
@@ -33,9 +33,9 @@ AP_parameters = ['v_peaks',
 # spikes
 
 # set parameters to find peaks
-min_peak_prominence_ccIF = 33 #(mV)
-min_peak_distance_ccIF = 1 #ms
-min_max_peak_width_ccIF = [0.5, 10]
+min_peak_prominence = 33 #(mV)
+min_peak_distance = 1 #ms
+min_max_peak_width = [0.5, 10]
 dvdt_threshold = 5
 dvdt_n_threshold = -3
 

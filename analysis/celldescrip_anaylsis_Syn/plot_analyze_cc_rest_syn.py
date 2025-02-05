@@ -19,7 +19,8 @@ def create_cc_rest_vplot(cell_ID, t, vf, vf_wo_spikes, t_spikes, v_rest):
     fig, ax = plt.subplots(nrows = 1,
                            ncols = 1,
                            figsize = get_figure_size(width = 160, height = 100),
-                           layout = 'constrained')
+                           layout = 'constrained',
+                           dpi = 300)
     
     # set axis title
     ax.set_title(f'{cell_ID} cc_rest',

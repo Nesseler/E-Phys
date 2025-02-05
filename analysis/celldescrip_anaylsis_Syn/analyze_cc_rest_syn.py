@@ -31,9 +31,6 @@ cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = sheet_name)
 # get number of cells
 n_cells = len(cell_IDs)
 
-# init plotting
-from functions.initialize_plotting import *
-
 # define output
 activity_df = pd.DataFrame(index = cell_IDs, columns = ['v_rest', 'n_spikes', 't_spikes'])
 
@@ -57,14 +54,17 @@ if len(cell_IDs) == 0:
     raise ValueError('Nothing new to analyze!')
 
 
-# %%
+# %% initialize plotting and verificaiton plots
+
+# init plotting
+from functions.initialize_plotting import *
+
 # verification plots
 vplots = True
-
 if vplots:
-    
     # load plotting functions
     from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_rest_syn import create_cc_rest_vplot
+    
 
 # %% data loading
 
@@ -102,6 +102,7 @@ for cell_idx, cell_ID in enumerate(tqdm(cell_IDs)):
     v_df[cell_ID] = v
     vf_df[cell_ID] = vf
     SR_df.at[cell_ID, 'SR'] = SR
+    
     
 # %%
 
@@ -163,8 +164,7 @@ for cell_ID in tqdm(cell_IDs):
             spike_idc, _, _, _ = extract_spike(t = t_ms, 
                                                v = vf_df[cell_ID].to_numpy(), 
                                                dvdt = dvdt, 
-                                               idx_peak = spike_idx,
-                                               dvdt_n_threshold=dvdt_n_threshold)
+                                               idx_peak = spike_idx)
         
             # replace spike values with nans
             vf_wo_spikes[spike_idc] = np.nan
@@ -191,8 +191,6 @@ for cell_ID in tqdm(cell_IDs):
                              vf_wo_spikes, 
                              t_spikes, 
                              v_rest)
-            
-    
 
 
 # %% create dict with all, active and non-active cells
@@ -203,17 +201,31 @@ activity_df['activity'] = 'silent'
 # change activity value of spiking cells with n_spike > 0 to 'spiking'
 activity_df.loc[activity_df['n_spikes'] > 0, 'activity'] = 'spiking'
 
+
 # %% saving
 
+# print('\nsaving...')
 
-export_filename = 'cc_rest-syn-activity.xlsx'
+# tobe saved
+export_vars = {'activity' : activity_df}
+
+export_prefix = 'cc_rest-syn-'
+
+export_filename = export_prefix + 'activity.xlsx'
 
 try:
     loaded_activity_df = pd.read_excel(join(cell_descrip_syn_dir, export_filename),
-                                       index_col = 'cell_ID')
+                                        index_col = 'cell_ID')
+        
+    try:
+        # combine both dataframes
+        loaded_activity_df.loc[cell_IDs] = activity_df.loc[cell_IDs].values
+
     
-    # find out how to combine both dataframes
-    loaded_activity_df.loc[cell_IDs] = activity_df.loc[cell_IDs].values
+    # if values not yet in file, append/concat new values
+    except KeyError:
+        loaded_activity_df = pd.concat([loaded_activity_df, activity_df.loc[cell_IDs]])
+    
     
     # save activity dataframe
     loaded_activity_df.to_excel(join(cell_descrip_syn_dir, export_filename), 
@@ -222,18 +234,15 @@ try:
 except FileNotFoundError:
     # save activity dataframe
     activity_df.to_excel(join(cell_descrip_syn_dir, export_filename), 
-                         index_label='cell_ID')
-
+                          index_label='cell_ID')
 
 
 # %% update analyzed cells
 
 from functions.update_database import update_analyzed_sheet
     
-
 update_analyzed_sheet(cell_IDs, PGF = PGF)
 
 
 
-print('Finished!')
     
