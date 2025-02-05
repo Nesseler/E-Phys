@@ -254,4 +254,22 @@ def get_PSCs_steps(PGF = 'vc_Erest_3min_ctrl', cell_ID = 'E-304', sheet_name = '
     
 
 
+def get_MetaData(cell_IDs):
+    '''
+    This function loads the Metadata sheet and limits it to only the cell_IDs
+    specified in the cell_IDs list.
+    Parameters:
+        cell_IDs: list of str, list of cell_ID strings like 'E-313'
+    Returns:
+        MetaData: pandas Dataframe, containing the metadata
+    '''
+    
+    from parameters.directories_win import table_file
+    
+    MetaData = pd.read_excel(table_file,
+                             sheet_name="MetaData",
+                             index_col='cell_ID')
 
+    MetaData = MetaData.loc[cell_IDs, :]
+    
+    return MetaData

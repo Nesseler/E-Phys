@@ -15,6 +15,9 @@ import seaborn as sbn
 
 from functions.functions_plotting import save_figures, get_colors, get_figure_size, apply_axis_settings, plot_half_violin, get_blkr_colors, remove_spines_n_ticks
 
+# load axis settings
+from parameters.axis_settings import axis_dict
+
 # set colors
 darkmode_bool = True
 colors_dict, region_colors = get_colors(darkmode_bool)

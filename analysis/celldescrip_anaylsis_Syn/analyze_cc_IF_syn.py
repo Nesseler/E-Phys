@@ -132,6 +132,9 @@ for cell_ID in tqdm(cell_IDs):
                                         sheet_name = sheet_name,
                                         parameters = PGF_parameters)
     
+    # get i_hold
+    i_hold = i_input[0]
+    
     if vplots:
         plot_full_IF(cell_ID, 
                      t = t_full, 
@@ -139,7 +142,6 @@ for cell_ID in tqdm(cell_IDs):
                      i = i_calc, 
                      i_input = i_input)
         
-
 # %% spike detection
 
     # iterate through steps
@@ -229,7 +231,6 @@ for cell_ID in tqdm(cell_IDs):
     dvdt_rheo = calc_dvdt_padded(v_rheo, t_full)
     
     # get rheobase current
-    i_hold = i_input[0]  
     i_rheo_abs = np.int64(i_input[idx_rheo])
     i_rheo_rel = np.int64(i_input[idx_rheo] - i_hold)
     
@@ -440,4 +441,4 @@ write_exportvars_to_excel(export_vars, export_prefix)
 
 from functions.update_database import update_analyzed_sheet
     
-update_analyzed_sheet(cell_IDs, PGF = PGF)
+# update_analyzed_sheet(cell_IDs, PGF = PGF)

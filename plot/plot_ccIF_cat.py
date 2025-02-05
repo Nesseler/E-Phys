@@ -11,7 +11,7 @@ import seaborn as sbn
 import matplotlib.pyplot as plt
 import numpy as np
 
-from functions.functions_plotting import set_font_sizes, get_colors, get_figure_size, save_figures
+from functions.functions_plotting import get_colors, get_figure_size, save_figures
 
 from parameters.directories_win import quant_data_dir, cell_descrip_dir, table_file, figure_dir
 
@@ -76,7 +76,7 @@ for idx, parameter in enumerate(IF_cat_df.columns):
                             inner = 'quart',
                             linewidth = 1,
                             ax = ax,
-                            size = 0.9,
+                            # size = 0.9,
                             order = ['BAOT/MeA', 'MeA', 'BAOT'])
 
     for l in violin.lines:
@@ -92,7 +92,7 @@ for idx, parameter in enumerate(IF_cat_df.columns):
                           ax = ax,
                           hue = 'Region', 
                           palette = region_colors,
-                          size = 3,
+                           size = 3,
                           color = colors_dict['primecolor'],
                           order = ['BAOT/MeA', 'MeA', 'BAOT'])
 
@@ -154,8 +154,8 @@ for idx, parameter in enumerate(IF_cat_df.columns):
 [ax.set_xticklabels(['BAOT/\nMeA', 'MeA', 'BAOT'], rotation = 45) for ax in axs_cats]
 # [ax.set_xticklabels(['', '', '']) for ax in axs_cats[:3]]
 
-# set font sizes
-set_font_sizes(12)
+# # set font sizes
+# set_font_sizes(12)
 
 temp_fig_dir = 'C:/Users/nesseler/Desktop/TAC-presentation_data/ePhys'
 
