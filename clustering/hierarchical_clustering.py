@@ -12,6 +12,7 @@ from functions.initialize_packages import *
 from parameters.directories_win import clustering_dir
 celldescriptors = pd.read_excel(join(clustering_dir, 'ePhys_celldescriptors.xlsx'), index_col = 'cell_ID')
 
+
 # get cell_IDs
 cell_IDs = celldescriptors.index.to_list()
 

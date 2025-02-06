@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['clustering\\create_celldescriptors.py', 'clustering\\simple_heatmap.py', 'clustering\\correlation_analysis.py']
+recent_files = ['test_PCA.py', 'clustering\\create_celldescriptors.py', 'clustering\\hierarchical_clustering.py']
 
 [main]
 version = 0.2.0

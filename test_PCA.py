@@ -17,6 +17,8 @@ from sklearn.decomposition import PCA
 # load celldescriptors
 from parameters.directories_win import clustering_dir
 celldescriptors = pd.read_excel(join(clustering_dir, 'ePhys_celldescriptors.xlsx'), index_col = 'cell_ID')
+celldescriptors_clustered = pd.read_excel(join(clustering_dir, 'ePhys_celldescriptors-clustered.xlsx'), index_col = 'cell_ID')
+
 
 # get cell_IDs
 cell_IDs = celldescriptors.index.to_list()
@@ -39,9 +41,9 @@ from functions.initialize_plotting import *
 
 # %% principal component analysis
 
-celldescriptors_PCA = PCA().fit(celldescriptors)
+celldescriptors_PCA = PCA().fit(celldescriptors_zscored)
 
-celldescriptors_PCA_components = celldescriptors_PCA.transform(celldescriptors)
+celldescriptors_PCA_components = celldescriptors_PCA.transform(celldescriptors_zscored)
 
 celldescriptors_PCA_explained_variance = celldescriptors_PCA.explained_variance_
 
@@ -52,41 +54,44 @@ celldescriptors_PCA_eigen = pd.DataFrame(celldescriptors_PCA.components_.T,
                                          columns = [f'PC{i+1}' for i in range(celldescriptors.shape[1])],
                                          index = celldescriptors.columns)
 
-# celldescriptors_PCA_eigen["eigenvalue"] = celldescriptors_PCA.explained_variance_
+celldescriptors_PCA_eigen["eigenvalue"] = celldescriptors_PCA.explained_variance_
 
 prinicpal_components = pd.DataFrame(celldescriptors_PCA_components,
                                     index = cell_IDs,
                                     columns = [f'PC{i+1}' for i in range(celldescriptors.shape[1])])
 
 
+colors = ['#FFEC9DFF', '#FAC881FF', '#F4A464FF', '#E87444FF', '#D9402AFF',
+        '#BF2729FF', '#912534FF', '#64243EFF', '#3D1B28FF', '#161212FF']
 
+c_colors = [colors[i+2] for i in celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list()]
 
 sbn.scatterplot(data = prinicpal_components,
                 x = 'PC1',
                 y = 'PC2',
-                hue = MetaData.loc[cell_IDs, 'Region'],
-                palette = region_colors)
+                hue = celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list(),
+                palette = colors[::2])
 
 
-# plot the variables as vectors
-plt.quiver(
-    np.zeros(celldescriptors_PCA_eigen.shape[0]),
-    np.zeros(celldescriptors_PCA_eigen.shape[0]),
-    celldescriptors_PCA_eigen["PC1"],
-    celldescriptors_PCA_eigen["PC2"],
-    # celldescriptors_PCA_eigen["eigenvalue"],
-    angles="xy",
-    # scale_units="xy",
-    # scale=0.2,
-    color = 'w'
-)
+# # plot the variables as vectors
+# plt.quiver(
+#     np.zeros(celldescriptors_PCA_eigen.shape[0]),
+#     np.zeros(celldescriptors_PCA_eigen.shape[0]),
+#     celldescriptors_PCA_eigen["PC1"],
+#     celldescriptors_PCA_eigen["PC2"],
+#     # celldescriptors_PCA_eigen["eigenvalue"],
+#     angles="xy",
+#     # scale_units="xy",
+#     # scale=0.2,
+#     color = 'w'
+# )
 
 
-# Plot annotations
-for i in range(celldescriptors_PCA_eigen.shape[0]):
-    plt.text(
-        celldescriptors_PCA_eigen["PC1"][i]*200,
-        celldescriptors_PCA_eigen["PC2"][i]*200,
-        celldescriptors_PCA_eigen.index[i],
-        color="red",
-    )
+# # Plot annotations
+# for i in range(celldescriptors_PCA_eigen.shape[0]):
+#     plt.text(
+#         celldescriptors_PCA_eigen["PC1"][i]*10,
+#         celldescriptors_PCA_eigen["PC2"][i]*10,
+#         celldescriptors_PCA_eigen.index[i],
+#         color="red",
+#     )
