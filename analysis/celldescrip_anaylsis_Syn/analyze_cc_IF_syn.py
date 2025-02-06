@@ -49,9 +49,9 @@ for df in [IF, IF_inst, IF_inst_init]:
     df.index.name = 'i_input'
 
 IF_dict      = pd.DataFrame(columns = ['i_rheobase'       , 'idx_rheobase',
-                                       'i_maxfreq'        , 'idx_maxfreq',
+                                       'i_maxfreq'        , 'idx_maxfreq'        , 'maxfreq',      
                                        'i_halfmax'        , 'idx_halfmax',
-                                       'i_maxinitinstfreq', 'idx_maxinitinstfreq'],
+                                       'i_maxinitinstfreq', 'idx_maxinitinstfreq', 'maxinitinstfreq'],
                             index = cell_IDs)
 
 IF_rheobase = pd.DataFrame(columns = ['rheobase_abs', 'rheobase_rel'], 
@@ -273,6 +273,7 @@ for cell_ID in tqdm(cell_IDs):
     # %% adaptation
     
     # max freq
+    maxfreq      = IF[cell_ID].dropna().max()
     idx_maxfreq  = IF[cell_ID].dropna().argmax()
     v_maxfreq    = v_stim[idx_maxfreq]
     dvdt_maxfreq = calc_dvdt_padded(v_maxfreq, t_stim)
@@ -283,15 +284,18 @@ for cell_ID in tqdm(cell_IDs):
     # edge-case: if initial instant freq has only one value
     if IF_inst_init[cell_ID].dropna().shape[0] == 1:
         i_maxinitinstfreq    = IF_inst_init[cell_ID].dropna().index.values[0]
+        maxinitinstfreq      = IF_inst_init[cell_ID].dropna().values[0]
         idx_maxinitinstfreq  = np.where(IF[cell_ID].dropna().index == i_maxinitinstfreq)[0][0]
     
     # condition for E-223
     elif IF_inst_init[cell_ID].dropna().shape[0] == 0:
         i_maxinitinstfreq    = IF_inst[cell_ID].dropna().index.values[0]
+        maxinitinstfreq      = IF_inst[cell_ID].dropna().values[0]
         idx_maxinitinstfreq  = np.where(IF[cell_ID].dropna().index == i_maxinitinstfreq)[0][0]
         
     else:
         i_maxinitinstfreq   = IF_inst_init[cell_ID].dropna().index[IF_inst_init[cell_ID].dropna().argmax()]
+        maxinitinstfreq     = IF_inst_init[cell_ID].dropna().max()
         idx_maxinitinstfreq = np.where((IF[cell_ID].dropna().index == i_maxinitinstfreq) == True)[0][0]
         
     v_maxinitinstfreq    = v_stim[idx_maxinitinstfreq]
@@ -313,6 +317,10 @@ for cell_ID in tqdm(cell_IDs):
     IF_dict.at[cell_ID, 'idx_halfmax']         = np.int64(idx_halfmax)
     IF_dict.at[cell_ID, 'i_maxinitinstfreq']   = np.int64(i_maxinitinstfreq - i_hold)
     IF_dict.at[cell_ID, 'idx_maxinitinstfreq'] = np.int64(idx_maxinitinstfreq)
+    
+    # write max firing frequencies to dataframe
+    IF_dict.at[cell_ID, 'maxfreq']             = np.int64(maxfreq)
+    IF_dict.at[cell_ID, 'maxinitinstfreq']     = np.float64(maxinitinstfreq)
 
         
     from functions.functions_extractspike import get_spiketrain_n_ISI_parameter
@@ -323,7 +331,7 @@ for cell_ID in tqdm(cell_IDs):
     halfmax_spikes, halfmax_ISIs                 = get_spiketrain_n_ISI_parameter(t_stim, v_halfmax, dvdt_halfmax, SR)
     maxinitinstfreq_spikes, maxinitinstfreq_ISIs = get_spiketrain_n_ISI_parameter(t_stim, v_maxinitinstfreq, dvdt_maxinitinstfreq, SR)
     
-        
+
     from parameters.parameters import adaptation_n_lastspikes, adaptation_popt_guess_linear_ISIs
     from functions.functions_useful import linear_func
     
@@ -432,11 +440,11 @@ for cell_ID in tqdm(cell_IDs):
 
 # tobe saved
 export_vars = {'IF' : IF, 
-                'IF_inst' : IF_inst, 
-                'IF_inst_init' : IF_inst_init,
-                'IF_dict' : IF_dict, 
-                'IF_rheobase' : IF_rheobase, 
-                'adaptation' : adaptation}
+               'IF_inst' : IF_inst, 
+               'IF_inst_init' : IF_inst_init,
+               'IF_dict' : IF_dict, 
+               'IF_rheobase' : IF_rheobase, 
+               'adaptation' : adaptation}
 
 export_prefix = 'cc_IF-syn-'
 

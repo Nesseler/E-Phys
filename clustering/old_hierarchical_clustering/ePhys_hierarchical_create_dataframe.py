@@ -105,7 +105,7 @@ celldescriptors_df.drop(index = cell_IDs_toDrop, inplace = True)
 
 from parameters.directories_win import hierarchical_dir
 
-celldescriptors_df.to_excel(join(hierarchical_dir, 'ePhys_celldescriptors.xlsx'), index_label = 'cell_ID')
+# celldescriptors_df.to_excel(join(hierarchical_dir, 'ePhys_celldescriptors_old.xlsx'), index_label = 'cell_ID')
 
 
 

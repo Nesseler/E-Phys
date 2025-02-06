@@ -38,13 +38,13 @@ from functions.initialize_plotting import *
 fig_heat, ax_heat = plt.subplots(nrows = 1,
                                  ncols = 1,
                                  layout = 'constrained',
-                                 figsize = get_figure_size(width = 200, height = 100),
+                                 figsize = get_figure_size(),
                                  dpi = 600,
                                  sharey = True,
                                  sharex = True)
 
-heatmin = -2
-heatmax = 2
+heatmin = -2 #celldescriptors_zscored.min().min()
+heatmax = 2  #celldescriptors_zscored.max().max()
 
 # plot heatmap
 sbn.heatmap(celldescriptors_zscored,
@@ -67,7 +67,7 @@ plt.show()
 heat_fig_dir = join(clustering_dir, 'temp_figs')
 
 # save figure
-save_figures(fig_heat, 'figure-hierarchical_clustering-heatmap-unsorted-drop2', 
+save_figures(fig_heat, 'celldescriptors-heatmap-unsorted', 
              save_dir = heat_fig_dir,
              darkmode_bool = darkmode_bool,
              figure_format = 'png')

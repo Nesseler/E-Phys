@@ -507,7 +507,9 @@ def apply_axis_settings(ax, axis = 'y',
                         stepminor = 10, 
                         label = 'Label [unit]',
                         start_at_0 = False,
-                        limits_n_0 = False):
+                        limits_n_0 = False,
+                        ticklabels = None,
+                        rotation = None):
     """
     Function uses specified settings to change yaxis layout of specified subplot.
     Parameter:
@@ -520,6 +522,9 @@ def apply_axis_settings(ax, axis = 'y',
         step : float, default is 10,
         stepminor : float, default is 10,
         label : string, default is 'label [unit]'
+        ticklabels : list of str, default is None, can be set to specify the
+                     ticklabels
+        rotation : float, default is None, can be set to rotate the ticklabels
     """
     
     if start_at_0:
@@ -534,6 +539,7 @@ def apply_axis_settings(ax, axis = 'y',
     # set padding as 1 % 
     if not pad:
         pad = abs(ax_max - ax_min) / 100
+        
     
     if axis == 'y':
         ax.set_ylim([ax_min - pad, ax_max + pad])    
@@ -542,12 +548,24 @@ def apply_axis_settings(ax, axis = 'y',
         ax.spines['left'].set_bounds([ax_min, ax_max])
         ax.set_ylabel(label)
         
+        if (ticklabels and not rotation):
+            ax.set_yticklabels(labels = ticklabels)
+                               
+        elif (ticklabels and rotation):
+            ax.set_yticklabels(labels = ticklabels, rotation = rotation)
+        
     elif axis == 'x':
         ax.set_xlim([ax_min - pad, ax_max + pad])
         ax.set_xticks(ticks = ticks)
         ax.set_xticks(ticks = ticksminor, minor = True)
         ax.spines['bottom'].set_bounds([ax_min, ax_max])
         ax.set_xlabel(label)
+        
+        if (ticklabels and not rotation):
+            ax.set_xticklabels(labels = ticklabels)
+                               
+        elif (ticklabels and rotation):
+            ax.set_xticklabels(labels = ticklabels, rotation = rotation)
     
     elif axis == 'z':
         ax.set_zlim([ax_min - pad, ax_max + pad])
@@ -556,6 +574,12 @@ def apply_axis_settings(ax, axis = 'y',
         ax.set_zticks(ticks = np.arange(ax_min, ax_max+ stepminor, stepminor), minor = True)
         # ax.spines['bottom'].set_bounds([ax_min, ax_max])
         ax.set_zlabel(label)
+        
+        if (ticklabels and not rotation):
+            ax.set_zticklabels(labels = ticklabels)
+                               
+        elif (ticklabels and rotation):
+            ax.set_zticklabels(labels = ticklabels, rotation = rotation)
 
 
 
