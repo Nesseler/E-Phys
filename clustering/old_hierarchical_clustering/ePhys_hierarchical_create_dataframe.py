@@ -95,7 +95,7 @@ celldescriptors_df.rename(columns = {'n_spikes' : 'n_restspikes',
 
 # %% drop cell_ID
 
-from hierarchical_clustering.ePhys_hierarchical_parameters import cell_IDs_toDrop
+from clustering.ePhys_hierarchical_parameters import cell_IDs_toDrop
 
 # remove cells that do not contain all analysed values
 celldescriptors_df.drop(index = cell_IDs_toDrop, inplace = True)

@@ -5,43 +5,18 @@ Created on Thu Sep 12 13:45:38 2024
 @author: nesseler
 """
 
-import pandas as pd
-import scipy as sc
-import numpy as np
-from os.path import join
-
-from parameters.directories_win import table_file, hierarchical_dir
-
-
-
-# load metadata
-MetaData = pd.read_excel(table_file,
-                         sheet_name="MetaData",
-                         index_col='cell_ID')
+from functions.initialize_packages import *
 
 # load celldescriptors
-celldescriptors = pd.read_excel(join(hierarchical_dir, 'ePhys_celldescriptors.xlsx'), index_col = 'cell_ID')
+from parameters.directories_win import clustering_dir
+celldescriptors = pd.read_excel(join(clustering_dir, 'ePhys_celldescriptors.xlsx'), index_col = 'cell_ID')
 
-# drop columns
-from hierarchical_clustering.ePhys_hierarchical_parameters import parameters_toDrop
-celldescriptors.drop(columns = parameters_toDrop, inplace = True)
+# get cell_IDs
+cell_IDs = celldescriptors.index.to_list()
 
-
-# %% initialize plotting
-
-import matplotlib as mtl
-import matplotlib.pyplot as plt
-import seaborn as sbn
-
-from functions.functions_plotting import save_figures, get_colors, get_figure_size
-
-
-# set colors
-darkmode_bool = True
-colors_dict, region_colors = get_colors(darkmode_bool)
-
-# set font size
-mtl.rcParams.update({'font.size': 9})
+# load Metadata
+from functions.functions_import import get_MetaData
+MetaData = get_MetaData(cell_IDs)
 
 
 # %% z-score celldescriptors
@@ -51,13 +26,19 @@ celldescriptors_zscored = (celldescriptors - celldescriptors.mean()) / celldescr
 
 # celldescriptors_zscored.sort_values(by = ['r_input'], inplace = True)
 
+
+# %% initialize plotting
+
+from functions.initialize_plotting import *
+
+
 # %% heatmap
 
 # initialize figure
 fig_heat, ax_heat = plt.subplots(nrows = 1,
                                  ncols = 1,
                                  layout = 'constrained',
-                                 figsize = get_figure_size(),
+                                 figsize = get_figure_size(width = 200, height = 100),
                                  dpi = 600,
                                  sharey = True,
                                  sharex = True)
@@ -83,7 +64,7 @@ sbn.heatmap(celldescriptors_zscored,
 plt.show()
 
 # set directory for figure
-heat_fig_dir = join(hierarchical_dir, 'temp_figs')
+heat_fig_dir = join(clustering_dir, 'temp_figs')
 
 # save figure
 save_figures(fig_heat, 'figure-hierarchical_clustering-heatmap-unsorted-drop2', 

@@ -37,8 +37,8 @@ tempfigs_dir = ePhys_parent + '/figures/temp_figs'
 # directory for verification plots to be saved
 vplot_dir = ePhys_parent + '/vplots'
 
-# directory for heriarchical clustering
-hierarchical_dir = ePhys_parent + '/clustering'
+# directory for clustering
+clustering_dir = ePhys_parent + '/clustering'
 
 
 ### cell morphology ###

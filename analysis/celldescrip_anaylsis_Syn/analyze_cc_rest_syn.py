@@ -60,7 +60,7 @@ if len(cell_IDs) == 0:
 from functions.initialize_plotting import *
 
 # verification plots
-vplots = True
+vplots = False
 if vplots:
     # load plotting functions
     from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_rest_syn import create_cc_rest_vplot

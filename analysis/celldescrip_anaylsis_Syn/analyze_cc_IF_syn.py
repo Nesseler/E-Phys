@@ -54,7 +54,7 @@ IF_dict      = pd.DataFrame(columns = ['i_rheobase'       , 'idx_rheobase',
                                        'i_maxinitinstfreq', 'idx_maxinitinstfreq'],
                             index = cell_IDs)
 
-IF_rheobase = pd.DataFrame(columns = ['rheobase_abs', 'rheobase_rel', 'v_thres_rheobase_spike'], 
+IF_rheobase = pd.DataFrame(columns = ['rheobase_abs', 'rheobase_rel'], 
                            index = cell_IDs)
 
 adaptation = pd.DataFrame(index = cell_IDs)
@@ -89,7 +89,7 @@ if len(cell_IDs) == 0:
 from functions.initialize_plotting import *
 
 # verification plots
-vplots = True
+vplots = False
 if vplots:
     # load plotting functions
     from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_IF_syn import plot_full_IF, plot_IF_step_spike_detection, plot_rheobase, plot_adaptation
@@ -142,6 +142,7 @@ for cell_ID in tqdm(cell_IDs):
                      i = i_calc, 
                      i_input = i_input)
         
+        
 # %% spike detection
 
     # iterate through steps
@@ -152,7 +153,7 @@ for cell_ID in tqdm(cell_IDs):
         v_step = v_stim[step]
         
         # define current 
-        i_step = i_input[step]
+        i_step_rel = np.int64(i_input[step] - i_hold)
         
         # find peaks
         idc_spikes, dict_spikes = sc.signal.find_peaks(v_step, 
@@ -205,9 +206,9 @@ for cell_ID in tqdm(cell_IDs):
             init_inst_freq = np.nan 
         
         # write to dataframe
-        IF.at[i_step, cell_ID] = freq
-        IF_inst.at[i_step, cell_ID] = inst_freq
-        IF_inst_init.at[i_step, cell_ID] = init_inst_freq
+        IF.at[i_step_rel, cell_ID] = freq
+        IF_inst.at[i_step_rel, cell_ID] = inst_freq
+        IF_inst_init.at[i_step_rel, cell_ID] = init_inst_freq
         
         if vplots:
             plot_IF_step_spike_detection(cell_ID,
@@ -258,9 +259,17 @@ for cell_ID in tqdm(cell_IDs):
                       rheospike_params = rheospike_params)
     
     # write to dataframe
-    IF_rheobase.loc[cell_ID, ['rheobase_abs', 'rheobase_rel', 'v_thres_rheobase_spike']] = [i_rheo_abs, i_rheo_rel, rheospike_params.loc[0, 'v_threshold']]
+    IF_rheobase.loc[cell_ID, ['rheobase_abs', 'rheobase_rel']] = [i_rheo_abs, i_rheo_rel]
     
-    
+    # write rheobaseespike to dataframe
+    IF_rheobase.loc[cell_ID, ['rheobasespike_vthreshold']]   = rheospike_params.loc[0, 'v_threshold']
+    IF_rheobase.loc[cell_ID, ['rheobasespike_vamplitude']]   = rheospike_params.loc[0, 'v_amplitude']
+    IF_rheobase.loc[cell_ID, ['rheobasespike_ttoPeak']]      = rheospike_params.loc[0, 't_toPeak']
+    IF_rheobase.loc[cell_ID, ['rheobasespike_FWHM']]         = rheospike_params.loc[0, 'FWHM']
+    IF_rheobase.loc[cell_ID, ['rheobasespike_AHPamplitude']] = rheospike_params.loc[0, 'v_AHP_amplitude']
+    IF_rheobase.loc[cell_ID, ['rheobasespike_ttoAHP']]       = rheospike_params.loc[0, 't_toAHP']
+
+
     # %% adaptation
     
     # max freq
@@ -423,11 +432,11 @@ for cell_ID in tqdm(cell_IDs):
 
 # tobe saved
 export_vars = {'IF' : IF, 
-               'IF_inst' : IF_inst, 
-               'IF_inst_init' : IF_inst_init,
-               'IF_dict' : IF_dict, 
-               'IF_rheobase' : IF_rheobase, 
-               'adaptation' : adaptation}
+                'IF_inst' : IF_inst, 
+                'IF_inst_init' : IF_inst_init,
+                'IF_dict' : IF_dict, 
+                'IF_rheobase' : IF_rheobase, 
+                'adaptation' : adaptation}
 
 export_prefix = 'cc_IF-syn-'
 
@@ -441,4 +450,4 @@ write_exportvars_to_excel(export_vars, export_prefix)
 
 from functions.update_database import update_analyzed_sheet
     
-# update_analyzed_sheet(cell_IDs, PGF = PGF)
+update_analyzed_sheet(cell_IDs, PGF = PGF)

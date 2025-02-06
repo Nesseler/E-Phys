@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['analysis\\celldescrip_anaylsis_Syn\\plot_analyze_cc_IF_syn.py', 'analysis\\celldescrip_anaylsis_Syn\\analyze_cc_IF_syn.py', 'parameters\\parameters.py', 'analysis\\celldescrip_anaylsis_Syn\\analyze_cc_sag_syn.py', 'analysis\\celldescrip_anaylsis_Syn\\plot_analyze_cc_sag_syn.py']
+recent_files = ['analysis\\celldescrip_anaylsis_Syn\\analyze_all_cc_syn.py', 'analysis\\celldescrip_anaylsis_Syn\\plot_analyze_cc_sag_syn.py', 'plot\\plot_ccIF_syn.py', 'plot\\plot_ccsag_passive_properties.py', 'analysis\\analyze_adaEk_passiv.py', 'functions\\functions_plotting.py', 'parameters\\axis_settings.py', 'clustering\\ePhys_hierarchical_parameters.py', 'clustering\\ePhys_PCA.py']
 
 [main]
 version = 0.2.0

@@ -72,7 +72,7 @@ if len(cell_IDs) == 0:
 from functions.initialize_plotting import *
 
 # verification plots
-vplots = True
+vplots = False
 if vplots:
     # load plotting functions
     from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_th1AP_syn import plot_full_th1AP, plot_rheospike
