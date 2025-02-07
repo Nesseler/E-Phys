@@ -546,7 +546,9 @@ def apply_axis_settings(ax, axis = 'y',
         ax.set_yticks(ticks = ticks)
         ax.set_yticks(ticks = ticksminor, minor = True)
         ax.spines['left'].set_bounds([ax_min, ax_max])
-        ax.set_ylabel(label)
+        
+        if label:
+            ax.set_ylabel(label)
         
         if (ticklabels and not rotation):
             ax.set_yticklabels(labels = ticklabels)
@@ -559,7 +561,9 @@ def apply_axis_settings(ax, axis = 'y',
         ax.set_xticks(ticks = ticks)
         ax.set_xticks(ticks = ticksminor, minor = True)
         ax.spines['bottom'].set_bounds([ax_min, ax_max])
-        ax.set_xlabel(label)
+        
+        if label:
+            ax.set_xlabel(label)
         
         if (ticklabels and not rotation):
             ax.set_xticklabels(labels = ticklabels)
@@ -573,7 +577,9 @@ def apply_axis_settings(ax, axis = 'y',
         ax.set_zticks(ticks = ticksminor, minor = True)
         ax.set_zticks(ticks = np.arange(ax_min, ax_max+ stepminor, stepminor), minor = True)
         # ax.spines['bottom'].set_bounds([ax_min, ax_max])
-        ax.set_zlabel(label)
+        
+        if label:
+            ax.set_zlabel(label)
         
         if (ticklabels and not rotation):
             ax.set_zticklabels(labels = ticklabels)

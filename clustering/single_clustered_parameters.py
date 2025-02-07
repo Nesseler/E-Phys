@@ -31,7 +31,7 @@ from functions.initialize_plotting import *
 
 n_cluster = celldescriptors_clustered['hierarchical_cluster'].max()
 
-for parameter in celldescriptors_clustered.drop(columns=['Region', 'hierarchical_cluster']).columns.to_list():
+for parameter in tqdm(celldescriptors_clustered.drop(columns=['Region', 'hierarchical_cluster']).columns.to_list()):
     
     # initialize figure
     fig, ax = plt.subplots(nrows = 1,

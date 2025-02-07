@@ -31,7 +31,7 @@ from functions.initialize_plotting import *
 fig_corr_heat, axs_corr_heat = plt.subplots(nrows = 1,
                                             ncols = 2,
                                             layout = 'constrained',
-                                            figsize = get_figure_size(width = 200, height = 100),
+                                            figsize = get_figure_size(),
                                             dpi = 600,
                                             sharey = True,
                                             sharex = True)

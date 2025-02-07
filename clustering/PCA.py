@@ -1,0 +1,317 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Feb  6 17:05:06 2025
+
+@author: nesseler
+
+ressource
+https://www.geo.fu-berlin.de/en/v/soga-py/Advanced-statistics/Multivariate-Approaches/Principal-Component-Analysis/PCA-the-basics/Choose-Principal-Components/index.html
+
+"""
+
+from functions.initialize_packages import *
+
+# specific package
+from sklearn.decomposition import PCA
+
+# load celldescriptors
+from parameters.directories_win import clustering_dir
+celldescriptors = pd.read_excel(join(clustering_dir, 'ePhys_celldescriptors.xlsx'), index_col = 'cell_ID')
+celldescriptors_clustered = pd.read_excel(join(clustering_dir, 'ePhys_celldescriptors-clustered.xlsx'), index_col = 'cell_ID')
+
+
+# get cell_IDs
+cell_IDs = celldescriptors.index.to_list()
+
+# load Metadata
+from functions.functions_import import get_MetaData
+MetaData = get_MetaData(cell_IDs)
+
+
+# %% z-score celldescriptors
+
+# z-score cellmorph matrix
+celldescriptors_zscored = (celldescriptors - celldescriptors.mean()) / celldescriptors.std()
+
+
+# %% initialize plotting
+
+from functions.initialize_plotting import *
+
+
+# %% principal component analysis
+
+celldescriptors_PCA = PCA().fit(celldescriptors_zscored)
+
+celldescriptors_PCA_components = celldescriptors_PCA.transform(celldescriptors_zscored)
+
+celldescriptors_PCA_explained_variance = celldescriptors_PCA.explained_variance_
+
+# # get the eigenvectors and eigenvalues
+#     # index: celldescriptors
+#     # columns: principal components
+celldescriptors_PCA_eigen = pd.DataFrame(celldescriptors_PCA.components_.T,
+                                         columns = [f'PC{i+1}' for i in range(celldescriptors.shape[1])],
+                                         index = celldescriptors.columns)
+
+
+prinicpal_components = pd.DataFrame(celldescriptors_PCA_components,
+                                    index = cell_IDs,
+                                    columns = [f'PC{i+1}' for i in range(celldescriptors.shape[1])])
+
+
+# colors = ['#FFEC9DFF', '#FAC881FF', '#F4A464FF', '#E87444FF', '#D9402AFF',
+#         '#BF2729FF', '#912534FF', '#64243EFF', '#3D1B28FF', '#161212FF']
+
+colors = [(0.5529411764705883, 0.8274509803921568, 0.7803921568627451),
+         (0.996078431372549, 1.0, 0.7019607843137254),
+         (0.7490196078431373, 0.7333333333333333, 0.8509803921568627),
+         (0.9803921568627451, 0.5058823529411764, 0.4549019607843137),
+         (0.5058823529411764, 0.6941176470588235, 0.8235294117647058),
+         (0.9921568627450981, 0.7058823529411765, 0.3843137254901961),
+         (0.7019607843137254, 0.8705882352941177, 0.4117647058823529),
+         (0.7372549019607844, 0.5098039215686274, 0.7411764705882353),
+         (0.8, 0.9215686274509803, 0.7686274509803922),
+         (1.0, 0.9294117647058824, 0.43529411764705883)]
+
+c_colors = [colors[i+2] for i in celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list()]
+
+
+
+
+# %%
+
+fig_PCA2, axs_PCA2 = plt.subplots(nrows = 1,
+                                 ncols = 2,
+                                 layout = 'constrained',
+                                 figsize = get_figure_size(height = 120, width = 240),
+                                 dpi = 600)
+
+sbn.scatterplot(data = prinicpal_components,
+                x = 'PC1',
+                y = 'PC2',
+                hue = celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list(),
+                palette = colors[::1],
+                # hue = celldescriptors['r_input'],
+                # hue = MetaData.loc[cell_IDs, 'Region'],
+                # palette = region_colors,
+                ax = axs_PCA2[0])
+
+sbn.move_legend(axs_PCA2[0], "upper left")
+
+
+# plot cell_IDs
+for cell_ID in prinicpal_components.index.to_list():
+    axs_PCA2[0].text(x = prinicpal_components.at[cell_ID, 'PC1'],
+                     y = prinicpal_components.at[cell_ID, 'PC2'],
+                     s = cell_ID,
+                     color = "k",
+                     ha = "center",
+                     va = "center",
+                     fontsize = 2)
+
+
+
+# plot the variables as vectors
+for i in range(celldescriptors_PCA.components_.shape[1]):
+    axs_PCA2[1].arrow(x = 0,
+                     y = 0,
+                     dx = celldescriptors_PCA.components_[0, i]*9,
+                     dy = celldescriptors_PCA.components_[1, i]*9,
+                     head_width=0.05,
+                     head_length=0.05,
+                     linewidth=0.75,
+                     color="w",
+                     )
+    
+
+# Plot annotations
+for parameter in celldescriptors_PCA_eigen.index.to_list():
+    axs_PCA2[1].text(x = (celldescriptors_PCA_eigen.loc[parameter, 'PC1'])*10,
+                     y = (celldescriptors_PCA_eigen.loc[parameter, 'PC2'])*10,
+                     s = parameter,
+                     color="red",
+                     fontsize = 6,
+                     )
+
+
+PC_dict = {'ax_min' : -6,
+           'ax_max' : 8.5,
+           'pad' : None,
+           'step' : 2,
+           'stepminor' : 0.5,
+           'label' : None}
+
+# edit axis
+[apply_axis_settings(ax, axis = 'x', **PC_dict) for ax in axs_PCA2]
+[apply_axis_settings(ax, axis = 'y', **PC_dict) for ax in axs_PCA2]
+
+# remove spines
+[ax.spines[spine].set_visible(False) for ax in axs_PCA2 for spine in ['top', 'right']]
+
+# set directory for figure
+fig_dir = join(clustering_dir, 'temp_figs')
+
+# save figure
+save_figures(fig_PCA2, 'figure-PCA-components_plot-region', 
+             save_dir = fig_dir,
+             darkmode_bool = darkmode_bool,
+             figure_format = 'png')
+
+# show plot
+plt.show()
+
+
+# %% single parameter color code
+
+parameter = 'r_input'
+
+for parameter in celldescriptors_PCA_eigen.index.to_list():
+
+    parameter_i = celldescriptors_PCA_eigen.index.to_list().index(parameter)
+    
+    fig_PCA3, axs_PCA3 = plt.subplots(nrows = 1,
+                                     ncols = 2,
+                                     layout = 'constrained',
+                                     figsize = get_figure_size(height = 120, width = 240),
+                                     dpi = 600)
+    
+    sbn.scatterplot(data = prinicpal_components,
+                    x = 'PC1',
+                    y = 'PC2',
+                    # hue = celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list(),
+                    # palette = colors[::1],
+                    hue = celldescriptors[parameter],
+                    # hue = MetaData.loc[cell_IDs, 'Region'],
+                    # palette = region_colors,
+                    ax = axs_PCA3[0])
+    
+    sbn.move_legend(axs_PCA3[0], "upper left")
+    
+    
+    # plot cell_IDs
+    for cell_ID in prinicpal_components.index.to_list():
+        axs_PCA3[0].text(x = prinicpal_components.at[cell_ID, 'PC1'],
+                         y = prinicpal_components.at[cell_ID, 'PC2'],
+                         s = cell_ID,
+                         color = "k",
+                         ha = "center",
+                         va = "center",
+                         fontsize = 2)
+    
+    
+    
+    # plot the variables as vectors
+    axs_PCA3[1].arrow(x = 0,
+                      y = 0,
+                      dx = celldescriptors_PCA.components_[0, parameter_i]*9,
+                      dy = celldescriptors_PCA.components_[1, parameter_i]*9,
+                      head_width=0.05,
+                      head_length=0.05,
+                      linewidth=0.75,
+                      color="w",
+                      )
+        
+    
+    # Plot annotations
+    axs_PCA3[1].text(x = (celldescriptors_PCA_eigen.loc[parameter, 'PC1'])*10,
+                     y = (celldescriptors_PCA_eigen.loc[parameter, 'PC2'])*10,
+                     s = parameter,
+                     color="red",
+                     fontsize = 6,
+                     )
+    
+    
+    PC_dict = {'ax_min' : -6,
+               'ax_max' : 8.5,
+               'pad' : None,
+               'step' : 2,
+               'stepminor' : 0.5,
+               'label' : None}
+    
+    # edit axis
+    [apply_axis_settings(ax, axis = 'x', **PC_dict) for ax in axs_PCA3]
+    [apply_axis_settings(ax, axis = 'y', **PC_dict) for ax in axs_PCA3]
+    
+    # remove spines
+    [ax.spines[spine].set_visible(False) for ax in axs_PCA3 for spine in ['top', 'right']]
+    
+    # set directory for figure
+    fig_dir = join(clustering_dir, 'temp_figs')
+    
+    # save figure
+    save_figures(fig_PCA3, f'figure-PCA-components_plot-{parameter}', 
+                 save_dir = fig_dir,
+                 darkmode_bool = darkmode_bool,
+                 figure_format = 'png')
+    
+    # show plot
+    plt.show()
+
+
+
+
+# %% scree plot
+
+celldescriptors_PCA_eigen.loc["eigenvalue", :] = celldescriptors_PCA.explained_variance_
+celldescriptors_PCA_eigen.loc["explained_variance", :] = celldescriptors_PCA.explained_variance_ / celldescriptors_zscored.var().sum()
+
+
+fig_scree, axs_scree = plt.subplots(nrows = 1,
+                                   ncols = 2,
+                                   layout = 'constrained',
+                                   figsize = get_figure_size(height = 100, width = 200),
+                                   dpi = 600)
+
+axs_scree[0].plot(celldescriptors_PCA_eigen.loc['explained_variance', :],
+                  marker = 'x',
+                  lw = 0.75)
+
+
+axs_scree[1].plot(celldescriptors_PCA_eigen.loc['explained_variance', :].cumsum(),
+                  marker = 'x',
+                  lw = 0.75)
+
+
+# edit axis
+xscree_dict = {'ax_min' : 0,
+               'ax_max' : celldescriptors_PCA_eigen.shape[1]-1,
+               'pad' : None,
+               'step' : 1,
+               'stepminor' : 1,
+               'label' : None,
+               'ticklabels' : celldescriptors_PCA_eigen.columns.to_list(),
+               'rotation' : 90}
+
+[apply_axis_settings(ax, axis = 'x', **xscree_dict) for ax in axs_scree]
+
+
+yscree_dict = {'ax_min' : 0,
+               'ax_max' : 1,
+               'pad' : None,
+               'step' : 0.2,
+               'stepminor' : 0.05,
+               'label' : 'explained variance'}
+
+# apply_axis_settings(ax_scree, axis = 'y', **yscree_dict)
+
+axs_scree[0].set_ylabel('explained variance')
+axs_scree[1].set_ylabel('cumultative explained variance')
+
+# remove spines
+[ax.spines[spine].set_visible(False) for ax in axs_scree for spine in ['top', 'right']]
+
+# set directory for figure
+fig_dir = join(clustering_dir, 'temp_figs')
+
+# save figure
+save_figures(fig_scree, 'figure-PCA-scree_plot', 
+             save_dir = fig_dir,
+             darkmode_bool = darkmode_bool,
+             figure_format = 'png')
+
+# show plot
+plt.show()
+
+
+# %%
