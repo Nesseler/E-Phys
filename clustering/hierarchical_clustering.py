@@ -156,7 +156,7 @@ aux_celldescriptors['Region'] = MetaData.loc[cell_IDs, 'Region']
 aux_celldescriptors['Region'] = aux_celldescriptors['Region'].map({'MeA' : 0, 'BAOT/MeA' : 0.5, 'BAOT' : 1})
 
 # set number of clusters
-n_clusters = 6
+n_clusters = 8
 
 # as halfway point between n_clusters-1 and n_clusters
 c_threshold = last_clusters_rev[n_clusters-1] + (last_clusters_rev[n_clusters-2] - last_clusters_rev[n_clusters-1]) / 2

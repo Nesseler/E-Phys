@@ -77,7 +77,8 @@ colors = [(0.5529411764705883, 0.8274509803921568, 0.7803921568627451),
 c_colors = [colors[i+2] for i in celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list()]
 
 
-
+# get number of clusters
+n_clusters = celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].nunique()
 
 # %%
 
@@ -162,99 +163,107 @@ save_figures(fig_PCA2, 'figure-PCA-components_plot-region',
 plt.show()
 
 
-# %% single parameter color code
+# # %% single parameter color code
 
-parameter = 'r_input'
+# parameter = 'r_input'
 
-for parameter in celldescriptors_PCA_eigen.index.to_list():
+# for parameter in celldescriptors_PCA_eigen.index.to_list():
 
-    parameter_i = celldescriptors_PCA_eigen.index.to_list().index(parameter)
+#     parameter_i = celldescriptors_PCA_eigen.index.to_list().index(parameter)
     
-    fig_PCA3, axs_PCA3 = plt.subplots(nrows = 1,
-                                     ncols = 2,
-                                     layout = 'constrained',
-                                     figsize = get_figure_size(height = 120, width = 240),
-                                     dpi = 600)
+#     fig_PCA3, axs_PCA3 = plt.subplots(nrows = 1,
+#                                      ncols = 2,
+#                                      layout = 'constrained',
+#                                      figsize = get_figure_size(height = 120, width = 240),
+#                                      dpi = 600)
     
-    sbn.scatterplot(data = prinicpal_components,
-                    x = 'PC1',
-                    y = 'PC2',
-                    # hue = celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list(),
-                    # palette = colors[::1],
-                    hue = celldescriptors[parameter],
-                    # hue = MetaData.loc[cell_IDs, 'Region'],
-                    # palette = region_colors,
-                    ax = axs_PCA3[0])
+#     sbn.scatterplot(data = prinicpal_components,
+#                     x = 'PC1',
+#                     y = 'PC2',
+#                     # hue = celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list(),
+#                     # palette = colors[::1],
+#                     hue = celldescriptors[parameter],
+#                     # hue = MetaData.loc[cell_IDs, 'Region'],
+#                     # palette = region_colors,
+#                     ax = axs_PCA3[0])
     
-    sbn.move_legend(axs_PCA3[0], "upper left")
-    
-    
-    # plot cell_IDs
-    for cell_ID in prinicpal_components.index.to_list():
-        axs_PCA3[0].text(x = prinicpal_components.at[cell_ID, 'PC1'],
-                         y = prinicpal_components.at[cell_ID, 'PC2'],
-                         s = cell_ID,
-                         color = "k",
-                         ha = "center",
-                         va = "center",
-                         fontsize = 2)
+#     sbn.move_legend(axs_PCA3[0], "upper left")
     
     
+#     # plot cell_IDs
+#     for cell_ID in prinicpal_components.index.to_list():
+#         axs_PCA3[0].text(x = prinicpal_components.at[cell_ID, 'PC1'],
+#                          y = prinicpal_components.at[cell_ID, 'PC2'],
+#                          s = cell_ID,
+#                          color = "k",
+#                          ha = "center",
+#                          va = "center",
+#                          fontsize = 2)
     
-    # plot the variables as vectors
-    axs_PCA3[1].arrow(x = 0,
-                      y = 0,
-                      dx = celldescriptors_PCA.components_[0, parameter_i]*9,
-                      dy = celldescriptors_PCA.components_[1, parameter_i]*9,
-                      head_width=0.05,
-                      head_length=0.05,
-                      linewidth=0.75,
-                      color="w",
-                      )
+    
+    
+#     # plot the variables as vectors
+#     axs_PCA3[1].arrow(x = 0,
+#                       y = 0,
+#                       dx = celldescriptors_PCA.components_[0, parameter_i]*9,
+#                       dy = celldescriptors_PCA.components_[1, parameter_i]*9,
+#                       head_width=0.05,
+#                       head_length=0.05,
+#                       linewidth=0.75,
+#                       color="w",
+#                       )
         
     
-    # Plot annotations
-    axs_PCA3[1].text(x = (celldescriptors_PCA_eigen.loc[parameter, 'PC1'])*10,
-                     y = (celldescriptors_PCA_eigen.loc[parameter, 'PC2'])*10,
-                     s = parameter,
-                     color="red",
-                     fontsize = 6,
-                     )
+#     # Plot annotations
+#     axs_PCA3[1].text(x = (celldescriptors_PCA_eigen.loc[parameter, 'PC1'])*10,
+#                      y = (celldescriptors_PCA_eigen.loc[parameter, 'PC2'])*10,
+#                      s = parameter,
+#                      color="red",
+#                      fontsize = 6,
+#                      )
     
     
-    PC_dict = {'ax_min' : -6,
-               'ax_max' : 8.5,
-               'pad' : None,
-               'step' : 2,
-               'stepminor' : 0.5,
-               'label' : None}
+#     PC_dict = {'ax_min' : -6,
+#                'ax_max' : 8.5,
+#                'pad' : None,
+#                'step' : 2,
+#                'stepminor' : 0.5,
+#                'label' : None}
     
-    # edit axis
-    [apply_axis_settings(ax, axis = 'x', **PC_dict) for ax in axs_PCA3]
-    [apply_axis_settings(ax, axis = 'y', **PC_dict) for ax in axs_PCA3]
+#     # edit axis
+#     [apply_axis_settings(ax, axis = 'x', **PC_dict) for ax in axs_PCA3]
+#     [apply_axis_settings(ax, axis = 'y', **PC_dict) for ax in axs_PCA3]
     
-    # remove spines
-    [ax.spines[spine].set_visible(False) for ax in axs_PCA3 for spine in ['top', 'right']]
+#     # remove spines
+#     [ax.spines[spine].set_visible(False) for ax in axs_PCA3 for spine in ['top', 'right']]
     
-    # set directory for figure
-    fig_dir = join(clustering_dir, 'temp_figs')
+#     # set directory for figure
+#     fig_dir = join(clustering_dir, 'temp_figs')
     
-    # save figure
-    save_figures(fig_PCA3, f'figure-PCA-components_plot-{parameter}', 
-                 save_dir = fig_dir,
-                 darkmode_bool = darkmode_bool,
-                 figure_format = 'png')
+#     # save figure
+#     save_figures(fig_PCA3, f'figure-PCA-components_plot-{parameter}', 
+#                  save_dir = fig_dir,
+#                  darkmode_bool = darkmode_bool,
+#                  figure_format = 'png')
     
-    # show plot
-    plt.show()
+#     # show plot
+#     plt.show()
 
 
 
 
 # %% scree plot
 
-celldescriptors_PCA_eigen.loc["eigenvalue", :] = celldescriptors_PCA.explained_variance_
-celldescriptors_PCA_eigen.loc["explained_variance", :] = celldescriptors_PCA.explained_variance_ / celldescriptors_zscored.var().sum()
+celldescriptors_PCA_dict = pd.DataFrame(columns = [f'PC{i+1}' for i in range(celldescriptors_zscored.shape[1])],
+                                        index = celldescriptors_zscored.columns)
+
+# get eigenvalues and calcuate the explained variance ratio 
+celldescriptors_PCA_dict.loc["eigenvalue", :] = celldescriptors_PCA.explained_variance_
+celldescriptors_PCA_dict.loc["explained_variance", :] = celldescriptors_PCA.explained_variance_ / celldescriptors_zscored.var().sum()
+
+# calc cumulative sum of explained variance ratio
+celldescriptors_PCA_dict.loc["cumsum_explained_variance", :] = celldescriptors_PCA_dict.loc["explained_variance", :].cumsum()
+
 
 
 fig_scree, axs_scree = plt.subplots(nrows = 1,
@@ -263,12 +272,12 @@ fig_scree, axs_scree = plt.subplots(nrows = 1,
                                    figsize = get_figure_size(height = 100, width = 200),
                                    dpi = 600)
 
-axs_scree[0].plot(celldescriptors_PCA_eigen.loc['explained_variance', :],
+axs_scree[0].plot(celldescriptors_PCA_dict.loc['explained_variance', :],
                   marker = 'x',
                   lw = 0.75)
 
 
-axs_scree[1].plot(celldescriptors_PCA_eigen.loc['explained_variance', :].cumsum(),
+axs_scree[1].plot(celldescriptors_PCA_dict.loc["cumsum_explained_variance", :],
                   marker = 'x',
                   lw = 0.75)
 
@@ -314,4 +323,175 @@ save_figures(fig_scree, 'figure-PCA-scree_plot',
 plt.show()
 
 
-# %%
+# %% 3d plot
+
+# # initialize figure
+# fig = plt.figure(layout = 'constrained',
+#                   dpi = 100)
+# ax = fig.add_subplot(projection='3d')
+
+# # plot each cluster separatly for coloring
+# for cluster_idx in range(n_clusters):
+    
+#     # get cell_IDs of cells in cluster
+#     cluster_cellIDs = celldescriptors_clustered[celldescriptors_clustered['hierarchical_cluster'] == cluster_idx].index.to_list()
+
+#     # plot cluster
+#     ax.scatter(xs = prinicpal_components.loc[cluster_cellIDs, 'PC1'],
+#                 ys = prinicpal_components.loc[cluster_cellIDs, 'PC2'],
+#                 zs = prinicpal_components.loc[cluster_cellIDs, 'PC3'],
+#                 c = [colors[cluster_idx]] * len(cluster_cellIDs))
+
+# PC_dict = {'ax_min' : -6,
+#             'ax_max' : 8.5,
+#             'pad' : None,
+#             'step' : 2,
+#             'stepminor' : 0.5,
+#             'label' : None}
+
+# # edit axis
+# apply_axis_settings(ax, axis = 'x', **PC_dict)
+# apply_axis_settings(ax, axis = 'y', **PC_dict)
+# apply_axis_settings(ax, axis = 'z', **PC_dict)
+
+# # set titles
+# ax.set_xlabel('PC1')
+# ax.set_ylabel('PC2')
+# ax.set_zlabel('PC3')
+
+# # set background colors
+# for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
+#     axis.set_pane_color((1.0, 1.0, 1.0), 0.0) 
+#     axis._axinfo['grid']['linewidth'] = 0.0
+#     axis._axinfo['grid']['color'] = "#d1d1d1"
+#     axis._axinfo['tick']['inward_factor'] = 0.2
+#     axis._axinfo['tick']['outward_factor'] = 0.0
+
+# # remove grid
+# ax.grid(False)
+
+# # set initial viewing angle
+# ax.view_init(elev = 90, azim = -90, roll = 0)
+
+# # display figure
+# plt.show()
+
+
+
+# %% PCA 3d as subplots
+fig_3d_subp, axs_3ds = plt.subplots(nrows = 2,
+                                    ncols = 4,
+                                    layout = 'constrained',
+                                    figsize = get_figure_size(height = 120, width = 240),
+                                    dpi = 600)
+
+# flatten axis array
+axs_3ds = axs_3ds.flatten()
+
+PC_dict = {'PC1': {'ax_min' : -6,
+                   'ax_max' : 9,
+                   'pad' : None,
+                   'step' : 2,
+                   'stepminor' : 1,
+                   'label' : None},
+           'PC2': {'ax_min' : -6,
+                   'ax_max' : 7,
+                   'pad' : None,
+                   'step' : 2,
+                   'stepminor' : 1,
+                   'label' : None},
+           'PC3': {'ax_min' : -4,
+                   'ax_max' : 6,
+                   'pad' : None,
+                   'step' : 2,
+                   'stepminor' : 1,
+                   'label' : None}}
+
+
+for ax_i, PCs in zip([0, 1, 4], [('PC1', 'PC2'), ('PC3', 'PC2'), ('PC1', 'PC3')]):
+    
+    # plot each cluster separatly for coloring
+    for cluster_idx in range(n_clusters):
+        
+        # set axis
+        ax = axs_3ds[ax_i]
+        
+        # get cell_IDs of cells in cluster
+        cluster_cellIDs = celldescriptors_clustered[celldescriptors_clustered['hierarchical_cluster'] == cluster_idx].index.to_list()
+
+        # if cluster_idx in [2, 3]:
+
+        # plot cluster
+        ax.scatter(x = prinicpal_components.loc[cluster_cellIDs, PCs[0]],
+                   y = prinicpal_components.loc[cluster_cellIDs, PCs[1]],
+                   c = [colors[cluster_idx]] * len(cluster_cellIDs),
+                   s = 5,
+                   label = cluster_idx)
+    
+        # set axis labels
+        ax.set_xlabel(PCs[0])
+        ax.set_ylabel(PCs[1])
+        
+        # set axis
+        apply_axis_settings(ax = ax, axis = 'x', **PC_dict[PCs[0]])
+        apply_axis_settings(ax = ax, axis = 'y', **PC_dict[PCs[1]])
+ 
+        
+for ax_i, PCs in zip([2, 3, 6], [('PC1', 'PC2'), ('PC3', 'PC2'), ('PC1', 'PC3')]):
+    
+    # plot each cluster separatly for coloring
+    for cluster_idx in range(n_clusters):
+        
+        # set axis
+        ax = axs_3ds[ax_i]
+        
+        # plot the variables as vectors
+        for i in range(celldescriptors_PCA.components_.shape[1]):
+            ax.arrow(x = 0,
+                     y = 0,
+                     dx = celldescriptors_PCA.components_[int(PCs[0][-1])-1, i]*4.5,
+                     dy = celldescriptors_PCA.components_[int(PCs[1][-1])-1, i]*4.5,
+                     head_width=0.05,
+                     head_length=0.05,
+                     linewidth=0.75,
+                     color="w",
+                     )
+   
+        
+        # Plot annotations
+        for parameter in celldescriptors_PCA_eigen.index.to_list():
+            ax.text(x = (celldescriptors_PCA_eigen.loc[parameter, PCs[0]])*5,
+                    y = (celldescriptors_PCA_eigen.loc[parameter, PCs[1]])*5,
+                    s = parameter,
+                    color="red",
+                    fontsize = 4,
+                    )
+   
+        # set axis labels
+        ax.set_xlabel(PCs[0])
+        ax.set_ylabel(PCs[1])
+        
+        # set axis
+        apply_axis_settings(ax = ax, axis = 'x', **PC_dict[PCs[0]])
+        apply_axis_settings(ax = ax, axis = 'y', **PC_dict[PCs[1]])       
+       
+        
+# legend
+h, l = axs_3ds[4].get_legend_handles_labels() 
+axs_3ds[5].legend(h, l, title = 'cluster id', 
+                  frameon = False, ncol = 2, loc = 'center left')
+
+# remove spines, ticks, and ticklabels
+remove_spines_n_ticks([axs_3ds[5]], axis = 'x')
+remove_spines_n_ticks([axs_3ds[5]], axis = 'y')
+axs_3ds[5].set_xticks([])
+axs_3ds[5].set_yticks([])
+
+# remove spines
+[ax.spines[spine].set_visible(False) for ax in axs_3ds for spine in ['top', 'right']]
+
+# remove unused subplots
+fig_3d_subp.delaxes(axs_3ds[7])
+
+# show plot
+plt.show()

@@ -5,20 +5,18 @@ Created on Sun Jan 28 18:12:32 2024
 @author: nesseler
 """
 
-from os.path import join
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sbn
+from functions.initialize_packages import *
 
 # custom directories & parameters
-from parameters.directories_win import cell_descrip_dir, figure_dir, table_file
-from functions.functions_plotting import get_colors, save_figures, set_font_sizes, get_figure_size
+from parameters.directories_win import cell_descrip_syn_dir, figure_dir, table_file
+
+# init plotting
+from functions.initialize_plotting import *
 
 # exp = '-' 
 exp = '-Syn-' 
 
-activity_df = pd.read_excel(join(cell_descrip_dir, 'cc_rest' + exp + 'activity.xlsx'), index_col = 'cell_ID')
+activity_df = pd.read_excel(join(cell_descrip_syn_dir, 'cc_rest' + exp + 'activity.xlsx'), index_col = 'cell_ID')
 # activity_df2 = pd.read_excel(join(cell_descrip_dir, 'cc_rest-syn-activity.xlsx'), index_col = 'cell_ID')
 
 # activity_df = pd.concat([activity_df, activity_df2])
@@ -232,10 +230,10 @@ ax.get_legend().get_frame().set_linewidth(0.0)
 
 # y
 ydict = {'ax_min' : -100,
-         'ax_max' : -55,
-         'pad' : 5,
+         'ax_max' : -54,
+         'pad' : None,
          'step' : 10,
-         'stepminor' : 5,
+         'stepminor' : 2,
          'label' : 'Resting membrane potential\n[mV]'}
 
 apply_axis_settings(ax, axis = 'y', **ydict)
