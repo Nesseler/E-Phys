@@ -156,7 +156,7 @@ aux_celldescriptors['Region'] = MetaData.loc[cell_IDs, 'Region']
 aux_celldescriptors['Region'] = aux_celldescriptors['Region'].map({'MeA' : 0, 'BAOT/MeA' : 0.5, 'BAOT' : 1})
 
 # set number of clusters
-n_clusters = 8
+n_clusters = 6
 
 # as halfway point between n_clusters-1 and n_clusters
 c_threshold = last_clusters_rev[n_clusters-1] + (last_clusters_rev[n_clusters-2] - last_clusters_rev[n_clusters-1]) / 2
@@ -375,6 +375,205 @@ save_figures(fig_clustering, 'figure-hierarchical_clustering-dendro_heat_aux',
               darkmode_bool = darkmode_bool,
               figure_format = 'png')
 
+
+# %% ##################
+
+
+# set linewidth
+plt.rcParams['lines.linewidth'] = 0.0
+plt.rcParams.update()
+
+# initialise figure
+fig_clustering, axs_clustering = plt.subplots(nrows = 1,
+                                              ncols = 1,
+                                              layout = 'constrained',
+                                              figsize = get_figure_size(height = 160.5, width = 1000),
+                                              # height_ratios=[0.2, heatmap_width_r],
+                                              dpi = 600)
+
+# adjust layout of constrained setup
+fig_clustering.set_constrained_layout_pads(w_pad=0.01, wspace=0.05)
+
+### dendrogram ###
+# set axis for dendrogram
+# ax_dendro = axs_clustering[0]
+
+# set color palette for dendrogram
+hierarchy.set_link_color_palette(None)
+
+# # plot dendrogram
+# dendrogram_plot = dendrogram(Z = ward_clustering_linkage, 
+#                               labels = celldescriptors_zscored.index.to_list(), 
+#                               ax = ax_dendro,
+#                               orientation = 'top',
+#                               color_threshold = c_threshold)
+
+# # plot cluster threshold
+# ax_dendro.axhline(y = c_threshold, 
+#                   color = colors_dict['primecolor'],
+#                   lw = 1,
+#                   ls = 'dashed')
+
+# # edit axis
+# ax_dendro.set_ylabel('Distance')
+# ax_dendro.set_yticks(ticks = np.arange(0, 25, 10))
+# ax_dendro.set_yticks(ticks = np.arange(0, 25+1, 5), minor = True)
+
+# # remove spines
+# [ax_dendro.spines[spine].set_visible(False) for spine in ['top', 'right', 'bottom']]
+
+# get cell IDs of leaves
+leave_cell_IDs = dendrogram_plot['ivl']
+
+# invert order of leave cell IDs
+leave_cell_IDs = list(leave_cell_IDs)
+
+# resort dataframe indices
+celldescriptors_zscored_clustered = celldescriptors_zscored.reindex(leave_cell_IDs)
+aux_celldescriptors_clustered = aux_celldescriptors.reindex(leave_cell_IDs)
+
+
+# # # heatmap # # #
+ax_heat = axs_clustering
+
+# plot heatmap
+sbn.heatmap(celldescriptors_zscored_clustered.T,
+            vmin = heatmin,
+            vmax = heatmax,
+            center = 0,
+            square = False,
+            xticklabels = False,
+            ax = ax_heat, 
+            cmap = cmap_str, 
+            # xticklabels = False,
+            linewidth = 0,
+            cbar = False) 
+
+# remove ylabel
+ax_heat.set_ylabel('')
+
+
+# # # # heatmap colorbar # # #
+# ax_cbar = axs_clustering[3]
+# cmin = heatmin
+# cmax = heatmax
+# crange = (cmax - cmin) * 0.3
+
+# # create normalize object
+# norm = mtl.colors.Normalize(heatmin, heatmax)
+
+# # create mappable cmap object
+# cmap = mtl.cm.ScalarMappable(norm=norm, cmap=cmap_str)
+   
+# # plot colorbar in axis
+# cbar = fig_clustering.colorbar(mappable = cmap, 
+#                                 cax = ax_cbar, 
+#                                 label = '', 
+#                                 orientation='vertical',
+#                                 drawedges = False)
+
+# # calc new limits
+# cmin_new = cmin - crange
+# cmax_new = cmax + crange
+
+# # apply changes
+# # axis
+# ax_cbar.set_ylim([cmin_new, cmax_new])
+# ax_cbar.spines['left'].set_bounds([cmin_new, cmax_new])
+
+# # colorbar
+# cbar.set_ticks(np.arange(cmin, cmax+0.1, 1))
+# cbar.outline.set_visible(False)
+# cbar.set_ticklabels(np.arange(cmin, cmax+0.1, 1, dtype = int))
+
+# ax_cbar.set_ylabel('Z-scored parameters [std]')
+# ax_cbar.yaxis.set_label_position('left')
+
+
+# # # # region auxillary parameter # # #
+
+# # set heat map axis
+# ax_heatmap = axs_clustering[axs_dict['Region']['heatmap']]
+
+# # plot heatmap
+# heatmap = sbn.heatmap(data = aux_celldescriptors_clustered.loc[:, ['Region']],
+#                       ax = ax_heatmap,
+#                       square= False,
+#                       xticklabels=1,
+#                       yticklabels=False,
+#                       linewidth = 0,
+#                       cbar = False,
+#                       **heatmap_dict['Region'])
+
+# # rotate xticklabels
+# [label.set_rotation(90) for label in ax_heatmap.get_xticklabels()] 
+
+# # set colorbar axis
+# ax_cbar = axs_clustering[axs_dict['Region']['cbar']]
+
+# n_colors = len(heatmap_dict['Region']['cmap'])
+# cmap = LinearSegmentedColormap.from_list('Region', heatmap_dict['Region']['cmap'], N=n_colors)
+
+# # # min max normalize time for color-code
+# norm_min = aux_celldescriptors_clustered.loc[:, ['Region']].min()
+# norm_max = aux_celldescriptors_clustered.loc[:, ['Region']].max()
+
+# # create normalize object
+# norm = mtl.colors.Normalize(norm_min, norm_max)
+
+# # create mappable cmap object
+# cmap = mtl.cm.ScalarMappable(norm=norm, cmap=cmap)
+   
+# # plot colorbar in axis
+# cbar = fig_clustering.colorbar(mappable = cmap, 
+#                                 cax = ax_cbar, 
+#                                 label = '', 
+#                                 orientation='vertical',
+#                                 drawedges = False)
+
+# # colorbar annotation
+
+# # get min and max of y axis to shrink subplot
+# cmin = 0
+# cmax = 1
+# crange = (cmax - cmin) * 0.3
+
+# # calc new limits
+# cmin_new = cmin - crange
+# cmax_new = cmax + crange
+
+# # apply changes
+# ax_cbar.set_ylim([cmin_new, cmax_new])
+
+# for ctick, clabel in zip(cbar_dict['Region']['ticks'], cbar_dict['Region']['labels']):
+
+#     ax_cbar.text(x = 0.55,
+#                   y = ctick,
+#                   s = clabel,
+#                   fontsize = 7,
+#                   rotation = 90,
+#                   va = 'center',
+#                   ha = 'center')
+
+# cbar.set_ticks([])
+# cbar.outline.set_visible(False)
+
+
+# show plot
+plt.show()
+
+# set directory for figure
+fig_dir = join(clustering_dir, 'temp_figs')
+
+# save figure
+save_figures(fig_clustering, 'figure-hierarchical_clustering-onlyflipped_heatmap', 
+              save_dir = fig_dir,
+              darkmode_bool = darkmode_bool,
+              figure_format = 'both')
+
+
+
+############################
 
 # %% get cell_IDs and cluster
 

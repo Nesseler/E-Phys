@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['clustering\\create_celldescriptors.py', 'clustering\\hierarchical_clustering.py', 'clustering\\PCA.py', 'clustering\\single_clustered_parameters.py', 'clustering\\correlation_analysis.py', 'analysis\\celldescrip_anaylsis_Syn\\analyze_all_cc_syn.py', 'analysis\\celldescrip_anaylsis_Syn\\analyze_cc_rest_syn.py']
+recent_files = ['clustering\\create_celldescriptors.py', 'clustering\\hierarchical_clustering.py', 'clustering\\PCA.py', 'plot\\plot_3dplot_ccrest.py', 'clustering\\single_clustered_parameters.py', 'clustering\\correlation_analysis.py', 'analysis\\celldescrip_anaylsis_Syn\\analyze_all_cc_syn.py', 'analysis\\celldescrip_anaylsis_Syn\\analyze_cc_rest_syn.py', 'plot\\plot_ccrest_activity_n_vrest.py', 'functions\\initialize_plotting.py']
 
 [main]
 version = 0.2.0

@@ -16,7 +16,8 @@ from tqdm import tqdm
 from parameters.directories_win import cell_descrip_dir, figure_dir
 
 # custom functions
-from functions.functions_useful import butter_filter, calc_time_series, calc_dvdt_padded
+from functions.functions_useful import calc_time_series, calc_dvdt_padded
+from functions.functions_filter import butter_filter
 from functions.functions_import import get_cc_data, get_traceIndex_n_file
 from functions.get_cell_IDs import get_cell_IDs_one_protocol
 
@@ -37,9 +38,6 @@ n_cells = len(cell_IDs)
 # init plotting
 from functions.initialize_plotting import * 
 
-
-# verification plots
-vplots = True
 
 
 # %% data loading
@@ -101,10 +99,10 @@ vf_sub = vf_df.iloc[::subsample_facter]
 t_sub = t[::subsample_facter]
 
 # sort cell_IDs by resting membrane potential
-sorted_cell_IDs = v_mem_df.sort_values('v_mem').index.to_list()[::2]
+sorted_cell_IDs = v_mem_df.sort_values('v_mem').index.to_list()[1::2]
 
 
-fig = plt.figure(figsize= get_figure_size(),
+fig = plt.figure(figsize= get_figure_size(width = 154.335, height = 154.335),
                  layout = 'constrained')
 
 ax = plt.axes(projection='3d')
@@ -180,6 +178,6 @@ ax.zaxis.set_inverted(True)
 # create saving path and save
 print('saving ...')
 path_figure = join(figure_dir, 'temp_figs')
-save_figures(fig, f'figure-ccrest_3d-syn', path_figure, darkmode_bool, figure_format='png')
+save_figures(fig, f'figure-ccrest_3d-syn', path_figure, darkmode_bool, figure_format='both')
 
 plt.show()

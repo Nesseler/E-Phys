@@ -163,6 +163,86 @@ save_figures(fig_PCA2, 'figure-PCA-components_plot-region',
 plt.show()
 
 
+# %% ############
+
+fig_PCA2, axs_PCA2 = plt.subplots(nrows = 1,
+                                  ncols = 1,
+                                  layout = 'constrained',
+                                  figsize = get_figure_size(height = 100, width = 120),
+                                  dpi = 600)
+
+
+# fig_PCA2.set_constrained_layout_pads(w_pad=4./72., 
+#                                         h_pad=4./72.,
+#                                         hspace=0./72.,
+#                                         wspace=4./72.)
+    
+
+sbn.scatterplot(data = prinicpal_components,
+                x = 'PC1',
+                y = 'PC2',
+                # hue = celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list(),
+                # palette = colors[::1],
+                # hue = celldescriptors['r_input'],
+                hue = MetaData.loc[cell_IDs, 'Region'],
+                palette = region_colors,
+                ax = axs_PCA2,
+                linewidth = 0)
+
+sbn.move_legend(axs_PCA2, "upper left",
+                frameon = False,
+                fontsize = 9,
+                title = 'Region',
+                ncol = 1,
+                title_fontsize = 9,
+                columnspacing = 0.6,
+                handletextpad = 0.0)
+
+
+# # plot cell_IDs
+# for cell_ID in prinicpal_components.index.to_list():
+#     axs_PCA2.text(x = prinicpal_components.at[cell_ID, 'PC1'],
+#                      y = prinicpal_components.at[cell_ID, 'PC2'],
+#                      s = cell_ID,
+#                      color = "k",
+#                      ha = "center",
+#                      va = "center",
+#                      fontsize = 2)
+
+
+PC_dict = {'ax_min' : -6,
+           'ax_max' : 9,
+           'pad' : None,
+           'step' : 2,
+           'stepminor' : 0.5,
+           'label' : None}
+
+# edit axis
+apply_axis_settings(axs_PCA2, axis = 'x', **PC_dict)
+apply_axis_settings(axs_PCA2, axis = 'y', **PC_dict)
+
+# set axis labels
+axs_PCA2.set_xlabel('PC 1')
+axs_PCA2.set_ylabel('PC 2')
+
+# remove spines
+[axs_PCA2.spines[spine].set_visible(False) for spine in ['top', 'right']]
+
+# set directory for figure
+fig_dir = join(clustering_dir, 'temp_figs')
+
+# save figure
+save_figures(fig_PCA2, 'figure-PCA', 
+             save_dir = fig_dir,
+             darkmode_bool = darkmode_bool,
+             figure_format = 'both')
+
+# show plot
+plt.show()
+
+# %%
+
+
 # # %% single parameter color code
 
 # parameter = 'r_input'

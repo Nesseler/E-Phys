@@ -16,16 +16,16 @@ import numpy as np
 # y
 ydict_v = {'ax_min' : -100,
            'ax_max' : 60,
-           'pad' : 10,
-           'step' : 20,
+           'pad' : None,
+           'step' : 50,
            'stepminor' : 5,
-           'label' : 'Membrane\npotential [mV]'}
+           'label' : 'Membrane potential [mV]'}
 
 # x
 xdict_tfull = {'ax_min' : 0,
                'ax_max' : 1500,
                'pad' : 10,
-               'step' : 250,
+               'step' : 500,
                'stepminor' : 50,
                'label' : 'Time [ms]'}
 
@@ -227,7 +227,7 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     fig, axs = plt.subplots(nrows = 1,
                             ncols = 2,
                             layout = 'constrained',
-                            figsize = get_figure_size(width = 200, height = 100),
+                            figsize = get_figure_size(),
                             dpi = 300)
     
     # set axis
@@ -272,7 +272,12 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     
     # add inset
     ## ([left, bottom, width, height]), percentages
-    ax_inset = fig.add_axes([0.385, 0.59, 0.10, 0.3])
+    ax_inset = ax.inset_axes([0.75, 0.65, 0.22, 0.30])
+    
+    # edit linewidth of inset axis and its ticks
+    [ax_inset.spines[spine].set_linewidth(0.5) for spine in ['left', 'bottom']]
+    ax_inset.tick_params(width=0.5)
+    ax_inset.tick_params(which = 'minor', width=0.25)
     
     
     # plot full trace
@@ -291,7 +296,7 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     ax_inset.set_xlim([box_xmin, box_xmin + box_width])
     
     # y
-    ax_inset.set_yticks(ticks = np.arange(-100, 60+5, 20), labels = [])
+    ax_inset.set_yticks(ticks = np.arange(-100, 60+5, 50), labels = [])
     ax_inset.set_yticks(ticks = np.arange(-100, 60, 5), labels = [], minor = True)
     ax_inset.set_ylim([box_ymin, box_ymin + box_height])
     
@@ -322,11 +327,11 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     
     # y
     dvdt_dict = {'ax_min' : -150,
-                 'ax_max' : 250,
-                 'pad' : 4,
-                 'step' : 50,
-                 'stepminor' : 10,
-                 'label' : 'Rate of membrane\npotential change [mV/ms]'}
+                  'ax_max' : 250,
+                  'pad' : 4,
+                  'step' : 50,
+                  'stepminor' : 10,
+                  'label' : 'Rate of membrane\npotential change [mV/ms]'}
     
     apply_axis_settings(ax, axis = 'y', **dvdt_dict)
     
@@ -338,12 +343,12 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     
     # add rectangle marker
     ax.add_patch(Rectangle(xy = (box_xmin, box_ymin), 
-                           width = box_width, 
-                           height = box_height,
-                           fill = False,
-                           color = colors_dict['primecolor'],
-                           linestyle = '--',
-                           lw = 0.5))
+                            width = box_width, 
+                            height = box_height,
+                            fill = False,
+                            color = colors_dict['primecolor'],
+                            linestyle = '--',
+                            lw = 0.5))
     
     ## ([left, bottom, width, height]), percentages
     ax_inset2 = fig.add_axes([0.632, 0.79, 0.13, 0.145])
@@ -356,8 +361,8 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     
     # plot rheobase spike
     ax_inset2.plot(rheospike_v, rheospike_dvdt,
-                   color = '#FFEC9DFF',
-                   lw = 1)
+                    color = '#FFEC9DFF',
+                    lw = 1)
     
     # x
     ax_inset2.set_xticks(ticks = np.arange(box_xmin, box_xmin + box_width, 20), labels = [])
