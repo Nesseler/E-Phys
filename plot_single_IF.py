@@ -39,7 +39,7 @@ SR = PGF_parameters['SR']
 
 # define protocol
 PGF = 'cc_IF'
-sheet_name = 'PGFs_Syn'
+sheet_name = 'PGFs'
 
 # get all cell_IDs for cc_rest
 cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = sheet_name)
@@ -105,7 +105,7 @@ if vplots:
 # %% load
 
 # 223, 276, 300, 315
-cell_IDs = ['E-280']
+cell_IDs = ['E-137']
 
 for cell_ID in tqdm(cell_IDs):
 

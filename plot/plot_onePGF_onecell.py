@@ -11,27 +11,28 @@ import numpy as np
 
 from parameters.directories_win import table_file, figure_dir
 
-from functions.functions_plotting import get_colors, save_figures, set_font_sizes, get_figure_size
+# from functions.functions_plotting import get_colors, save_figures, set_font_sizes, get_figure_size
 from functions.functions_constructors import construct_current_array
-from functions.functions_ccIF import get_IF_data
-from functions.functions_import import get_traceIndex_n_file
-from functions.functions_useful import calc_time_series, butter_filter, calc_dvdt, calc_dvdt_padded, round_to_base
+# from functions.functions_ccIF import get_IF_data
+from functions.functions_import import get_traceIndex_n_file, get_cc_data
+from functions.functions_useful import calc_time_series, calc_dvdt, calc_dvdt_padded, round_to_base
+from functions.functions_filter import butter_filter
 
 
-cell_ID = 'E-136'
+cell_ID = 'E-122'
 PGF = 'cc_IF'
 
-from parameters.PGFs import cc_th1Ap_parameters, cc_IF_parameters, cc_sag_parameters, vc_rest_EPSC_parameters
+from parameters.PGFs import cc_th1Ap_parameters, cc_IF_parameters, cc_sag_parameters#, vc_rest_EPSC_parameters
 
 PGFs_dict = {'cc_IF' : cc_IF_parameters,
              'cc_th1AP' : cc_th1Ap_parameters,
-             'cc_sag' : cc_sag_parameters,
-             'vc_rest_EPSC' : vc_rest_EPSC_parameters}
+             'cc_sag' : cc_sag_parameters}
 
 PGF_parameters = PGFs_dict[PGF]
 
-darkmode_bool = True
-colors_dict, region_colors = get_colors(darkmode_bool)
+
+# init plotting
+from functions.initialize_plotting import *
 
 # get hold current as table
 I_hold_table = pd.read_excel(table_file, sheet_name="V_or_I_hold", index_col='cell_ID').loc[cell_ID, :]
@@ -42,7 +43,7 @@ I_hold_table = pd.read_excel(table_file, sheet_name="V_or_I_hold", index_col='ce
 traceIndex, file_path = get_traceIndex_n_file(PGF, cell_ID)
 
 # get IF data form file
-i, v, t, SR, n_steps = get_IF_data(file_path, traceIndex, 'ms')
+i, v, t, SR, n_steps = get_cc_data(file_path, traceIndex, 'ms')
 
 # sampling rate in ms
 SR_ms = SR / 1e3
@@ -75,7 +76,7 @@ for step_idx in np.arange(0, n_steps, 1):
     v[step_idx] = vf[start_idx:stop_idx]
 
 # calc time series for one step
-t = calc_time_series(v[0], SR)
+t = calc_time_series(v[0], SR_ms)
 
 
 # ### construct current dataframe
@@ -103,14 +104,14 @@ fig, axs = plt.subplots(nrows = 2,
 fig.subplots_adjust(hspace = 0.06)
 
 for step_idx in np.arange(0, n_steps, 5):
-    axs[0].plot(i_cons[step_idx], lw = 1, c = 'gray')
-    axs[1].plot(v[step_idx], lw = 1, c = 'gray')
+    axs[0].plot(t, i_cons[step_idx], lw = 1, c = 'gray')
+    axs[1].plot(t, v[step_idx], lw = 1, c = 'gray')
 
 
-add_stepidx = 24
+add_stepidx = 22
 
-axs[0].plot(i_cons[add_stepidx], lw = 1, c = colors_dict['primecolor'])
-axs[1].plot(v[add_stepidx], lw = 1, c = colors_dict['primecolor'])
+axs[0].plot(t, i_cons[add_stepidx], lw = 1, c = colors_dict['primecolor'])
+axs[1].plot(t, v[add_stepidx], lw = 1, c = colors_dict['primecolor'])
 
 
 # #y i
@@ -136,9 +137,23 @@ axs[1].plot(v[add_stepidx], lw = 1, c = colors_dict['primecolor'])
 # axs[1].set_yticks(np.arange(v_range[0], v_range[1] + 1, 10), minor = True)
 
 
+# y
+ydict_v = {'ax_min' : -100,
+           'ax_max' : 60,
+           'pad' : None,
+           'step' : 50,
+           'stepminor' : 5,
+           'label' : '',
+           'limits_n_0' : True}
+
+apply_axis_settings(axs[1], axis = 'y', **ydict_v)
+
+
+
 # plt.show()
 
-save_figures(fig, f'example_trace-{cell_ID}_{PGF}', figure_dir, darkmode_bool)
+save_figures(fig, f'example_trace-{cell_ID}_{PGF}', figure_dir, darkmode_bool,
+             figure_format='both')
 
 
 
