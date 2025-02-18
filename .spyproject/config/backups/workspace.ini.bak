@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['analysis\\celldescrip_anaylsis_Syn\\analyze_cc_IF_syn.py', 'plot_single_IF.py']
+recent_files = ['analysis\\celldescrip_anaylsis_Syn\\analyze_cc_IF_syn.py', 'plot_single_IF.py', 'plot\\plot_onePGF_onecell.py', 'clustering\\hierarchical_clustering.py', 'clustering\\PCA.py']
 
 [main]
 version = 0.2.0

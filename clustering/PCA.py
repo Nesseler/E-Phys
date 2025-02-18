@@ -405,56 +405,56 @@ plt.show()
 
 # %% 3d plot
 
-# # initialize figure
-# fig = plt.figure(layout = 'constrained',
-#                   dpi = 100)
-# ax = fig.add_subplot(projection='3d')
+# initialize figure
+fig = plt.figure(layout = 'constrained',
+                  dpi = 100)
+ax = fig.add_subplot(projection='3d')
 
-# # plot each cluster separatly for coloring
-# for cluster_idx in range(n_clusters):
+# plot each cluster separatly for coloring
+for cluster_idx in range(n_clusters):
     
-#     # get cell_IDs of cells in cluster
-#     cluster_cellIDs = celldescriptors_clustered[celldescriptors_clustered['hierarchical_cluster'] == cluster_idx].index.to_list()
+    # get cell_IDs of cells in cluster
+    cluster_cellIDs = celldescriptors_clustered[celldescriptors_clustered['hierarchical_cluster'] == cluster_idx].index.to_list()
 
-#     # plot cluster
-#     ax.scatter(xs = prinicpal_components.loc[cluster_cellIDs, 'PC1'],
-#                 ys = prinicpal_components.loc[cluster_cellIDs, 'PC2'],
-#                 zs = prinicpal_components.loc[cluster_cellIDs, 'PC3'],
-#                 c = [colors[cluster_idx]] * len(cluster_cellIDs))
+    # plot cluster
+    ax.scatter(xs = prinicpal_components.loc[cluster_cellIDs, 'PC1'],
+                ys = prinicpal_components.loc[cluster_cellIDs, 'PC2'],
+                zs = prinicpal_components.loc[cluster_cellIDs, 'PC3'],
+                c = [colors[cluster_idx]] * len(cluster_cellIDs))
 
-# PC_dict = {'ax_min' : -6,
-#             'ax_max' : 8.5,
-#             'pad' : None,
-#             'step' : 2,
-#             'stepminor' : 0.5,
-#             'label' : None}
+PC_dict = {'ax_min' : -6,
+            'ax_max' : 8.5,
+            'pad' : None,
+            'step' : 2,
+            'stepminor' : 0.5,
+            'label' : None}
 
-# # edit axis
-# apply_axis_settings(ax, axis = 'x', **PC_dict)
-# apply_axis_settings(ax, axis = 'y', **PC_dict)
-# apply_axis_settings(ax, axis = 'z', **PC_dict)
+# edit axis
+apply_axis_settings(ax, axis = 'x', **PC_dict)
+apply_axis_settings(ax, axis = 'y', **PC_dict)
+apply_axis_settings(ax, axis = 'z', **PC_dict)
 
-# # set titles
-# ax.set_xlabel('PC1')
-# ax.set_ylabel('PC2')
-# ax.set_zlabel('PC3')
+# set titles
+ax.set_xlabel('PC1')
+ax.set_ylabel('PC2')
+ax.set_zlabel('PC3')
 
-# # set background colors
-# for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
-#     axis.set_pane_color((1.0, 1.0, 1.0), 0.0) 
-#     axis._axinfo['grid']['linewidth'] = 0.0
-#     axis._axinfo['grid']['color'] = "#d1d1d1"
-#     axis._axinfo['tick']['inward_factor'] = 0.2
-#     axis._axinfo['tick']['outward_factor'] = 0.0
+# set background colors
+for axis in [ax.xaxis, ax.yaxis, ax.zaxis]:
+    axis.set_pane_color((1.0, 1.0, 1.0), 0.0) 
+    axis._axinfo['grid']['linewidth'] = 0.0
+    axis._axinfo['grid']['color'] = "#d1d1d1"
+    axis._axinfo['tick']['inward_factor'] = 0.2
+    axis._axinfo['tick']['outward_factor'] = 0.0
 
-# # remove grid
-# ax.grid(False)
+# remove grid
+ax.grid(False)
 
-# # set initial viewing angle
-# ax.view_init(elev = 90, azim = -90, roll = 0)
+# set initial viewing angle
+ax.view_init(elev = 90, azim = -90, roll = 0)
 
-# # display figure
-# plt.show()
+# display figure
+plt.show()
 
 
 
