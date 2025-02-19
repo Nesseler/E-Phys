@@ -12,6 +12,13 @@ AMCs_parent = 'Z:/Andres/AOB_2Photons'
 
 AMCs_analysis_dir = AMCs_parent + '/Analysis'
 
-AMCs_traces_dir = AMCs_analysis_dir + '/240513_AcuteSlices_Biocytin_SB4_Adult_Emilia/Traces'
+AMCs_cellsList = AMCs_parent + '/Cell_List_2Photons.xlsx'
+
+# coordinates analysis
+AMCs_coordinates_dir = AMCs_analysis_dir + '/cell_coordinates'
 
 
+# sholl analysis
+AMCs_sholl_dir = AMCs_analysis_dir + '/sholl_analysis'
+
+AMCs_shollplots = AMCs_sholl_dir + '/sholl_profile_plots'

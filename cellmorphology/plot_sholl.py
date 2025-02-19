@@ -5,6 +5,9 @@ Created on Tue Apr  2 17:36:31 2024
 @author: nesseler
 """
 
+import warnings
+warnings.warn('Script not up-to-date!')
+
 import matplotlib.pyplot as plt
 import matplotlib as mtl
 import seaborn as sbn
