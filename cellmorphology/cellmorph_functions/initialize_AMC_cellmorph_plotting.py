@@ -21,11 +21,22 @@ from functions.functions_plotting import save_figures, get_figure_size, apply_ax
 neurite_color_dict = {'soma' : '#D3D3D3',
                       'neurites'  : '#FFAD0A', 
                       'dendrites' : '#0424AC',
-                          'glomerular_dendrites' : '#038CAB',
-                          'basal_dendrites'      : '#3C51AB',
-                          'LOT_dendrites'        : '#5103AB', 
-                          'undefined_dendrites'  : '#0357AB',
+                          'glomerular_dendrites'    : '#0000FF',
+                          'lateral_dendrites'       : '#55A0FB',
+                          'LOTxing_dendrites'       : '#000080',
+                          'nonglomerular_dendrites' : '#04A9CF',
                       'axons'     : '#B10318'}
+
+#000080FF, #0000C0FF, #0000FFFF, #5757F9FF, #55A0FBFF, #90BFF9FF, #C8DEF9FF, #0000FFFF, #5757F9FF
+
+# neurite_color_dict = {'soma' : '#D3D3D3',
+#                       'neurites'  : '#FFAD0A', 
+#                       'dendrites' : '#0424AC',
+#                           'glomerular_dendrites'    : '#04A9CF',
+#                           'lateral_dendrites'       : '#88A6E6',
+#                           'LOTxing_dendrites'       : '#5103AB',
+#                           'nonglomerular_dendrites' : '#03488D',
+#                       'axons'     : '#B10318'}
 
 # set colors
 darkmode_bool = False

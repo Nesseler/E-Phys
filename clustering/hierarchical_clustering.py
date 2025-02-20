@@ -156,7 +156,7 @@ aux_celldescriptors['Region'] = MetaData.loc[cell_IDs, 'Region']
 aux_celldescriptors['Region'] = aux_celldescriptors['Region'].map({'MeA' : 0, 'BAOT/MeA' : 0.5, 'BAOT' : 1})
 
 # set number of clusters
-n_clusters = 6
+n_clusters = 8
 
 # as halfway point between n_clusters-1 and n_clusters
 c_threshold = last_clusters_rev[n_clusters-1] + (last_clusters_rev[n_clusters-2] - last_clusters_rev[n_clusters-1]) / 2
@@ -379,78 +379,78 @@ save_figures(fig_clustering, 'figure-hierarchical_clustering-dendro_heat_aux',
 # %% ##################
 
 
-# set linewidth
-plt.rcParams['lines.linewidth'] = 0.0
-plt.rcParams.update()
+# # set linewidth
+# plt.rcParams['lines.linewidth'] = 0.0
+# plt.rcParams.update()
 
-# initialise figure
-fig_clustering, axs_clustering = plt.subplots(nrows = 1,
-                                              ncols = 1,
-                                              layout = 'constrained',
-                                              figsize = get_figure_size(height = 160.5, width = 1000),
-                                              # height_ratios=[0.2, heatmap_width_r],
-                                              dpi = 600)
+# # initialise figure
+# fig_clustering, axs_clustering = plt.subplots(nrows = 1,
+#                                               ncols = 1,
+#                                               layout = 'constrained',
+#                                               figsize = get_figure_size(height = 160.5, width = 1000),
+#                                               # height_ratios=[0.2, heatmap_width_r],
+#                                               dpi = 600)
 
-# adjust layout of constrained setup
-fig_clustering.set_constrained_layout_pads(w_pad=0.01, wspace=0.05)
+# # adjust layout of constrained setup
+# fig_clustering.set_constrained_layout_pads(w_pad=0.01, wspace=0.05)
 
-### dendrogram ###
-# set axis for dendrogram
-# ax_dendro = axs_clustering[0]
+# ### dendrogram ###
+# # set axis for dendrogram
+# # ax_dendro = axs_clustering[0]
 
-# set color palette for dendrogram
-hierarchy.set_link_color_palette(None)
+# # set color palette for dendrogram
+# hierarchy.set_link_color_palette(None)
 
-# # plot dendrogram
-# dendrogram_plot = dendrogram(Z = ward_clustering_linkage, 
-#                               labels = celldescriptors_zscored.index.to_list(), 
-#                               ax = ax_dendro,
-#                               orientation = 'top',
-#                               color_threshold = c_threshold)
+# # # plot dendrogram
+# # dendrogram_plot = dendrogram(Z = ward_clustering_linkage, 
+# #                               labels = celldescriptors_zscored.index.to_list(), 
+# #                               ax = ax_dendro,
+# #                               orientation = 'top',
+# #                               color_threshold = c_threshold)
 
-# # plot cluster threshold
-# ax_dendro.axhline(y = c_threshold, 
-#                   color = colors_dict['primecolor'],
-#                   lw = 1,
-#                   ls = 'dashed')
+# # # plot cluster threshold
+# # ax_dendro.axhline(y = c_threshold, 
+# #                   color = colors_dict['primecolor'],
+# #                   lw = 1,
+# #                   ls = 'dashed')
 
-# # edit axis
-# ax_dendro.set_ylabel('Distance')
-# ax_dendro.set_yticks(ticks = np.arange(0, 25, 10))
-# ax_dendro.set_yticks(ticks = np.arange(0, 25+1, 5), minor = True)
+# # # edit axis
+# # ax_dendro.set_ylabel('Distance')
+# # ax_dendro.set_yticks(ticks = np.arange(0, 25, 10))
+# # ax_dendro.set_yticks(ticks = np.arange(0, 25+1, 5), minor = True)
 
-# # remove spines
-# [ax_dendro.spines[spine].set_visible(False) for spine in ['top', 'right', 'bottom']]
+# # # remove spines
+# # [ax_dendro.spines[spine].set_visible(False) for spine in ['top', 'right', 'bottom']]
 
-# get cell IDs of leaves
-leave_cell_IDs = dendrogram_plot['ivl']
+# # get cell IDs of leaves
+# leave_cell_IDs = dendrogram_plot['ivl']
 
-# invert order of leave cell IDs
-leave_cell_IDs = list(leave_cell_IDs)
+# # invert order of leave cell IDs
+# leave_cell_IDs = list(leave_cell_IDs)
 
-# resort dataframe indices
-celldescriptors_zscored_clustered = celldescriptors_zscored.reindex(leave_cell_IDs)
-aux_celldescriptors_clustered = aux_celldescriptors.reindex(leave_cell_IDs)
+# # resort dataframe indices
+# celldescriptors_zscored_clustered = celldescriptors_zscored.reindex(leave_cell_IDs)
+# aux_celldescriptors_clustered = aux_celldescriptors.reindex(leave_cell_IDs)
 
 
-# # # heatmap # # #
-ax_heat = axs_clustering
+# # # # heatmap # # #
+# ax_heat = axs_clustering
 
-# plot heatmap
-sbn.heatmap(celldescriptors_zscored_clustered.T,
-            vmin = heatmin,
-            vmax = heatmax,
-            center = 0,
-            square = False,
-            xticklabels = False,
-            ax = ax_heat, 
-            cmap = cmap_str, 
-            # xticklabels = False,
-            linewidth = 0,
-            cbar = False) 
+# # plot heatmap
+# sbn.heatmap(celldescriptors_zscored_clustered.T,
+#             vmin = heatmin,
+#             vmax = heatmax,
+#             center = 0,
+#             square = False,
+#             xticklabels = False,
+#             ax = ax_heat, 
+#             cmap = cmap_str, 
+#             # xticklabels = False,
+#             linewidth = 0,
+#             cbar = False) 
 
-# remove ylabel
-ax_heat.set_ylabel('')
+# # remove ylabel
+# ax_heat.set_ylabel('')
 
 
 # # # # heatmap colorbar # # #
@@ -559,17 +559,17 @@ ax_heat.set_ylabel('')
 # cbar.outline.set_visible(False)
 
 
-# show plot
-plt.show()
+# # show plot
+# plt.show()
 
-# set directory for figure
-fig_dir = join(clustering_dir, 'temp_figs')
+# # set directory for figure
+# fig_dir = join(clustering_dir, 'temp_figs')
 
-# save figure
-save_figures(fig_clustering, 'figure-hierarchical_clustering-onlyflipped_heatmap', 
-              save_dir = fig_dir,
-              darkmode_bool = darkmode_bool,
-              figure_format = 'both')
+# # save figure
+# save_figures(fig_clustering, 'figure-hierarchical_clustering-onlyflipped_heatmap', 
+#               save_dir = fig_dir,
+#               darkmode_bool = darkmode_bool,
+#               figure_format = 'both')
 
 
 

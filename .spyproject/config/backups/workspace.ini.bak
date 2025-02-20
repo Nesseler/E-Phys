@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['clustering\\PCA.py', 'cellmorphology\\functions_cellmorph.py', 'cellmorphology\\AMC_analysis\\AMC_analysis_directories.py', 'parameters\\directories_win.py']
+recent_files = ['cellmorphology\\cell_height_width.py', 'cellmorphology\\AMC_analysis\\AMC_cellcoordinates_analysis.py', 'cellmorphology\\AMC_analysis\\AMC_sholl_analysis.py', 'cellmorphology\\cellmorph_functions\\initialize_AMC_cellmorph_plotting.py', 'cellmorphology\\cellmorph_functions\\cellmorph_functions.py', 'cellmorphology\\AMC_analysis\\AMC_functions.py', 'cellmorphology\\plot_polar.py', 'clustering\\PCA.py', 'functions\\functions_plotting.py']
 
 [main]
 version = 0.2.0

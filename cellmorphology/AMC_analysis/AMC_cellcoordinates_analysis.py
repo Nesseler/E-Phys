@@ -8,27 +8,37 @@ Created on Wed Feb 19 14:57:41 2025
 # initialize needed packages
 from functions.initialize_packages import *
 
+# get metrics saving directory
+from cellmorphology.AMC_analysis.AMC_analysis_directories import AMCs_metrics_dir
+
 # get MetaData
 from cellmorphology.AMC_analysis.AMC_analysis_import import get_cells_list
 MetaData = get_cells_list()
 
 # get cell_IDs to be analyzed
 cell_IDs = MetaData.query('coordinates == "Yes" & paths_checked == "Yes"').index.to_list()
+cell_IDs = ['Exp-162']
 
 # set neurite types
 neurite_types = ['neurites', 
-                 'dendrites', 'glomerular_dendrites', 'basal_dendrites', 'LOT_dendrites', 'undefined_dendrites', 
+                 'dendrites', 
+                 'glomerular_dendrites', 
+                 'nonglomerular_dendrites', 
+                 'lateral_dendrites', 
+                 'LOTxing_dendrites', 
                  'axons']
 
-# field of view dimension
-max_fov_xy = 590.76
-max_fov_z = 300
-
+vplots = True
 
 # %% load coordinates
 
-# all coordinates dict
-coordinates_dict = dict.fromkeys(['all_coor', 'end_coor', 'soma_coor', 'path_IDs'])
+print('cell coordinates ...')
+
+# coordinates dict for all cells
+coordinates_dict = dict.fromkeys(cell_IDs)
+
+# all coordinates dict for one cell
+cell_coordintes_dict = dict.fromkeys(['all_coor', 'end_coor', 'soma_coor', 'path_IDs'])
 
 # get directory of cell coordinates
 from cellmorphology.AMC_analysis.AMC_analysis_directories import AMCs_coordinates_dir
@@ -37,173 +47,152 @@ from cellmorphology.AMC_analysis.AMC_analysis_directories import AMCs_coordinate
 from cellmorphology.AMC_analysis.AMC_functions import clean_OnPath_column_to_path_ID_n_label_AMCs
 
 
-# for cell_ID in cell_IDs:
+for cell_ID in tqdm(cell_IDs):       
+    ### coordinates
+    # all coordinates
+    all_coordinates_path = join(AMCs_coordinates_dir, f'{cell_ID}-all_coordinates.csv')
+    cell_allcoordinates = pd.read_csv(all_coordinates_path)
+    clean_OnPath_column_to_path_ID_n_label_AMCs(cell_allcoordinates)
     
-cell_ID = 'Exp-162'
+    # primary last coordinates
+    primary_coordinates_path = join(AMCs_coordinates_dir, f'{cell_ID}-primary_last_coordinates.csv')
+    cell_primarycoordinates = pd.read_csv(primary_coordinates_path)
+    clean_OnPath_column_to_path_ID_n_label_AMCs(cell_primarycoordinates) 
+    
+    # end / last / terminal coordinates
+    last_coordinates_path = join(AMCs_coordinates_dir, f'{cell_ID}-terminal_last_coordinates.csv')
+    cell_endcoordinates = pd.read_csv(last_coordinates_path)
+    clean_OnPath_column_to_path_ID_n_label_AMCs(cell_endcoordinates) 
+    
+    # get soma coordinates
+    soma_coordinates = cell_allcoordinates[cell_allcoordinates['path_ID'] == 1]
+     
+    # get all path_IDs
+    path_IDs = cell_allcoordinates['path_ID'].drop_duplicates().astype(int).to_list()
+    
+    # set dict for all coordinates
+    cell_coordintes_dict = {'all_coor' : cell_allcoordinates,
+                            'pri_coor' : cell_primarycoordinates,
+                            'end_coor' : cell_endcoordinates,
+                            'soma_coor': soma_coordinates,
+                            'path_IDs' : path_IDs}
+   
+    # # add to dict 
+    coordinates_dict[cell_ID] = cell_coordintes_dict
+
+
+# %% plot coordinates
+
+if vplots:   
+    # load plotting function    
+    from cellmorphology.AMC_analysis.plot_AMC_cellcoordinates_analysis import plot_cellcoordinates
+    
+    # plot
+    for cell_ID in tqdm(cell_IDs):  
+        plot_cellcoordinates(cell_ID = cell_ID, cell_coordinates = coordinates_dict[cell_ID])
+
+
+# %% get height, width and depth per type
+
+print('height, width, and depth ...')
+
+# create list of columns for dataframe
+columns = [ntype + '-' + col for ntype in neurite_types for col in ['x_min', 'y_min', 'z_min', 'width', 'height', 'depth']]
+
+# define output
+height_width_depth = pd.DataFrame(columns=columns, 
+                                  index = cell_IDs)
+height_width_depth.index.name = 'cell_ID'
+
+
+for cell_ID in tqdm(cell_IDs):  
+    
+    # get cell coordinates
+    cell_allcoordinates = coordinates_dict[cell_ID]['all_coor']
+
+    # get coordinates min and max
+    for ntype in neurite_types:
         
-### coordinates
-# all coordinates
-all_coordinates_path = join(AMCs_coordinates_dir, f'{cell_ID}-all_coordinates.csv')
-cell_allcoordinates = pd.read_csv(all_coordinates_path)
-clean_OnPath_column_to_path_ID_n_label_AMCs(cell_allcoordinates)
+        # limit coordinates to specific neurite type
+        if ntype == 'neurites':
+            cell_allcoordinates_pertype = cell_allcoordinates
+        elif ntype == 'dendrites':
+            cell_allcoordinates_pertype = cell_allcoordinates[cell_allcoordinates['path_label'] != 'axons']
+        else:
+            cell_allcoordinates_pertype = cell_allcoordinates[cell_allcoordinates['path_label'] == ntype]
+        
+        # get x, y, z min and max
+        xmin = cell_allcoordinates_pertype['X'].min()
+        ymin = cell_allcoordinates_pertype['Y'].min()
+        zmin = cell_allcoordinates_pertype['Z'].min()
+        xmax = cell_allcoordinates_pertype['X'].max()
+        ymax = cell_allcoordinates_pertype['Y'].max()
+        zmax = cell_allcoordinates_pertype['Z'].max()
+        
+        # write to dataframe
+        # mins
+        height_width_depth.at[cell_ID, ntype + '-' + 'x_min'] = xmin
+        height_width_depth.at[cell_ID, ntype + '-' + 'y_min'] = ymin
+        height_width_depth.at[cell_ID, ntype + '-' + 'z_min'] = zmin
+        
+        # calc width and height
+        height_width_depth.at[cell_ID, ntype + '-' + 'width'] = xmax - xmin
+        height_width_depth.at[cell_ID, ntype + '-' + 'height'] = ymax - ymin
+        height_width_depth.at[cell_ID, ntype + '-' + 'depth'] = zmax - zmin
 
-# end / last / terminal coordinates
-last_coordinates_path = join(AMCs_coordinates_dir, f'{cell_ID}-terminal_last_coordinates.csv')
-cell_endcoordinates = pd.read_csv(last_coordinates_path)
-clean_OnPath_column_to_path_ID_n_label_AMCs(cell_endcoordinates) 
+# save dataframe
+height_width_depth.to_excel(join(AMCs_metrics_dir, 'height_width_depth.xlsx'),
+                            index_label = 'cell_ID')
 
-# get soma coordinates
-soma_coordinates = cell_endcoordinates[cell_endcoordinates['path_ID'] == 1]
- 
-# get all path_IDs
-path_IDs = cell_allcoordinates['path_ID'].drop_duplicates().astype(int).to_list()
 
-# set dict for all coordinates
-cell_coordintes_dict = {'all_coor' : cell_allcoordinates,
-                        'end_coor' : cell_endcoordinates,
-                        'soma_coor': soma_coordinates,
-                        'path_IDs' : path_IDs}
-#                         # 'terminal_branches' : terminal_branches_df}
+# %% plot height, width, and depth per type
 
-# # add to dict 
-coordinates_dict[cell_ID] = cell_coordintes_dict
+if vplots:      
+    
+    # plot with height, width, and depth
+    for cell_ID in tqdm(cell_IDs):  
+        plot_cellcoordinates(cell_ID = cell_ID, 
+                             cell_coordinates = coordinates_dict[cell_ID], 
+                             cell_hwd = height_width_depth.loc[cell_ID, :])
 
+
+# %% number of primary & terminal points & bifurcation ratio
+
+n_primary_points = 
 
 # %%
 
-# initialize plotting packages
+# init plotting
 from cellmorphology.cellmorph_functions.initialize_AMC_cellmorph_plotting import *
 
-scatter_plot_dict = {'s' : 0.25}
+
+plt.figure(dpi = 300)
 
 
-print('plotting ...')
+plt.scatter(x = cell_allcoordinates.loc[:, 'X'],
+            y = cell_allcoordinates.loc[:, 'Y'],
+            color = 'gray',
+            s = 0.25)
 
-fig, axs = plt.subplots(nrows = 2,
-                        ncols = 2,
-                        layout = 'constrained',
-                        figsize = get_figure_size(width = 100, height = 100),
-                        width_ratios = [1, max_fov_z/max_fov_xy],
-                        height_ratios = [1, max_fov_z/max_fov_xy],
-                        sharey = 'row',
-                        sharex = 'col',
-                        dpi = 300)
 
-# flatten axes array
-axs = axs.flatten()
+for path_i in cell_primarycoordinates.index.to_list():
+    plt.scatter(x = cell_primarycoordinates.at[path_i, 'X'],
+                y = cell_primarycoordinates.at[path_i, 'Y'],
+                color = neurite_color_dict[cell_primarycoordinates.at[path_i, 'path_label']],
+                s = 15,
+                marker = 'x',
+                linewidths=0.5)
 
-# set figure title
-fig.suptitle(f'{cell_ID} cell coordinates', 
-             fontsize = 9)
-    
-# set coordinates data dict
-cell_coordinates = coordinates_dict[cell_ID]
+for path_i in cell_endcoordinates.index.to_list():
+    plt.scatter(x = cell_endcoordinates.at[path_i, 'X'],
+                y = cell_endcoordinates.at[path_i, 'Y'],
+                color = neurite_color_dict[cell_endcoordinates.at[path_i, 'path_label']],
+                s = 3)
 
-# get all path_IDs
-cell_path_IDs = cell_coordinates['path_IDs']
+plt.scatter(x = soma_coordinates.at[0, 'X'],
+            y = soma_coordinates.at[0, 'Y'],
+            color = neurite_color_dict[soma_coordinates.at[0, 'path_label']])
 
-# loop through all paths of cell
-for path_ID in cell_path_IDs:
-    
-    # get path coordinates
-    path_all_coordinates = cell_coordinates['all_coor'][cell_coordinates['all_coor']['path_ID'] == path_ID]
-    # path_end_coordinates = cell_coordinates['end_coor'][cell_coordinates['end_coor']['path_ID'] == path_ID]           
+plt.gca().invert_yaxis()
 
-    # get label of current path
-    cur_path_label = path_all_coordinates['path_label'].iloc[0]
-       
-    # scatter plots
-    for ax, dim1, dim2 in zip(axs[:3], ['X', 'Z', 'X'], ['Y', 'Y', 'Z']):
-        
-        # all coordinates
-        ax.scatter(x = path_all_coordinates[dim1],
-                   y = path_all_coordinates[dim2],
-                   color = neurite_color_dict[cur_path_label],
-                   label = cur_path_label,
-                   **scatter_plot_dict)
-
-# TODO: zorders, soma on top
-
-# edit axes
-# XY
-axs[0].text(x = 10, 
-            y = 10, 
-            s = 'XY', 
-            ha = 'left', 
-            va = 'top', 
-            fontsize = 9)
-axs[0].set_xlim([0, max_fov_xy])
-axs[0].set_ylim([max_fov_xy, 0])
-axs[0].set_ylabel('Height [µm]')
-axs[0].tick_params(axis = 'x', size = 0)
-axs[0].tick_params(axis = 'x', which = 'minor', size = 0)
-axs[0].set_yticks(ticks = np.arange(0, max_fov_xy, 200))
-axs[0].set_yticks(ticks = np.arange(0, max_fov_xy, 25), minor = True)
-
-# ZY
-axs[1].text(x = 10, 
-            y = 10, 
-            s = 'ZY', 
-            ha = 'left', 
-            va = 'top', 
-            fontsize = 9)
-axs[1].set_xlim([0, max_fov_z])
-axs[1].set_xlabel('')
-axs[1].tick_params(axis = 'y', size = 0)
-axs[1].tick_params(axis = 'y', which = 'minor', size = 0)
-axs[1].set_xticks(ticks = np.arange(0, max_fov_z, 200))
-axs[1].set_xticks(ticks = np.arange(0, max_fov_z, 25), minor = True)
-
-# XZ
-axs[2].text(x = 10, 
-            y = 10, 
-            s = 'XZ', 
-            ha = 'left', 
-            va = 'top', 
-            fontsize = 9)
-axs[2].set_xlim([0, max_fov_xy])
-axs[2].set_xlabel('Width [µm]')
-axs[2].set_ylim([max_fov_z, 0])
-axs[2].set_ylabel('Depth [µm]')
-axs[2].set_xticks(ticks = np.arange(0, max_fov_xy, 200))
-axs[2].set_xticks(ticks = np.arange(0, max_fov_xy, 25), minor = True)
-axs[2].set_yticks(ticks = np.arange(0, max_fov_z, 200))
-axs[2].set_yticks(ticks = np.arange(0, max_fov_z, 25), minor = True)
-
-# legend
-h, l = axs[0].get_legend_handles_labels()
-
-# get unique lables
-unique_label = list(set(l))
-
-# get and sort indices of unique lables
-unique_label_indices = sorted([l.index(unique_label[u_i]) for u_i, u_l in enumerate(unique_label)])
-
-# reassign handels
-unique_handles = [h[u_li] for u_li in unique_label_indices]
-unique_label = [l[u_li] for u_li in unique_label_indices]
-
-axs[3].legend(unique_handles, unique_label, 
-              title = 'neurite type',
-              title_fontsize = 6,
-              frameon = False, 
-              ncol = 1, 
-              loc = 'center',
-              fontsize = 6)
-
-axs[3].set_xticklabels(labels = [])
-axs[3].tick_params(axis = 'y', size = 0)
-axs[3].tick_params(axis = 'y', which = 'minor', size = 0)
-axs[3].tick_params(axis = 'x', size = 0)
-axs[3].tick_params(axis = 'x', which = 'minor', size = 0)
-
-# remove spines
-[axs[3].spines[spine].set_visible(False) for spine in ['top', 'right', 'bottom', 'left']]
-
-# align labels
-fig.align_labels()
-
-# display figure
 plt.show()
-
-

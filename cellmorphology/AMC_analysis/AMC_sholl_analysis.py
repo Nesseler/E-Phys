@@ -101,7 +101,7 @@ for cell_ID in tqdm(cell_IDs):
 
 # save collection of profiles
 for ntype in neurite_types:
-    all_sholl_profiles[ntype].to_excel(join(AMCs_sholl_dir, 'sholl_metrics', f'sholl_profiles-{ntype}.xlsx'),
+    all_sholl_profiles[ntype].to_excel(join(AMCs_sholl_dir, 'sholl_combined_profiles', f'sholl_profiles-{ntype}.xlsx'),
                                        index_label = 'Radius')
     
     
@@ -118,7 +118,7 @@ for ntype in neurite_types:
     avg_sholl_profiles[f'std-sholl_profile-{ntype}'] = all_sholl_profiles['neurites'].std(axis = 1)
 
 # save average profiles
-avg_sholl_profiles.to_excel(join(AMCs_sholl_dir, 'sholl_metrics', f'sholl_profiles-avg.xlsx'),
+avg_sholl_profiles.to_excel(join(AMCs_sholl_dir, 'sholl_combined_profiles', 'sholl_profiles-avg.xlsx'),
                             index_label = 'Radius')
 
 
@@ -138,7 +138,8 @@ for ntype in neurite_types:
 sholl_metrics.astype(float).replace({-1: np.nan}, inplace = True)
     
 # save sholl metrics
-sholl_metrics.to_excel(join(AMCs_sholl_dir, 'sholl_metrics', f'sholl_metrics.xlsx'),
+from cellmorphology.AMC_analysis.AMC_analysis_directories import AMCs_metrics_dir
+sholl_metrics.to_excel(join(AMCs_metrics_dir, 'sholl_metrics.xlsx'),
                        index_label = 'cell_ID')
 
 

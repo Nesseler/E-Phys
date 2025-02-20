@@ -17,6 +17,8 @@ AMCs_cellsList = AMCs_parent + '/Cell_List_2Photons.xlsx'
 # coordinates analysis
 AMCs_coordinates_dir = AMCs_analysis_dir + '/cell_coordinates'
 
+# cell metrics
+AMCs_metrics_dir = AMCs_analysis_dir + '/metrics'
 
 # sholl analysis
 AMCs_sholl_dir = AMCs_analysis_dir + '/sholl_analysis'

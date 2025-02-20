@@ -21,20 +21,18 @@ def clean_OnPath_column_to_path_ID_n_label_AMCs(coordinates_dataframe):
             path_ID = path_ID[-1]
         
         
-        # txt_ls = txt.split()
-            
         if 'axon' in txt:
             path_label = 'axons'
         elif 'soma' in txt:
             path_label = 'soma'
         elif 'basal' in txt:
-            path_label = 'basal_dendrites'
+            path_label = 'lateral_dendrites'
         elif 'apical' in txt:
             path_label = 'glomerular_dendrites'
         elif 'custom' in txt:
-            path_label = 'LOT_dendrites'
+            path_label = 'LOTxing_dendrites'
         else:
-            path_label = 'undefined_dendrites'
+            path_label = 'nonglomerular_dendrites'
             
         if path_ID == 1:
             path_label = 'soma'

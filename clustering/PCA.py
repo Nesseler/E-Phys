@@ -74,7 +74,7 @@ colors = [(0.5529411764705883, 0.8274509803921568, 0.7803921568627451),
          (0.8, 0.9215686274509803, 0.7686274509803922),
          (1.0, 0.9294117647058824, 0.43529411764705883)]
 
-c_colors = [colors[i+2] for i in celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list()]
+c_colors = [colors[i] for i in celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list()]
 
 
 # get number of clusters
@@ -88,17 +88,30 @@ fig_PCA2, axs_PCA2 = plt.subplots(nrows = 1,
                                  figsize = get_figure_size(height = 120, width = 240),
                                  dpi = 600)
 
-sbn.scatterplot(data = prinicpal_components,
-                x = 'PC1',
-                y = 'PC2',
-                hue = celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list(),
-                palette = colors[::1],
-                # hue = celldescriptors['r_input'],
-                # hue = MetaData.loc[cell_IDs, 'Region'],
-                # palette = region_colors,
-                ax = axs_PCA2[0])
+# sbn.scatterplot(data = prinicpal_components,
+#                 x = 'PC1',
+#                 y = 'PC2',
+#                 hue = celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list(),
+#                 palette = colors[:n_clusters],
+#                 # hue = celldescriptors['r_input'],
+#                 # hue = MetaData.loc[cell_IDs, 'Region'],
+#                 # palette = region_colors,
+#                 ax = axs_PCA2[0])
 
-sbn.move_legend(axs_PCA2[0], "upper left")
+# plot each cluster separatly for coloring
+for cluster_idx in range(n_clusters):
+    
+    # get cell_IDs of cells in cluster
+    cluster_cellIDs = celldescriptors_clustered[celldescriptors_clustered['hierarchical_cluster'] == cluster_idx].index.to_list()
+
+    # plot cluster
+    axs_PCA2[0].scatter(x = prinicpal_components.loc[cluster_cellIDs, 'PC1'],
+                        y = prinicpal_components.loc[cluster_cellIDs, 'PC2'],
+                        c = [colors[cluster_idx]] * len(cluster_cellIDs),
+                        s = 30,
+                        label = cluster_idx)
+
+# sbn.move_legend(axs_PCA2[0], "upper left")
 
 
 # plot cell_IDs
