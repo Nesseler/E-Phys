@@ -44,9 +44,11 @@ darkmode_bool = False
 if darkmode_bool:
     plt.style.use('default')
     plt.style.use('dark_background')
+    primecolor = 'w'
     
 elif not darkmode_bool:
     plt.style.use('default')
+    primecolor = 'k'
 
 # set font size
 mtl.rcParams.update({'font.size': 9, 'font.family' : 'Arial'})
