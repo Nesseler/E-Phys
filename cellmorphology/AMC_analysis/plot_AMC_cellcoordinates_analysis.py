@@ -213,10 +213,10 @@ def plot_cellcoordinates(cell_ID, cell_coordinates, cell_hwd = None):
     # adjust directories for saving
     if isinstance(cell_hwd, pd.Series):
         figname = f'{cell_ID}-cell_hwd_xyz'
-        figpath = join(AMCs_analysis_dir, 'height_width_depth_plots')
+        figpath = join(AMCs_analysis_dir, 'plots-height_width_depth')
     else:
         figname = f'{cell_ID}-cellcoordinates_xyz'
-        figpath = join(AMCs_analysis_dir, 'cell_coordinates_plots')
+        figpath = join(AMCs_analysis_dir, 'plots-cell_coordinates')
     
     save_figures(fig, 
                  figname, 
@@ -228,3 +228,178 @@ def plot_cellcoordinates(cell_ID, cell_coordinates, cell_hwd = None):
     plt.show()
 
 
+# %% primary, terminal and bifurcation
+
+
+def plot_endpoints(cell_ID, cell_coordinates, n_primary, n_terminal, bifurcation_ratio):
+    '''
+    This function creates a figure displaying the coordinates of the reconstructed
+    cell in xy and the corresponding primary and terminal end ponits.
+    Parameters:
+        cell_ID: str, like 'Exp-162', unifque cell identifier
+        cell_coordinates: dict, includes all-, end-, soma coordinates dataframes
+                          as well as a list of path_IDs
+        n_primary: pandas Dataframe, containing the number of primary end points
+        n_terminal: pandas Dataframe, containing the number of terminal end points
+        bifurcation_ratio: pandas Dataframe, containing the bifurcation ratios
+    '''
+
+    fig, ax = plt.subplots(nrows = 1,
+                           ncols = 1,
+                           layout = 'constrained',
+                           figsize = get_figure_size(width = 150, height = 100),
+                           dpi = 300)
+    
+    # set figure title
+    fig.suptitle(f'{cell_ID} primary and terminal points', 
+                 fontsize = 9)
+    
+    # set aspect ration of plot
+    ax.set_aspect(1)
+    
+    # plot all cell coordinates
+    ax.scatter(x = cell_coordinates['all_coor'].loc[:, 'X'],
+               y = cell_coordinates['all_coor'].loc[:, 'Y'],
+               color = 'gray',
+               s = 0.25)
+    
+    # plot primary points (end points of primary paths)
+    for path_i in cell_coordinates['pri_coor'].index.to_list():
+        ax.scatter(x = cell_coordinates['pri_coor'].at[path_i, 'X'],
+                   y = cell_coordinates['pri_coor'].at[path_i, 'Y'],
+                   color = neurite_color_dict[cell_coordinates['pri_coor'].at[path_i, 'path_label']],
+                   s = 25,
+                   marker = 'x',
+                   linewidths=0.5)
+    
+    # plot terminal points
+    for path_i in cell_coordinates['end_coor'].index.to_list():
+        ax.scatter(x = cell_coordinates['end_coor'].at[path_i, 'X'],
+                   y = cell_coordinates['end_coor'].at[path_i, 'Y'],
+                   color = neurite_color_dict[cell_coordinates['end_coor'].at[path_i, 'path_label']],
+                   s = 5)
+    
+    # plot soma on top
+    ax.scatter(x = soma_coordinates.at[0, 'X'],
+               y = soma_coordinates.at[0, 'Y'],
+               color = neurite_color_dict[soma_coordinates.at[0, 'path_label']])
+    
+    
+    # plane label
+    ax.text(x = 10, 
+            y = 10, 
+            s = 'XY', 
+            ha = 'left', 
+            va = 'top', 
+            fontsize = 9)
+    
+    # edit axes
+    ax.set_ylim([0, max_fov_xy])
+    ax.set_ylabel('Height [µm]')
+    ax.set_yticks(ticks = np.arange(0, max_fov_xy, 200))
+    ax.set_yticks(ticks = np.arange(0, max_fov_xy, 25), minor = True)
+    
+    ax.set_xlim([0, max_fov_xy])
+    ax.set_xlabel('Width [µm]')
+    ax.set_xticks(ticks = np.arange(0, max_fov_xy, 200))
+    ax.set_xticks(ticks = np.arange(0, max_fov_xy, 25), minor = True)
+    
+    # invert y axis
+    ax.invert_yaxis()
+    
+    # soma inset
+    
+    # inset marker
+    box_xmin   = cell_coordinates['soma_coor'].at[0,'X']-40
+    box_width  = 80 
+    box_ymin   = cell_coordinates['soma_coor'].at[0,'Y']-40
+    box_height = 80
+       
+    # add rectangle marker
+    ax.add_patch(Rectangle(xy = (box_xmin, box_ymin), 
+                           width = box_width, 
+                           height = box_height,
+                           fill = False,
+                           color = primecolor,
+                           linestyle = '--',
+                           lw = 0.5,
+                           alpha = 0.5))
+    
+    ## ([left, bottom, width, height]), percentages
+    ax_inset = ax.inset_axes([1.05, 0.63, 0.35, 0.35],
+                              xlim=(box_xmin, box_xmin+box_width), 
+                              ylim=(box_ymin, box_ymin+box_height), 
+                              xticklabels=[], 
+                              yticklabels=[])
+    
+    # edit linewidth of inset axis and its ticks
+    [ax_inset.spines[spine].set_linewidth(0.5) for spine in ['left', 'bottom']]
+    ax_inset.tick_params(width=0.5)
+    ax_inset.tick_params(which = 'minor', width=0.25)
+    
+    
+    # plot inset
+    # plot all cell coordinates
+    ax_inset.scatter(x = cell_coordinates['all_coor'].loc[:, 'X'],
+                     y = cell_coordinates['all_coor'].loc[:, 'Y'],
+                     color = 'gray',
+                     s = 0.25)
+    
+    # plot primary points (end points of primary paths)
+    for path_i in cell_coordinates['pri_coor'].index.to_list():
+        ax_inset.scatter(x = cell_coordinates['pri_coor'].at[path_i, 'X'],
+                         y = cell_coordinates['pri_coor'].at[path_i, 'Y'],
+                       color = neurite_color_dict[cell_coordinates['pri_coor'].at[path_i, 'path_label']],
+                       s = 25,
+                       marker = 'x',
+                       linewidths=0.5)
+    
+    # plot terminal points
+    for path_i in cell_coordinates['end_coor'].index.to_list():
+        ax_inset.scatter(x = cell_coordinates['end_coor'].at[path_i, 'X'],
+                         y = cell_coordinates['end_coor'].at[path_i, 'Y'],
+                      color = neurite_color_dict[cell_coordinates['end_coor'].at[path_i, 'path_label']],
+                      s = 5)
+        
+    # plot soma on top
+    ax_inset.scatter(x = soma_coordinates.at[0, 'X'],
+                     y = soma_coordinates.at[0, 'Y'],
+                     color = neurite_color_dict[soma_coordinates.at[0, 'path_label']])
+       
+    # x
+    ax_inset.set_xticks(ticks = np.arange(0, max_fov_xy, 200), labels = [])
+    ax_inset.set_xticks(ticks = np.arange(0, max_fov_xy, 25), labels = [], minor = True)
+    ax_inset.set_xlim([box_xmin, box_xmin + box_width])
+    
+    # y
+    ax_inset.set_yticks(ticks = np.arange(0, max_fov_xy, 200), labels = [])
+    ax_inset.set_yticks(ticks = np.arange(0, max_fov_xy, 25), labels = [], minor = True)
+    ax_inset.set_ylim([box_ymin, box_ymin + box_height])
+    ax_inset.invert_yaxis()
+    
+    # update measurements label      
+    m_label = 'n_primary [#] - n_terminal [#] - bifurcation_ratio'
+    
+    for ntype in neurite_types:
+        m_label = m_label + f'\n{ntype}: {"{:.2f}".format(n_primary.at[cell_ID, f"n_primary-{ntype}"])} - {"{:.2f}".format(n_terminal.at[cell_ID, f"n_terminal-{ntype}"])} - {"{:.2f}".format(bifurcation_ratio.at[cell_ID, f"bifurcation_ratio-{ntype}"])}'
+    
+    # add measurements to plot
+    ax.text(x = 827, y = 580, 
+            s = m_label, 
+            ha = 'right', 
+            va = 'bottom',
+            size = 4)
+    
+    # create saving path and save
+    from cellmorphology.AMC_analysis.AMC_analysis_directories import AMCs_analysis_dir
+    
+    # save figure
+    save_figures(fig, 
+                 f'{cell_ID}-primary_terminal_bifurcation', 
+                 join(AMCs_analysis_dir, 'plots-primary_terminal_bifurcation'), 
+                 darkmode_bool, 
+                 figure_format='png')
+        
+    
+    # display plot
+    plt.show()

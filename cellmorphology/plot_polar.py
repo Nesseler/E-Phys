@@ -269,22 +269,7 @@ for cell_ID in cell_IDs:
         # %% functions for branch reconstruction
         
         
-        def node_in_path(first_node_coor, pot_parent_path_coor):
-            # create mask where elements are True that correspond to the first node corrdinates
-            coor_mask = pot_parent_path_coor == first_node_coor
-            
-            # get intersection point
-            # where all coordinates are the same
-            intersect_mask = coor_mask.query('X == True & Y == True & Z == True')
-            
-            # test if parent, i.e.: mask does or doesn't contain True values
-            if intersect_mask.empty:
-                in_path_bool = False
-                
-            else:
-                in_path_bool = True
-                
-            return in_path_bool
+
         
         
         def find_parent_path(path_ID, path_IDs_to_search, all_coordinates):
@@ -304,14 +289,29 @@ for cell_ID in cell_IDs:
                     pot_parent_path_coor = all_coordinates[all_coordinates['path_ID'] == pot_parent_path_ID]
         
                     # test if node is in potential parent path 
-                    if node_in_path(firstnode, pot_parent_path_coor):
+                    # create mask where elements are True that correspond to the first node coordinates
+                    coor_mask = pot_parent_path_coor == firstnode
+                    
+                    # get intersection point
+                    # where all coordinates are the same
+                    intersect_mask = coor_mask.query('X == True & Y == True & Z == True')
+                    
+                    # test if parent, i.e.: mask does or doesn't contain True values
+                    if intersect_mask.empty:
+                        in_path_bool = False
                         
-                        # create mask where elements are True that correspond to the first node corrdinates
-                        coor_mask = pot_parent_path_coor == firstnode
+                    else:
+                        in_path_bool = True
+                    
+                    # proceed with finding intersection
+                    if in_path_bool:
+                        
+                        # # create mask where elements are True that correspond to the first node corrdinates
+                        # coor_mask = pot_parent_path_coor == firstnode
            
-                        # get intersection point
-                        # where all coordinates are the same
-                        intersect_mask = coor_mask.query('X == True & Y == True & Z == True')
+                        # # get intersection point
+                        # # where all coordinates are the same
+                        # intersect_mask = coor_mask.query('X == True & Y == True & Z == True')
            
                         # get intersection index
                         intersect_index = intersect_mask.index[0]
@@ -323,7 +323,7 @@ for cell_ID in cell_IDs:
                         ## get all indices of parent path until intersection index
                         parent_indices = [i for i in pot_parent_path_coor.index.to_list() if i <= intersect_index] 
                         
-                        # avoid finding the root of another bifurcatio
+                        # avoid finding the root of another bifurcation
                         if len(parent_indices) > 1 or intersect_coor['path_ID'].astype(int) == 1:
                             parent_path_ID = intersect_coor['path_ID'].astype(int)
             

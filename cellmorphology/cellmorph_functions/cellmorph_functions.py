@@ -5,6 +5,12 @@ Created on Thu Apr  4 15:15:07 2024
 @author: nesseler
 """
 
+# initialize packages
+import numpy as np
+import math
+
+
+# %% data import
 
 def clean_OnPath_column_to_path_ID_n_label(coordinates_dataframe):
     
@@ -41,7 +47,103 @@ def clean_OnPath_column_to_path_ID_n_label(coordinates_dataframe):
     return coordinates_dataframe
 
 
-import numpy as np
+# %% caculations
+
+def dotproduct(v1, v2):
+  return sum((a*b) for a, b in zip(v1, v2))
+
+def length(v):
+  return math.sqrt(dotproduct(v, v))
+
+def angle(v1, v2):
+  return math.acos(dotproduct(v1, v2) / (length(v1) * length(v2)))
+      
+
+def calc_length_of_branch(branch_coor):
+    """ function calculates the length of an branch by the sum of all 3d
+    euclidean distances
+    https://en.wikipedia.org/wiki/Euclidean_distance
+    """
+
+    # calculate the differences between points on each axis
+    diff = branch_coor.diff(axis = 0)
+    
+    # calculate the square of given distance
+    sq_diff = diff**2
+    
+    # calculate sum for each point to get distance
+    sum_sq_diff = sq_diff.sum(axis = 1)
+    
+    # calculate the square root of the sum of each difference squared
+    sqrt_sum_sq_diff = np.sqrt(sum_sq_diff)
+    
+    # calculate length as sum of all euclidean distances
+    length = sqrt_sum_sq_diff.sum()
+    
+    return length
+
+
+# %% branch reconstruction
+
+def find_parent_path(path_ID, path_IDs_to_search, all_coordinates):
+    # get path coordinates
+    path_coor = all_coordinates[all_coordinates['path_ID'] == path_ID]
+
+    # get first node
+    firstnode = path_coor.iloc[0, :]
+        
+    # loop through path_IDs_to_search
+    for pot_parent_path_ID in path_IDs_to_search:
+        
+        # skip branch itself 
+        if pot_parent_path_ID != path_ID:
+    
+            # coordinates of potential parent path
+            pot_parent_path_coor = all_coordinates[all_coordinates['path_ID'] == pot_parent_path_ID]
+
+            # test if node is in potential parent path 
+            # create mask where elements are True that correspond to the first node coordinates
+            coor_mask = pot_parent_path_coor == firstnode
+            
+            # get intersection point
+            # where all coordinates are the same
+            intersect_mask = coor_mask.query('X == True & Y == True & Z == True')
+            
+            # test if parent, i.e.: mask does or doesn't contain True values
+            if intersect_mask.empty:
+                in_path_bool = False
+                
+            else:
+                in_path_bool = True
+            
+            # proceed with finding intersection
+            if in_path_bool:
+                
+                # # create mask where elements are True that correspond to the first node corrdinates
+                # coor_mask = pot_parent_path_coor == firstnode
+   
+                # # get intersection point
+                # # where all coordinates are the same
+                # intersect_mask = coor_mask.query('X == True & Y == True & Z == True')
+   
+                # get intersection index
+                intersect_index = intersect_mask.index[0]
+   
+                # get intersection coordinates
+                intersect_coor = pot_parent_path_coor.loc[intersect_index]
+   
+                # get all coordinates until intersection point
+                ## get all indices of parent path until intersection index
+                parent_indices = [i for i in pot_parent_path_coor.index.to_list() if i <= intersect_index] 
+                
+                # avoid finding the root of another bifurcation
+                if len(parent_indices) > 1 or intersect_coor['path_ID'].astype(int) == 1:
+                    parent_path_ID = intersect_coor['path_ID'].astype(int)
+    
+    return parent_path_ID, intersect_index
+
+
+# %% polar plot
 
 def calc_polar_histo_binangles(n_bins = 8):
     '''
@@ -67,29 +169,6 @@ def calc_polar_histo_binangles(n_bins = 8):
 
     return bin_angles, bin_stepsize
 
-
-def calc_length_of_branch(branch_coor):
-    """ function calculates the length of an branch by the sum of all 3d
-    euclidean distances
-    https://en.wikipedia.org/wiki/Euclidean_distance
-    """
-
-    # calculate the differences between points on each axis
-    diff = branch_coor.diff(axis = 0)
-    
-    # calculate the square of given distance
-    sq_diff = diff**2
-    
-    # calculate sum for each point to get distance
-    sum_sq_diff = sq_diff.sum(axis = 1)
-    
-    # calculate the square root of the sum of each difference squared
-    sqrt_sum_sq_diff = np.sqrt(sum_sq_diff)
-    
-    # calculate length as sum of all euclidean distances
-    length = sqrt_sum_sq_diff.sum()
-    
-    return length
 
 
 def plot_colorcoded_polar_normed(polar_occurances_df, max_n_neurites, ax, n_bins, cmap):
@@ -136,6 +215,25 @@ def plot_colorcoded_polar_normed(polar_occurances_df, max_n_neurites, ax, n_bins
 
 
 
+
+# %% legacy functions
+
+# def node_in_path(first_node_coor, pot_parent_path_coor):
+#     # create mask where elements are True that correspond to the first node corrdinates
+#     coor_mask = pot_parent_path_coor == first_node_coor
+    
+#     # get intersection point
+#     # where all coordinates are the same
+#     intersect_mask = coor_mask.query('X == True & Y == True & Z == True')
+    
+#     # test if parent, i.e.: mask does or doesn't contain True values
+#     if intersect_mask.empty:
+#         in_path_bool = False
+        
+#     else:
+#         in_path_bool = True
+        
+#     return in_path_bool
 
 
     
