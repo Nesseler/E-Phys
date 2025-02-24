@@ -28,7 +28,7 @@ neurite_types = ['neurites',
                  'LOTxing_dendrites', 
                  'axons']
 
-vplots = True
+vplots = False
 
 # %% load coordinates
 
@@ -219,14 +219,14 @@ total_cable_length.to_excel(join(AMCs_metrics_dir, 'total_cable_length.xlsx'),
     
 print('\nreconstructing terminal branches ...')
     
-# from cellmorphology.cellmorph_functions.initialize_AMC_cellmorph_plotting import *
-# %matplotlib qt5
+from cellmorphology.cellmorph_functions.initialize_AMC_cellmorph_plotting import *
+
 
 # import necessary functions
 from cellmorphology.cellmorph_functions.cellmorph_functions import find_parent_path
 from cellmorphology.cellmorph_functions.cellmorph_functions import angle
 from cellmorphology.AMC_analysis.AMC_analysis_directories import AMCs_analysis_dir
-    
+
 
 for cell_ID in cell_IDs:
 
@@ -257,6 +257,10 @@ for cell_ID in cell_IDs:
     # set reference vector
     reference_vector = pd.Series({'X' : 1., 'Y' : 0.})
     
+    # precompute dictionary for path access
+    allcoor_paths_dict = {pathID : group for pathID, group in cell_allcoordinates.groupby('path_ID')}
+
+
     # iterate through terminal paths
     for terminal_pathID in tqdm(terminal_pathIDs):
         
@@ -295,7 +299,7 @@ for cell_ID in cell_IDs:
         ### terminal branch reconstruction ###
         
         # coordinates of terminal branch to reconstruct until soma
-        terminal_path_coor = cell_allcoordinates[cell_allcoordinates['path_ID'] == terminal_pathID]
+        terminal_path_coor = allcoor_paths_dict[terminal_pathID]
         
         # order of coordinates starts with terminal branch endpoint 
         # to be reversed later when calculating the entire branch
@@ -311,14 +315,14 @@ for cell_ID in cell_IDs:
         
         # set list of path ID that describe terminal branch
         terminal_branch_pathIDs_2soma = list()
-            
+        
         while parent_pathID != 1:
             
             # find parent of current path
-            parent_pathID, intersect_index = find_parent_path(path_ID, path_IDs, cell_allcoordinates)
-            
+            parent_pathID, intersect_index = find_parent_path(path_ID, path_IDs, allcoor_paths_dict)
+                        
             # get parent path coordinates
-            parent_path_coor = cell_allcoordinates[cell_allcoordinates['path_ID'] == parent_pathID]
+            parent_path_coor = allcoor_paths_dict[parent_pathID]
         
             # get all indices of parent path until intersection index
             parent_indices = [i for i in parent_path_coor.index.to_list() if i <= intersect_index]
@@ -340,14 +344,7 @@ for cell_ID in cell_IDs:
             
             # set path_ID to parent for next step in while loop
             path_ID = parent_pathID
-        
-            # plt.scatter(terminal_point_coor['X'], terminal_point_coor['Y'], s = 10, c = 'r', zorder = 1)
-            # plt.scatter(cell_somacoordinates['X'], cell_somacoordinates['Y'], s = 25, c = 'grey', zorder = 2)
-            # plt.scatter(branch_terminal2soma['X'], branch_terminal2soma['Y'], s = 0.25, zorder = 0)
-            # plt.xlim([0, 590.76])
-            # plt.ylim([590.76, 0])
-            # plt.pause(0.001)
-            
+          
         # write list of path IDs to dataframe
         terminal_branches.at[terminal_pathID ,'pathIDs_2soma'] = terminal_branch_pathIDs_2soma
         
@@ -367,16 +364,113 @@ for cell_ID in cell_IDs:
         
     # save dataframe
     terminal_branches.to_excel(join(AMCs_analysis_dir, 'metrics-terminal_branches' , f'{cell_ID}-terminal_branches.xlsx'),
-                               index_label = 'terminal_pathIDs')
+                                index_label = 'terminal_pathIDs')
     
-# %matplotlib inline
-# plt.show()
 
+# %%
 
 
 # TODO: vplot endpoint orientation
 
 
+# init plotting
+from cellmorphology.cellmorph_functions.initialize_AMC_cellmorph_plotting import *
+
+
+# field of view dimension
+max_fov_xy = 590.76
+max_fov_z = 300
+
+
+# 
+allcoor_paths_dict = {pathID : group for pathID, group in coordinates_dict[cell_ID]['all_coor'].groupby('path_ID')}
+
+
+for terminal_branch_ID in [51]:#terminal_branches.index.to_list():
+
+    # path_label = terminal_branches.at[terminal_branch_ID, 'path_label']
+    pathIDs_2soma = terminal_branches.at[terminal_branch_ID, 'pathIDs_2soma'] 
+
+    fig, axs = plt.subplots(nrows = 2,
+                            ncols = 2,
+                            layout = 'constrained',
+                            figsize = get_figure_size(width = 100, height = 100),
+                            width_ratios = [1, max_fov_z/max_fov_xy],
+                            height_ratios = [1, max_fov_z/max_fov_xy],
+                            sharey = 'row',
+                            sharex = 'col',
+                            dpi = 300)
+    
+    # flatten axes array
+    axs = axs.flatten()
+    
+    # set figure title
+    fig.suptitle(f'{cell_ID} terminal path-{terminal_branch_ID}',
+                 fontsize = 9)
+
+    for path_ID in pathIDs_2soma:
+        
+        path_label = allcoor_paths_dict[path_ID]['path_label'].unique()[0]
+        
+        scatter_paths = axs[0].scatter(x = allcoor_paths_dict[path_ID]['X'], 
+                                       y = allcoor_paths_dict[path_ID]['Y'],
+                                       s = 0.25, 
+                                       zorder = 1,
+                                       color = neurite_color_dict[path_label],
+                                       alpha = 0.5)
+
+
+
+
+
+
+
+
+    # edit axes
+    # XY
+    axs[0].text(x = 10, 
+                y = 10, 
+                s = 'XY', 
+                ha = 'left', 
+                va = 'top', 
+                fontsize = 9)
+    axs[0].set_xlim([0, max_fov_xy])
+    axs[0].set_ylim([max_fov_xy, 0])
+    axs[0].set_ylabel('Height [µm]')
+    axs[0].set_yticks(ticks = np.arange(0, max_fov_xy, 200))
+    axs[0].set_yticks(ticks = np.arange(0, max_fov_xy, 25), minor = True)
+    
+    # ZY
+    axs[1].text(x = 10, 
+                y = 10, 
+                s = 'ZY', 
+                ha = 'left', 
+                va = 'top', 
+                fontsize = 9)
+    axs[1].set_xlim([0, max_fov_z])
+    axs[1].set_xlabel('')
+    axs[1].set_xticks(ticks = np.arange(0, max_fov_z, 200))
+    axs[1].set_xticks(ticks = np.arange(0, max_fov_z, 25), minor = True)
+    
+    # XZ
+    axs[2].text(x = 10, 
+                y = 10, 
+                s = 'XZ', 
+                ha = 'left', 
+                va = 'top', 
+                fontsize = 9)
+    axs[2].set_xlim([0, max_fov_xy])
+    axs[2].set_xlabel('Width [µm]')
+    axs[2].set_ylim([max_fov_z, 0])
+    axs[2].set_ylabel('Depth [µm]')
+    axs[2].set_xticks(ticks = np.arange(0, max_fov_xy, 200))
+    axs[2].set_xticks(ticks = np.arange(0, max_fov_xy, 25), minor = True)
+    axs[2].set_yticks(ticks = np.arange(0, max_fov_z, 200))
+    axs[2].set_yticks(ticks = np.arange(0, max_fov_z, 25), minor = True)
+
+
+
+    plt.show()
 
 
 
@@ -396,39 +490,93 @@ for cell_ID in cell_IDs:
 
 
 
+# # %% reconstruction plot
+
+# %matplotlib qt5
+
+# # Initialise figure
+# fig_ani, ax_ani = plt.subplots(1, 1, 
+#                                figsize = get_figure_size(width=100, height = 100),
+#                                layout = 'constrained',
+#                                sharex=True)
+
+# ## initialise scatter plot
+# scatter_paths = ax_ani.scatter(x = [], 
+#                                   y = [],
+#                                   s = 0.25, 
+#                                   zorder = 1,
+#                                   color = 'r',
+#                                   alpha = 0.5)
+
+# scatter_finpaths = ax_ani.scatter(x = [], 
+#                                   y = [],
+#                                   s = 0.25, 
+#                                   zorder = 0,
+#                                   color = 'grey',
+#                                   alpha = 0.5)
+
+# finpaths = list()
+
+# scatter_terminal = ax_ani.scatter(x = [], 
+#                                      y = [],
+#                                      s = 20, 
+#                                      c = 'r',
+#                                      zorder = 1,
+#                                      marker = 'x')
+
+
+# # plane label
+# ax_ani.text(x = 10, 
+#         y = 10, 
+#         s = 'XY', 
+#         ha = 'left', 
+#         va = 'top', 
+#         fontsize = 9)
+
+# max_fov_xy = 590.76
+
+# # edit axes
+# ax_ani.set_ylim([0, max_fov_xy])
+# ax_ani.set_ylabel('Height [µm]')
+# ax_ani.set_yticks(ticks = np.arange(0, max_fov_xy, 200))
+# ax_ani.set_yticks(ticks = np.arange(0, max_fov_xy, 25), minor = True)
+
+# ax_ani.set_xlim([0, max_fov_xy])
+# ax_ani.set_xlabel('Width [µm]')
+# ax_ani.set_xticks(ticks = np.arange(0, max_fov_xy, 200))
+# ax_ani.set_xticks(ticks = np.arange(0, max_fov_xy, 25), minor = True)
+
+# # invert y axis
+# ax_ani.invert_yaxis()
 
 
 
+# scatter_soma = ax_ani.scatter(cell_somacoordinates['X'], 
+#                          cell_somacoordinates['Y'], 
+#                          s = 25, 
+#                          c= 'grey', 
+#                          zorder = 2)
 
 
 
+        # scatter_terminal.set_offsets([terminal_point_coor['X'], terminal_point_coor['Y']])  
+# scatter_paths.set_offsets(list(zip(branch_terminal2soma['X'], branch_terminal2soma['Y'])))        
+        
+# # plt.scatter(terminal_point_coor['X'], terminal_point_coor['Y'], s = 10, c = 'r', zorder = 1)
+# # plt.scatter(cell_somacoordinates['X'], cell_somacoordinates['Y'], s = 25, c = 'grey', zorder = 2)
+# # plt.scatter(branch_terminal2soma['X'], branch_terminal2soma['Y'], s = 0.25, zorder = 0)
+# # plt.xlim([0, 590.76])
+# # plt.ylim([590.76, 0])
+# plt.pause(0.001)
 
+# # scatter_paths
 
+# finpaths = finpaths + list(zip(branch_terminal2soma['X'], branch_terminal2soma['Y']))
+# scatter_finpaths.set_offsets(finpaths)
 
+# %matplotlib inline
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# plt.show()
 
 
 # %%
@@ -438,11 +586,11 @@ for cell_ID in cell_IDs:
 
 # # initialize dataframes
 # n_primary = pd.DataFrame(columns = [f'n_primary-{ntype}' for ntype in neurite_types],
-#                          index = cell_IDs)
+#                           index = cell_IDs)
 # n_terminal = pd.DataFrame(columns = [f'n_terminal-{ntype}' for ntype in neurite_types],
 #                           index = cell_IDs)
 # bifurcation_ratio = pd.DataFrame(columns = [f'bifurcation_ratio-{ntype}' for ntype in neurite_types],
-#                                  index = cell_IDs)
+#                                   index = cell_IDs)
 
 # # rename index columns
 # for df in [n_primary, n_terminal, bifurcation_ratio]:
@@ -515,10 +663,10 @@ for cell_ID in cell_IDs:
 #     # plot
 #     for cell_ID in tqdm(cell_IDs):  
 #         plot_endpoints(cell_ID = cell_ID, 
-#                        cell_coordinates = coordinates_dict[cell_ID],
-#                        n_primary = n_primary,
-#                        n_terminal = n_terminal,
-#                        bifurcation_ratio = bifurcation_ratio)
+#                         cell_coordinates = coordinates_dict[cell_ID],
+#                         n_primary = n_primary,
+#                         n_terminal = n_terminal,
+#                         bifurcation_ratio = bifurcation_ratio)
 
 # # %%
 
@@ -528,44 +676,44 @@ for cell_ID in cell_IDs:
 # from cellmorphology.cellmorph_functions.initialize_AMC_cellmorph_plotting import *
 
 # fig, ax = plt.subplots(nrows = 1,
-#                        ncols = 1,
-#                        layout = 'constrained',
-#                        figsize = get_figure_size(width = 150, height = 100),
-#                        dpi = 300)
+#                         ncols = 1,
+#                         layout = 'constrained',
+#                         figsize = get_figure_size(width = 150, height = 100),
+#                         dpi = 300)
 
 # # set figure title
 # fig.suptitle(f'{cell_ID} primary and terminal points', 
-#              fontsize = 9)
+#               fontsize = 9)
 
 # # set aspect ration of plot
 # ax.set_aspect(1)
 
 # # plot all cell coordinates
 # ax.scatter(x = cell_coordinates['all_coor'].loc[:, 'X'],
-#            y = cell_coordinates['all_coor'].loc[:, 'Y'],
-#            color = 'gray',
-#            s = 0.25)
+#             y = cell_coordinates['all_coor'].loc[:, 'Y'],
+#             color = 'gray',
+#             s = 0.25)
 
 # # plot primary points (end points of primary paths)
 # for path_i in cell_coordinates['pri_coor'].index.to_list():
 #     ax.scatter(x = cell_coordinates['pri_coor'].at[path_i, 'X'],
-#                y = cell_coordinates['pri_coor'].at[path_i, 'Y'],
-#                color = neurite_color_dict[cell_coordinates['pri_coor'].at[path_i, 'path_label']],
-#                s = 25,
-#                marker = 'x',
-#                linewidths=0.5)
+#                 y = cell_coordinates['pri_coor'].at[path_i, 'Y'],
+#                 color = neurite_color_dict[cell_coordinates['pri_coor'].at[path_i, 'path_label']],
+#                 s = 25,
+#                 marker = 'x',
+#                 linewidths=0.5)
 
 # # plot terminal points
 # for path_i in cell_coordinates['end_coor'].index.to_list():
 #     ax.scatter(x = cell_coordinates['end_coor'].at[path_i, 'X'],
-#                y = cell_coordinates['end_coor'].at[path_i, 'Y'],
-#                color = neurite_color_dict[cell_coordinates['end_coor'].at[path_i, 'path_label']],
-#                s = 5)
+#                 y = cell_coordinates['end_coor'].at[path_i, 'Y'],
+#                 color = neurite_color_dict[cell_coordinates['end_coor'].at[path_i, 'path_label']],
+#                 s = 5)
 
 # # plot soma on top
 # ax.scatter(x = soma_coordinates.at[0, 'X'],
-#            y = soma_coordinates.at[0, 'Y'],
-#            color = neurite_color_dict[soma_coordinates.at[0, 'path_label']])
+#             y = soma_coordinates.at[0, 'Y'],
+#             color = neurite_color_dict[soma_coordinates.at[0, 'path_label']])
 
 
 # # plane label
@@ -600,13 +748,13 @@ for cell_ID in cell_IDs:
    
 # # add rectangle marker
 # ax.add_patch(Rectangle(xy = (box_xmin, box_ymin), 
-#                        width = box_width, 
-#                        height = box_height,
-#                        fill = False,
-#                        color = primecolor,
-#                        linestyle = '--',
-#                        lw = 0.5,
-#                        alpha = 0.5))
+#                         width = box_width, 
+#                         height = box_height,
+#                         fill = False,
+#                         color = primecolor,
+#                         linestyle = '--',
+#                         lw = 0.5,
+#                         alpha = 0.5))
 
 # ## ([left, bottom, width, height]), percentages
 # ax_inset = ax.inset_axes([1.05, 0.63, 0.35, 0.35],
@@ -624,30 +772,30 @@ for cell_ID in cell_IDs:
 # # plot inset
 # # plot all cell coordinates
 # ax_inset.scatter(x = cell_coordinates['all_coor'].loc[:, 'X'],
-#                  y = cell_coordinates['all_coor'].loc[:, 'Y'],
-#                  color = 'gray',
-#                  s = 0.25)
+#                   y = cell_coordinates['all_coor'].loc[:, 'Y'],
+#                   color = 'gray',
+#                   s = 0.25)
 
 # # plot primary points (end points of primary paths)
 # for path_i in cell_coordinates['pri_coor'].index.to_list():
 #     ax_inset.scatter(x = cell_coordinates['pri_coor'].at[path_i, 'X'],
-#                      y = cell_coordinates['pri_coor'].at[path_i, 'Y'],
-#                    color = neurite_color_dict[cell_coordinates['pri_coor'].at[path_i, 'path_label']],
-#                    s = 25,
-#                    marker = 'x',
-#                    linewidths=0.5)
+#                       y = cell_coordinates['pri_coor'].at[path_i, 'Y'],
+#                     color = neurite_color_dict[cell_coordinates['pri_coor'].at[path_i, 'path_label']],
+#                     s = 25,
+#                     marker = 'x',
+#                     linewidths=0.5)
 
 # # plot terminal points
 # for path_i in cell_coordinates['end_coor'].index.to_list():
 #     ax_inset.scatter(x = cell_coordinates['end_coor'].at[path_i, 'X'],
-#                      y = cell_coordinates['end_coor'].at[path_i, 'Y'],
+#                       y = cell_coordinates['end_coor'].at[path_i, 'Y'],
 #                   color = neurite_color_dict[cell_coordinates['end_coor'].at[path_i, 'path_label']],
 #                   s = 5)
     
 # # plot soma on top
 # ax_inset.scatter(x = soma_coordinates.at[0, 'X'],
-#                  y = soma_coordinates.at[0, 'Y'],
-#                  color = neurite_color_dict[soma_coordinates.at[0, 'path_label']])
+#                   y = soma_coordinates.at[0, 'Y'],
+#                   color = neurite_color_dict[soma_coordinates.at[0, 'path_label']])
    
 # # x
 # ax_inset.set_xticks(ticks = np.arange(0, max_fov_xy, 200), labels = [])
@@ -678,11 +826,14 @@ for cell_ID in cell_IDs:
 
 # # save figure
 # save_figures(fig, 
-#              f'{cell_ID}-primary_terminal_bifurcation', 
-#              join(AMCs_analysis_dir, 'primary_terminal_bifurcation_plots'), 
-#              darkmode_bool, 
-#              figure_format='png')
+#               f'{cell_ID}-primary_terminal_bifurcation', 
+#               join(AMCs_analysis_dir, 'primary_terminal_bifurcation_plots'), 
+#               darkmode_bool, 
+#               figure_format='png')
     
 
 # # display plot
 # plt.show()
+
+
+

@@ -85,50 +85,39 @@ def calc_length_of_branch(branch_coor):
 
 # %% branch reconstruction
 
-def find_parent_path(path_ID, path_IDs_to_search, all_coordinates):
+
+def find_parent_path(path_ID, path_IDs_to_search, allcoor_paths_dict):
+    
     # get path coordinates
-    path_coor = all_coordinates[all_coordinates['path_ID'] == path_ID]
+    path_coor = allcoor_paths_dict[path_ID]
 
     # get first node
-    firstnode = path_coor.iloc[0, :]
-        
+    firstnode = tuple(path_coor.iloc[0][['X', 'Y', 'Z']])
+    
+    # set parent path Id and initial index for the potential parent
+    parent_path_ID = None
+    pot_parent_idx = 0
+    
     # loop through path_IDs_to_search
-    for pot_parent_path_ID in path_IDs_to_search:
-        
+    while not parent_path_ID:
+    
+        pot_parent_path_ID = path_IDs_to_search[pot_parent_idx]
+             
         # skip branch itself 
         if pot_parent_path_ID != path_ID:
     
             # coordinates of potential parent path
-            pot_parent_path_coor = all_coordinates[all_coordinates['path_ID'] == pot_parent_path_ID]
+            pot_parent_path_coor = allcoor_paths_dict[pot_parent_path_ID]
 
             # test if node is in potential parent path 
             # create mask where elements are True that correspond to the first node coordinates
-            coor_mask = pot_parent_path_coor == firstnode
-            
-            # get intersection point
-            # where all coordinates are the same
-            intersect_mask = coor_mask.query('X == True & Y == True & Z == True')
-            
-            # test if parent, i.e.: mask does or doesn't contain True values
-            if intersect_mask.empty:
-                in_path_bool = False
+            coor_mask = (pot_parent_path_coor[['X', 'Y', 'Z']] == firstnode).all(axis = 1)
+    
+            if coor_mask.any():
                 
-            else:
-                in_path_bool = True
-            
-            # proceed with finding intersection
-            if in_path_bool:
+                # get the first True index
+                intersect_index = coor_mask.idxmax()
                 
-                # # create mask where elements are True that correspond to the first node corrdinates
-                # coor_mask = pot_parent_path_coor == firstnode
-   
-                # # get intersection point
-                # # where all coordinates are the same
-                # intersect_mask = coor_mask.query('X == True & Y == True & Z == True')
-   
-                # get intersection index
-                intersect_index = intersect_mask.index[0]
-   
                 # get intersection coordinates
                 intersect_coor = pot_parent_path_coor.loc[intersect_index]
    
@@ -139,8 +128,11 @@ def find_parent_path(path_ID, path_IDs_to_search, all_coordinates):
                 # avoid finding the root of another bifurcation
                 if len(parent_indices) > 1 or intersect_coor['path_ID'].astype(int) == 1:
                     parent_path_ID = intersect_coor['path_ID'].astype(int)
-    
+                    
+        pot_parent_idx += 1           
+                                   
     return parent_path_ID, intersect_index
+
 
 
 # %% polar plot

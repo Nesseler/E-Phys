@@ -178,7 +178,7 @@ for cell_ID in tqdm(cell_IDs):
     
     # y axis
     ydict = {'ax_min' : 0,
-             'ax_max' : 30,
+             'ax_max' : 50,
              'pad' : None,
              'step' : 5,
              'stepminor' : 1,
