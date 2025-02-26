@@ -611,7 +611,7 @@ def plot_sag_n_reboundspikes(cell_ID, t_full, v_full, sag_step, sagdeltas, t_spi
     # create saving path and save
     from parameters.directories_win import vplot_dir
     path_fig = join(vplot_dir, 'cc_sag-sag')
-    save_figures(fig, f'{cell_ID}-cc_sag-sag', path_fig, darkmode_bool, figure_format='png')
+    save_figures(fig, f'{cell_ID}-cc_sag-sag', path_fig, darkmode_bool, figure_format='both')
     
     # display figure
     plt.show()

@@ -12,7 +12,7 @@ from parameters.directories_win import figure_dir, table_file
 from parameters.PGFs import vc_Erest_parameters
 
 from functions.functions_import import get_traceIndex_n_file,  get_vc_data, get_PSCs_steps
-from functions.functions_useful import butter_filter
+from functions.functions_filter import butter_filter
 
 PGF = 'vc_Erest_3min'
 
@@ -30,7 +30,7 @@ n_steps = vc_Erest_parameters['n_steps']
 # get cell_IDs
 # cell_IDs = get_cell_IDs_one_protocol(PGF = PGF + '_' + 'adaEk', sheet_name= 'PGFs_Syn')
 
-cell_ID = 'E-305'
+cell_ID = 'E-301' # 305 (AP5-GBZ) # 304 (GBZ-AP5)
 
 condition = 'ctrl'
 
@@ -172,7 +172,7 @@ for ax in axs:
     apply_axis_settings(ax, axis = 'x', **xdict)
   
 # remove y axis spines   
-remove_y_spines_n_ticks(axs[1:])
+remove_spines_n_ticks(axs[1:], axis = 'y')
 
 # set sup labels
 fig.supylabel('Current [pA]')
@@ -197,11 +197,11 @@ from functions.functions_plotting import draw_rectangle_gradient
 
 fig, axs = plt.subplots(nrows = 5,
                         ncols = 1,
-                        figsize = get_figure_size(width = 165.5),
+                        figsize = get_figure_size(width = 160.5),
                         dpi = 300,
                         layout = 'constrained',
-                        sharex=True,
-                        sharey=True)
+                        sharey=True,
+                        sharex = True)
 
 
 for c_idx, condition in enumerate(conditions):
@@ -258,6 +258,10 @@ axs[-1].add_patch(Rectangle(xy = (0, 15), #(x_min, y_min)
                             width = 180,
                             color = blkr_colors[blkr2],
                             **rect_dict))
+
+# for ax in axs[::-1]:
+# remove x axis spines   
+remove_spines_n_ticks(axs[:-1], axis = 'x')
     
 # edit axis
 for ax in axs:

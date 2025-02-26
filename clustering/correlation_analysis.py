@@ -45,6 +45,9 @@ cmap_str = 'seismic'
 # get correlation matrix of dataframe
 celldescriptors_corr = celldescriptors.corr()
 
+# getting the upper triangle
+matrix = np.triu(celldescriptors_corr)
+
 # plot heatmap of correlation values
 sbn.heatmap(data = celldescriptors_corr,
             cmap = cmap_str,
@@ -52,11 +55,12 @@ sbn.heatmap(data = celldescriptors_corr,
             vmax = 1,
             annot = False,
             cbar_kws={'label': 'Correlation coefficient', 'ticks' : [-1, 0, 1]},
-            ax = axs_corr_heat[0])
+            ax = axs_corr_heat[0],
+            mask = matrix)
 
 # set axis title
 axs_corr_heat[0].set_title('A: Pearson correlation coefficient',
-                            fontsize=7, 
+                            fontsize=14, 
                             loc='left',
                             x = 0)
 
@@ -67,6 +71,9 @@ corr_threshold = 0.8
 # replace values in dataframe below threshold with nan
 celldescriptors_corr_thresh = celldescriptors_corr[(celldescriptors_corr > corr_threshold) | (celldescriptors_corr < -corr_threshold)]
 
+# getting the upper triangle
+matrix_thres = np.triu(celldescriptors_corr_thresh)
+
 # plot heatmap of correlation values
 sbn.heatmap(data = celldescriptors_corr_thresh,
             cmap = cmap_str,
@@ -74,11 +81,12 @@ sbn.heatmap(data = celldescriptors_corr_thresh,
             vmax = 1,
             annot = False,
             cbar_kws={'label': 'Correlation coefficient',  'ticks' : [-1, -corr_threshold, corr_threshold, 1]},
-            ax = axs_corr_heat[1])
+            ax = axs_corr_heat[1],
+            mask = matrix_thres)
 
 # set axis title
 axs_corr_heat[1].set_title(r'B: Pearson correlation coefficient $\pm$' + str(corr_threshold),
-                            fontsize=7, 
+                            fontsize=14, 
                             loc='left',
                             x = 0)
 

@@ -61,8 +61,8 @@ sag_properties.index.name = 'cell_ID'
 # load anaylsis worksheet
 from parameters.directories_win import table_file
 analyzed = pd.read_excel(table_file,
-                         sheet_name = 'analyzed',
-                         index_col = 'cell_ID')
+                          sheet_name = 'analyzed',
+                          index_col = 'cell_ID')
 
 # get list of cell_IDs already analyzed
 analyzed_cell_IDs = analyzed.loc[analyzed[PGF].notna()][PGF].index.to_list()
@@ -81,10 +81,10 @@ if len(cell_IDs) == 0:
 from functions.initialize_plotting import *
 
 # verification plots
-vplots = False
+vplots = True
 if vplots:
     # load plotting functions
-    from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_sag_syn import plot_full_sag, plot_passive_props_calc, plot_sag_n_reboundspikes
+    from analysis.analysis_celldescrip_Syn.plot_analyze_cc_sag_syn import plot_full_sag, plot_passive_props_calc, plot_sag_n_reboundspikes
 
   
     
@@ -369,7 +369,7 @@ for cell_ID in tqdm(cell_IDs):
 
 # tobe saved
 export_vars = {'sag_properties' : sag_properties,
-               'passive_properties' : passive_properties}
+                'passive_properties' : passive_properties}
 
 export_prefix = 'cc_sag-syn-'
 

@@ -557,11 +557,11 @@ if vplots:
     # plot
     for cell_ID in tqdm(cell_IDs):  
         plot_endpoints(cell_ID = cell_ID, 
-                        cell_coordinates = coordinates_dict[cell_ID],
-                        n_primary = n_primary,
-                        n_terminal = n_terminal,
-                        n_stems = n_stems,
-                        bifurcation_ratios = bifurcation_ratios)
+                       cell_coordinates = coordinates_dict[cell_ID],
+                       n_primary = n_primary,
+                       n_terminal = n_terminal,
+                       n_stems = n_stems,
+                       bifurcation_ratios = bifurcation_ratios)
 
 
 # %% terminal branches orientation

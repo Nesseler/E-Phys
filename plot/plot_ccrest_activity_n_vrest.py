@@ -13,13 +13,13 @@ from parameters.directories_win import cell_descrip_dir, cell_descrip_syn_dir, f
 # init plotting
 from functions.initialize_plotting import *
 
-# exp = '-' 
-exp = '-Syn-' 
+exp = '-' 
+# exp = '-Syn-' 
 
-activity_df = pd.read_excel(join(cell_descrip_syn_dir, 'cc_rest' + exp + 'activity.xlsx'), index_col = 'cell_ID')
-activity_df2 = pd.read_excel(join(cell_descrip_dir, 'cc_rest-activity.xlsx'), index_col = 'cell_ID')
+activity_df = pd.read_excel(join(cell_descrip_dir, 'cc_rest' + exp + 'activity.xlsx'), index_col = 'cell_ID')
+# activity_df2 = pd.read_excel(join(cell_descrip_dir, 'cc_rest-activity.xlsx'), index_col = 'cell_ID')
 
-activity_df = pd.concat([activity_df, activity_df2])
+# activity_df = pd.concat([activity_df, activity_df2])
 
 cell_IDs = list(activity_df.index)
 
@@ -66,17 +66,17 @@ cells_of_region_perc = [activity_df['Region'].value_counts()[region] / n_cells f
 # initialize figure
 ax_keys = ['A', 'B', 'C', 'D']
 
-fig_regions, axs_regions = plt.subplot_mosaic('A;B;C;D', 
+fig_regions, axs_regions = plt.subplot_mosaic('AD;BD;CD', 
                                                layout = 'constrained',
-                                              figsize = get_figure_size(width = 154.335, height = 150.5),
-                                              # width_ratios = [2, 1.5],
+                                              figsize = get_figure_size(width = 318.67, height = 160.5),
+                                              width_ratios = [2, 1],
                                               dpi = 600,
-                                              height_ratios = cells_of_region_perc + [2.5])
+                                              height_ratios = cells_of_region_perc)
 
-fig_regions.set_constrained_layout_pads(w_pad=50./72., 
-                                        h_pad=4./72.,
-                                        hspace=0./72.,
-                                        wspace=9./72.)
+# fig_regions.set_constrained_layout_pads(w_pad=50./72., 
+#                                         h_pad=4./72.,
+#                                         hspace=0./72.,
+#                                         wspace=9./72.)
     
 # eventplot
 
@@ -121,12 +121,12 @@ for idx_region, region in enumerate(regions):
     # set y axis for each subplot  
     ax.set_ylim([0-(tick_size/2), n_cells_region-1+(tick_size/2)])
     
-    n_cells_stepsize = 20
+    n_cells_stepsize = 10
     ticks = np.arange(n_cells_stepsize - 1, n_cells_region, n_cells_stepsize)
     labels = ticks + 1
     
     ax.set_yticks(ticks = ticks, labels = labels)
-    ax.set_yticks(ticks = np.arange(1, n_cells_region, 2),  minor = True)
+    ax.set_yticks(ticks = np.arange(1, n_cells_region, 1),  minor = True)
     ax.set_ylabel(f'{region}\ncells [#]', fontsize = 12)
     
     # edit spines of eventplots
@@ -247,19 +247,19 @@ ydict = {'ax_min' : -100,
 apply_axis_settings(ax, axis = 'y', **ydict)
 
 # x
-# xdict = {'ax_min' : 0,
-#          'ax_max' : 2,
-#          'pad' : 1.5,
-#          'step' : 1,
-#          'stepminor' : 1,
-#          'label' : 'Region'}
+xdict = {'ax_min' : 0,
+          'ax_max' : 2,
+          'pad' : 1.5,
+          'step' : 1,
+          'stepminor' : 1,
+          'label' : 'Region'}
 
-# apply_axis_settings(ax, axis = 'x', **xdict)
+apply_axis_settings(ax, axis = 'x', **xdict)
 
-ax.set_xlim([0 - 0.85, 2 + 2])
-ax.set_xticks(ticks = np.arange(0, 2+ 1, 1))
-ax.set_xticks(ticks = np.arange(0, 2+ 1, 1), minor = True)
-ax.spines['bottom'].set_bounds([0, 2])
+# ax.set_xlim([0 - 0.85, 2 + 2])
+# ax.set_xticks(ticks = np.arange(0, 2+ 1, 1))
+# ax.set_xticks(ticks = np.arange(0, 2+ 1, 1), minor = True)
+# ax.spines['bottom'].set_bounds([0, 2])
 
 # despine
 [axs_regions['D'].spines[spine].set_visible(False) for spine in ['top', 'right']]

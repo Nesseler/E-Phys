@@ -9,7 +9,7 @@ Created on Wed Feb  5 10:08:04 2025
 
 try:
     print('running cc_rest analyis ...')
-    from analysis.celldescrip_anaylsis_Syn.analyze_cc_rest_syn import cell_IDs
+    from analysis.analysis_celldescrip_Syn.analyze_cc_rest_syn import cell_IDs
     
 except ValueError as errormesseage:
     
@@ -27,7 +27,7 @@ else:
 
 try:
     print('\nrunning cc_IF analyis ...')
-    from analysis.celldescrip_anaylsis_Syn.analyze_cc_IF_syn import cell_IDs
+    from analysis.analysis_celldescrip_Syn.analyze_cc_IF_syn import cell_IDs
 
 except ValueError as errormesseage:
 
@@ -45,7 +45,7 @@ else:
 
 try:
     print('\nrunning cc_sag analyis ...')
-    from analysis.celldescrip_anaylsis_Syn.analyze_cc_sag_syn import cell_IDs
+    from analysis.analysis_celldescrip_Syn.analyze_cc_sag_syn import cell_IDs
 
 except ValueError as errormesseage:
     
@@ -63,7 +63,7 @@ else:
 
 try:
     print('\nrunning cc_th1AP analyis ...')
-    from analysis.celldescrip_anaylsis_Syn.analyze_cc_th1AP_syn import cell_IDs
+    from analysis.analysis_celldescrip_Syn.analyze_cc_th1AP_syn import cell_IDs
 
 except ValueError as errormesseage:
     

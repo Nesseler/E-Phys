@@ -80,7 +80,7 @@ def get_blkr_colors(darkmode_bool=False):
 
 
 
-def get_figure_size(width = 328.67, height = 165.5):
+def get_figure_size(width = 318.67, height = 160.5):
     mm = 1/25.4
     figsize=(width*mm, height*mm)
     return figsize

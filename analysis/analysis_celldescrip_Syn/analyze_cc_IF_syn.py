@@ -66,21 +66,21 @@ for df in [IF_dict, IF_rheobase, adaptation]:
 
 # %% check for new cells to be analyzed
 
-# # load anaylsis worksheet
-# from parameters.directories_win import table_file
-# analyzed = pd.read_excel(table_file,
-#                          sheet_name = 'analyzed',
-#                          index_col = 'cell_ID')
+# load anaylsis worksheet
+from parameters.directories_win import table_file
+analyzed = pd.read_excel(table_file,
+                          sheet_name = 'analyzed',
+                          index_col = 'cell_ID')
 
-# # get list of cell_IDs already analyzed
-# analyzed_cell_IDs = analyzed.loc[analyzed[PGF].notna()][PGF].index.to_list()
+# get list of cell_IDs already analyzed
+analyzed_cell_IDs = analyzed.loc[analyzed[PGF].notna()][PGF].index.to_list()
 
-# # redefine cell_IDs list
-# cell_IDs = [cell_ID for cell_ID in cell_IDs if cell_ID not in analyzed_cell_IDs]
+# redefine cell_IDs list
+cell_IDs = [cell_ID for cell_ID in cell_IDs if cell_ID not in analyzed_cell_IDs]
 
-# # raise error
-# if len(cell_IDs) == 0:
-#     raise ValueError('Nothing new to analyze!')
+# raise error
+if len(cell_IDs) == 0:
+    raise ValueError('Nothing new to analyze!')
 
 
 # %% initialize plotting and verificaiton plots
@@ -92,7 +92,7 @@ from functions.initialize_plotting import *
 vplots = True
 if vplots:
     # load plotting functions
-    from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_IF_syn import plot_full_IF, plot_IF_step_spike_detection, plot_rheobase, plot_adaptation
+    from analysis.analysis_celldescrip_Syn.plot_analyze_cc_IF_syn import plot_full_IF, plot_IF_step_spike_detection, plot_rheobase, plot_adaptation
 
     
 # %% load
@@ -436,26 +436,26 @@ for cell_ID in tqdm(cell_IDs):
 
 # %% saving
 
-# # print('\nsaving...')
+# print('\nsaving...')
 
-# # tobe saved
-# export_vars = {'IF' : IF, 
-#                'IF_inst' : IF_inst, 
-#                'IF_inst_init' : IF_inst_init,
-#                'IF_dict' : IF_dict, 
-#                'IF_rheobase' : IF_rheobase, 
-#                'adaptation' : adaptation}
+# tobe saved
+export_vars = {'IF' : IF, 
+                'IF_inst' : IF_inst, 
+                'IF_inst_init' : IF_inst_init,
+                'IF_dict' : IF_dict, 
+                'IF_rheobase' : IF_rheobase, 
+                'adaptation' : adaptation}
 
-# export_prefix = 'cc_IF-syn-'
+export_prefix = 'cc_IF-syn-'
 
-# # get export function
-# from functions.functions_export import write_exportvars_to_excel
+# get export function
+from functions.functions_export import write_exportvars_to_excel
 
-# write_exportvars_to_excel(export_vars, export_prefix)
+write_exportvars_to_excel(export_vars, export_prefix)
 
 
-# # %% update analyzed cells
+# %% update analyzed cells
 
-# from functions.update_database import update_analyzed_sheet
+from functions.update_database import update_analyzed_sheet
     
-# update_analyzed_sheet(cell_IDs, PGF = PGF)
+update_analyzed_sheet(cell_IDs, PGF = PGF)

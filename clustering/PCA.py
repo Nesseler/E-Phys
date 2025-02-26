@@ -80,23 +80,26 @@ c_colors = [colors[i] for i in celldescriptors_clustered.loc[cell_IDs, 'hierarch
 # get number of clusters
 n_clusters = celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].nunique()
 
-# %%
+# %% pca and vectors
 
 fig_PCA2, axs_PCA2 = plt.subplots(nrows = 1,
                                  ncols = 2,
                                  layout = 'constrained',
-                                 figsize = get_figure_size(height = 120, width = 240),
+                                 figsize = get_figure_size(),
                                  dpi = 600)
 
-# sbn.scatterplot(data = prinicpal_components,
-#                 x = 'PC1',
-#                 y = 'PC2',
-#                 hue = celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list(),
-#                 palette = colors[:n_clusters],
-#                 # hue = celldescriptors['r_input'],
-#                 # hue = MetaData.loc[cell_IDs, 'Region'],
-#                 # palette = region_colors,
-#                 ax = axs_PCA2[0])
+# plot zero lines
+for ax in axs_PCA2:
+    
+    axline_dict = {'linewidth' : 1, 
+                   'color' : 'w',
+                   'zorder' : 0,
+                   'linestyle' : 'dashed',
+                   'dashes' : [4, 7],
+                   'alpha' : 0.75}
+    
+    ax.axline((0, 1), (0, 2), **axline_dict)
+    ax.axline((1, 0), (2, 0), **axline_dict)
 
 # plot each cluster separatly for coloring
 for cluster_idx in range(n_clusters):
@@ -108,11 +111,8 @@ for cluster_idx in range(n_clusters):
     axs_PCA2[0].scatter(x = prinicpal_components.loc[cluster_cellIDs, 'PC1'],
                         y = prinicpal_components.loc[cluster_cellIDs, 'PC2'],
                         c = [colors[cluster_idx]] * len(cluster_cellIDs),
-                        s = 30,
+                        s = 60,
                         label = cluster_idx)
-
-# sbn.move_legend(axs_PCA2[0], "upper left")
-
 
 # plot cell_IDs
 for cell_ID in prinicpal_components.index.to_list():
@@ -122,32 +122,33 @@ for cell_ID in prinicpal_components.index.to_list():
                      color = "k",
                      ha = "center",
                      va = "center",
-                     fontsize = 2)
+                     fontsize = 3)
 
-
+# legend
+h, l = axs_PCA2[0].get_legend_handles_labels() 
+axs_PCA2[0].legend(h, l, title = 'cluster id', 
+                   frameon = False, ncol = 2, loc = 'upper left')
 
 # plot the variables as vectors
 for i in range(celldescriptors_PCA.components_.shape[1]):
     axs_PCA2[1].arrow(x = 0,
                      y = 0,
-                     dx = celldescriptors_PCA.components_[0, i]*9,
-                     dy = celldescriptors_PCA.components_[1, i]*9,
+                     dx = celldescriptors_PCA.components_[0, i]*8.5,
+                     dy = celldescriptors_PCA.components_[1, i]*8.5,
                      head_width=0.05,
                      head_length=0.05,
                      linewidth=0.75,
                      color="w",
                      )
     
-
 # Plot annotations
 for parameter in celldescriptors_PCA_eigen.index.to_list():
     axs_PCA2[1].text(x = (celldescriptors_PCA_eigen.loc[parameter, 'PC1'])*10,
                      y = (celldescriptors_PCA_eigen.loc[parameter, 'PC2'])*10,
                      s = parameter,
-                     color="red",
-                     fontsize = 6,
-                     )
-
+                     color="w",
+                     fontsize = 9,
+                     ha = 'center')
 
 PC_dict = {'ax_min' : -6,
            'ax_max' : 8.5,
@@ -160,6 +161,10 @@ PC_dict = {'ax_min' : -6,
 [apply_axis_settings(ax, axis = 'x', **PC_dict) for ax in axs_PCA2]
 [apply_axis_settings(ax, axis = 'y', **PC_dict) for ax in axs_PCA2]
 
+for ax in axs_PCA2:
+    ax.set_xlabel('PC 1')
+    ax.set_ylabel('PC 2')
+
 # remove spines
 [ax.spines[spine].set_visible(False) for ax in axs_PCA2 for spine in ['top', 'right']]
 
@@ -167,88 +172,213 @@ PC_dict = {'ax_min' : -6,
 fig_dir = join(clustering_dir, 'temp_figs')
 
 # save figure
-save_figures(fig_PCA2, 'figure-PCA-components_plot-region', 
+save_figures(fig_PCA2, 'figure-PCA-components_plot', 
              save_dir = fig_dir,
              darkmode_bool = darkmode_bool,
-             figure_format = 'png')
+             figure_format = 'both')
 
 # show plot
 plt.show()
 
 
-# %% ############
+# %% regions
 
-fig_PCA2, axs_PCA2 = plt.subplots(nrows = 1,
-                                  ncols = 1,
-                                  layout = 'constrained',
-                                  figsize = get_figure_size(height = 100, width = 120),
-                                  dpi = 600)
+fig_PCA_region, axs_PCA_region = plt.subplots(nrows = 1,
+                                              ncols = 2,
+                                              layout = 'constrained',
+                                              figsize = get_figure_size(),
+                                              dpi = 600)
+
+# plot zero lines
+for ax in axs_PCA_region:
+    
+    axline_dict = {'linewidth' : 1, 
+                   'color' : 'w',
+                   'zorder' : 0,
+                   'linestyle' : 'dashed',
+                   'dashes' : [4, 7],
+                   'alpha' : 0.75}
+    
+    ax.axline((0, 1), (0, 2), **axline_dict)
+    ax.axline((1, 0), (2, 0), **axline_dict)
+
+# plot cells with region
+for region in ['BAOT', 'BAOT/MeA', 'MeA']:
+    
+    # get cell_IDs per region
+    region_cellIDs = MetaData[MetaData['Region'] == region].index.to_list()
+
+    # plot region cells
+    axs_PCA_region[0].scatter(x = prinicpal_components.loc[region_cellIDs, 'PC1'],
+                              y = prinicpal_components.loc[region_cellIDs, 'PC2'],
+                              c = [region_colors[region]] * len(region_cellIDs),
+                              s = 60,
+                              label = cluster_idx)
+
+# plot cell_IDs
+for cell_ID in prinicpal_components.index.to_list():
+    axs_PCA_region[0].text(x = prinicpal_components.at[cell_ID, 'PC1'],
+                     y = prinicpal_components.at[cell_ID, 'PC2'],
+                     s = cell_ID,
+                     color = "k",
+                     ha = "center",
+                     va = "center",
+                     fontsize = 3)
+
+# legend
+h, l = axs_PCA_region[0].get_legend_handles_labels() 
+axs_PCA_region[0].legend(h, ['BAOT', 'BAOT/MeA', 'MeA'], 
+                         title = 'Region', 
+                         frameon = False, 
+                         ncol = 1, 
+                         loc = 'upper left')
 
 
-# fig_PCA2.set_constrained_layout_pads(w_pad=4./72., 
-#                                         h_pad=4./72.,
-#                                         hspace=0./72.,
-#                                         wspace=4./72.)
+# plot the variables as vectors
+for i in range(celldescriptors_PCA.components_.shape[1]):
+    axs_PCA_region[1].arrow(x = 0,
+                     y = 0,
+                     dx = celldescriptors_PCA.components_[0, i]*8.5,
+                     dy = celldescriptors_PCA.components_[1, i]*8.5,
+                     head_width=0.05,
+                     head_length=0.05,
+                     linewidth=0.75,
+                     color="w",
+                     )
     
 
-sbn.scatterplot(data = prinicpal_components,
-                x = 'PC1',
-                y = 'PC2',
-                # hue = celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].to_list(),
-                # palette = colors[::1],
-                # hue = celldescriptors['r_input'],
-                hue = MetaData.loc[cell_IDs, 'Region'],
-                palette = region_colors,
-                ax = axs_PCA2,
-                linewidth = 0)
-
-sbn.move_legend(axs_PCA2, "upper left",
-                frameon = False,
-                fontsize = 9,
-                title = 'Region',
-                ncol = 1,
-                title_fontsize = 9,
-                columnspacing = 0.6,
-                handletextpad = 0.0)
-
-
-# # plot cell_IDs
-# for cell_ID in prinicpal_components.index.to_list():
-#     axs_PCA2.text(x = prinicpal_components.at[cell_ID, 'PC1'],
-#                      y = prinicpal_components.at[cell_ID, 'PC2'],
-#                      s = cell_ID,
-#                      color = "k",
-#                      ha = "center",
-#                      va = "center",
-#                      fontsize = 2)
+# Plot annotations
+for parameter in celldescriptors_PCA_eigen.index.to_list():
+    axs_PCA_region[1].text(x = (celldescriptors_PCA_eigen.loc[parameter, 'PC1'])*10,
+                     y = (celldescriptors_PCA_eigen.loc[parameter, 'PC2'])*10,
+                     s = parameter,
+                     color="w",
+                     fontsize = 9,
+                     ha = 'center'
+                     )
 
 
 PC_dict = {'ax_min' : -6,
-           'ax_max' : 9,
+           'ax_max' : 8.5,
            'pad' : None,
            'step' : 2,
            'stepminor' : 0.5,
            'label' : None}
 
 # edit axis
-apply_axis_settings(axs_PCA2, axis = 'x', **PC_dict)
-apply_axis_settings(axs_PCA2, axis = 'y', **PC_dict)
+[apply_axis_settings(ax, axis = 'x', **PC_dict) for ax in axs_PCA_region]
+[apply_axis_settings(ax, axis = 'y', **PC_dict) for ax in axs_PCA_region]
 
-# set axis labels
-axs_PCA2.set_xlabel('PC 1')
-axs_PCA2.set_ylabel('PC 2')
+for ax in axs_PCA_region:
+    ax.set_xlabel('PC 1')
+    ax.set_ylabel('PC 2')
 
 # remove spines
-[axs_PCA2.spines[spine].set_visible(False) for spine in ['top', 'right']]
+[ax.spines[spine].set_visible(False) for ax in axs_PCA_region for spine in ['top', 'right']]
 
 # set directory for figure
 fig_dir = join(clustering_dir, 'temp_figs')
 
 # save figure
-save_figures(fig_PCA2, 'figure-PCA', 
+save_figures(fig_PCA_region, 'figure-PCA-components_plot-region', 
              save_dir = fig_dir,
              darkmode_bool = darkmode_bool,
              figure_format = 'both')
+
+# show plot
+plt.show()
+
+
+# %% single parameter
+
+# set parameter
+parameter = 'r_input'
+parameter_i = celldescriptors.columns.to_list().index(parameter)
+
+# initialize figure
+fig_PCA2, axs_PCA2 = plt.subplots(nrows = 1,
+                                  ncols = 2,
+                                  layout = 'constrained',
+                                  figsize = get_figure_size(),
+                                  dpi = 600)
+
+# plot zero lines
+for ax in axs_PCA2:
+    
+    axline_dict = {'linewidth' : 1, 
+                   'color' : 'w',
+                   'zorder' : 0,
+                   'linestyle' : 'dashed',
+                   'dashes' : [4, 7],
+                   'alpha' : 0.75}
+    
+    ax.axline((0, 1), (0, 2), **axline_dict)
+    ax.axline((1, 0), (2, 0), **axline_dict)
+
+# set first axis
+ax = axs_PCA2[0]
+
+# plot scatter
+sbn.scatterplot(data = prinicpal_components,
+                x = 'PC1',
+                y = 'PC2',
+                hue = celldescriptors[parameter],
+                ax = ax,
+                linewidth = 0,
+                s = 60)
+
+sbn.move_legend(ax, "upper left",
+                frameon = False,
+                fontsize = 9,
+                title = parameter,
+                ncol = 1,
+                title_fontsize = 9,
+                columnspacing = 0.6,
+                handletextpad = 0.0)
+
+ax = axs_PCA2[1]
+
+# plot the variables as vectors
+ax.arrow(x = 0,
+         y = 0,
+         dx = celldescriptors_PCA.components_[0, parameter_i]*8.5,
+         dy = celldescriptors_PCA.components_[1, parameter_i]*8.5,
+         head_width=0.05,
+         head_length=0.05,
+         linewidth=0.75,
+         color="w",
+         )
+  
+# Plot annotations
+ax.text(x = (celldescriptors_PCA_eigen.loc[parameter, 'PC1'])*10,
+        y = (celldescriptors_PCA_eigen.loc[parameter, 'PC2'])*10,
+        s = parameter,
+        color="w",
+        fontsize = 12,
+        ha = 'center'
+        )
+
+
+# edit axis
+for ax in axs_PCA2:
+    apply_axis_settings(ax, axis = 'x', **PC_dict)
+    apply_axis_settings(ax, axis = 'y', **PC_dict)
+    
+    # set axis labels
+    ax.set_xlabel('PC 1')
+    ax.set_ylabel('PC 2')
+    
+    # remove spines
+    [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
+
+# set directory for figure
+fig_dir = join(clustering_dir, 'temp_figs')
+
+# save figure
+save_figures(fig_PCA2, f'figure-PCA-{parameter}', 
+              save_dir = fig_dir,
+              darkmode_bool = darkmode_bool,
+              figure_format = 'both')
 
 # show plot
 plt.show()
@@ -588,3 +718,51 @@ fig_3d_subp.delaxes(axs_3ds[7])
 
 # show plot
 plt.show()
+
+
+# %% loadings plot
+
+
+eigenvectors = celldescriptors_PCA.components_
+
+celldescriptors_PCA_eigenvectors = pd.DataFrame(eigenvectors,
+                                                columns = celldescriptors.columns,
+                                                index = [f'PC{i+1}' for i in range(celldescriptors.shape[1])])
+
+loadings = eigenvectors.T * np.sqrt(celldescriptors_PCA_explained_variance)
+
+celldescriptors_PCA_loadings = pd.DataFrame(loadings,
+                                            columns = [f'PC{i+1}' for i in range(celldescriptors.shape[1])],
+                                            index = celldescriptors.columns)
+
+
+plt.barh(y = celldescriptors.columns,
+         width = celldescriptors_PCA_loadings['PC1'].to_list(),
+         left = 0,
+         zorder = 1)
+
+plt.barh(y = celldescriptors.columns,
+         width = celldescriptors_PCA_loadings['PC2'].to_list(),
+         left = 2,
+         zorder = 1)
+
+
+axline_dict = {'linewidth' : 1.5, 
+               'color' : 'w',
+               'zorder' : 0,
+               'linestyle' : 'solid',
+               'alpha' : 0.75}
+
+plt.axline((0, 1), (0, 2), **axline_dict)
+plt.axline((2, 1), (2, 2), **axline_dict)
+
+# remove spines
+[plt.gca().spines[spine].set_visible(False) for spine in ['top', 'right', 'bottom', 'left']]
+
+plt.xticks(ticks = [0, 2],
+           labels = ['PC1', 'PC2'])
+
+# invert y axis
+plt.gca().invert_yaxis()
+
+plt.xlim([-1, 3])

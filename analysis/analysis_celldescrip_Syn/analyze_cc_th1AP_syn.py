@@ -75,7 +75,7 @@ from functions.initialize_plotting import *
 vplots = False
 if vplots:
     # load plotting functions
-    from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_th1AP_syn import plot_full_th1AP, plot_rheospike
+    from analysis.analysis_celldescrip_Syn.plot_analyze_cc_th1AP_syn import plot_full_th1AP, plot_rheospike
 
 
 # %% load

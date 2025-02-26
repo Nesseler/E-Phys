@@ -5,19 +5,16 @@ Created on Thu Jan 23 09:23:38 2025
 @author: nesseler
 """
 
-import pandas as pd
-import numpy as np
-from os.path import join
-import scipy as sc
-import warnings
-from tqdm import tqdm
+# import standard packages
+from functions.initialize_packages import *
 
+# import parameters
 from parameters.directories_win import vplot_dir, figure_dir
 
 # custom functions
 from functions.functions_import import get_cc_data, get_traceIndex_n_file
 from functions.get_cell_IDs import get_cell_IDs_one_protocol
-from functions.functions_useful import butter_filter
+from functions.functions_filter import butter_filter
 
 # define protocol
 PGF = 'cc_rest_adaEk'
@@ -254,7 +251,7 @@ conditions = ['pre', 'washin', 'post']
 
 for cell_ID in tqdm(cell_IDs):
 
-    fig, axs = plt.subplots(nrows = 4,
+    fig, axs = plt.subplots(nrows = 3,
                             ncols = 3,
                             figsize = get_figure_size(),
                             dpi = 300,
@@ -263,6 +260,7 @@ for cell_ID in tqdm(cell_IDs):
                             sharex = 'col',
                             sharey = 'row')
     
+    # set figure title
     fig.suptitle(cell_ID)
     
     # flatten array of axes
@@ -291,6 +289,7 @@ for cell_ID in tqdm(cell_IDs):
                      'c' : colors_dict['primecolor']
                      }
     
+        
     # plot means
     for c_idx, condition in enumerate(conditions):
         
@@ -298,23 +297,11 @@ for cell_ID in tqdm(cell_IDs):
         ax = axs[c_idx+6]
         
         # add means
-        ax.plot(mean_vmem_int2[condition][cell_ID].index.to_numpy(), 
-                mean_vmem_int2[condition][cell_ID].to_numpy(), 
-                **lineplot_dict)
-        
-    # plot means
-    for c_idx, condition in enumerate(conditions):
-        
-        # define axis
-        ax = axs[c_idx+9]
-        
-        # add means
         ax.plot(mean_vmem_30s[condition][cell_ID].index.to_numpy(), 
                 mean_vmem_30s[condition][cell_ID].to_numpy(),
                 **lineplot_dict)
     
-        
-        
+         
     # y
     ydict_full = {'ax_min' : -100,
                   'ax_max' : 50,
@@ -338,7 +325,7 @@ for cell_ID in tqdm(cell_IDs):
     # edit axis
     apply_axis_settings(axs[3], axis = 'y', **ydict)
     apply_axis_settings(axs[6], axis = 'y', **ydict)
-    apply_axis_settings(axs[9], axis = 'y', **ydict)
+    # apply_axis_settings(axs[9], axis = 'y', **ydict)
     
     
     # x (pre & post)
@@ -385,14 +372,14 @@ for cell_ID in tqdm(cell_IDs):
         
     
     # set x label
-    for ax in axs[9:12]:
+    for ax in axs[6:9]:
         ax.set_xlabel('Time [s]')
         
     # align labels
     fig.align_labels()
     
     # create saving path and save
-    vplots_path_fig = join(vplot_dir, 'adaEk')
+    vplots_path_fig = join(vplot_dir, 'vc_adaEk-washin')
     save_figures(fig, f'{cell_ID}-adaEK_washin', vplots_path_fig, darkmode_bool, figure_format='both')
     
     # display figure
@@ -407,7 +394,7 @@ conditions = ['pre_washout', 'washout', 'post_washout']
 
 for cell_ID in tqdm(cell_IDs_washout):
 
-    fig, axs = plt.subplots(nrows = 4,
+    fig, axs = plt.subplots(nrows = 3,
                             ncols = 3,
                             figsize = get_figure_size(),
                             dpi = 300,
@@ -431,24 +418,12 @@ for cell_ID in tqdm(cell_IDs_washout):
             ax.plot(t_s[condition], v_dfs[condition][cell_ID], 
                     lw = 0.5,
                     c = colors_dict['primecolor'])
-    
-    
+        
     # plot means
     for c_idx, condition in enumerate(conditions):
         
         # define axis
         ax = axs[c_idx+6]
-        
-        # add means
-        ax.plot(mean_vmem_int2[condition][cell_ID].index.to_numpy(), 
-                mean_vmem_int2[condition][cell_ID].to_numpy(), 
-                **lineplot_dict)
-        
-    # plot means
-    for c_idx, condition in enumerate(conditions):
-        
-        # define axis
-        ax = axs[c_idx+9]
         
         # add means
         ax.plot(mean_vmem_30s[condition][cell_ID].index.to_numpy(), 
@@ -459,7 +434,7 @@ for cell_ID in tqdm(cell_IDs_washout):
     apply_axis_settings(axs[0], axis = 'y', **ydict_full)
     apply_axis_settings(axs[3], axis = 'y', **ydict)
     apply_axis_settings(axs[6], axis = 'y', **ydict)
-    apply_axis_settings(axs[9], axis = 'y', **ydict)
+
     
     # edit x axis
     for ax in axs[::3]:
@@ -487,14 +462,14 @@ for cell_ID in tqdm(cell_IDs_washout):
         ax.tick_params(axis = 'y', which = 'minor', size = 0)
         
     # set x label
-    for ax in axs[9:12]:
+    for ax in axs[6:9]:
         ax.set_xlabel('Time [s]')
         
     # align labels
     fig.align_labels()
     
     # create saving path and save
-    vplots_path_fig = join(vplot_dir, 'adaEk')
+    vplots_path_fig = join(vplot_dir, 'vc_adaEk-washout')
     save_figures(fig, f'{cell_ID}-adaEK_washout', vplots_path_fig, darkmode_bool, figure_format='both')
     
     # display figure
@@ -587,7 +562,7 @@ for cell_ID in tqdm(cell_IDs_washout):
     fig.align_labels()
     
     # create saving path and save
-    vplots_path_fig = join(vplot_dir, 'adaEk')
+    vplots_path_fig = join(vplot_dir, 'vc_adaEk-onlytest')
     save_figures(fig, f'{cell_ID}-adaEK_onlytest', vplots_path_fig, darkmode_bool, figure_format='both')
     
     # display figure

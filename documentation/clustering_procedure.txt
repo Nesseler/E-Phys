@@ -1,0 +1,29 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Feb 26 13:55:00 2025
+
+@author: nesseler
+"""
+
+clustering of celldescriptors procedure
+
+1. create_celldescriptors.py
+    -> creates one xlsx file that contains the selected parameters
+    
+    1.1 violins_all_parameters.py
+        - creates two figures of the data distributions
+        a. all parameters in their original value space
+        b. all parameters after z-score in std space (full and zoomed versions)
+        
+    1.2 correlation_analysis.py
+        - creates a correlation heatmap of all parameter
+        
+2. hierarchical_clustering.py
+    -> creates hierarchical clustering
+    -> combined figure of heatmap and dendrogram
+        - elbow plot
+        - heatmap
+
+    => get number of clusters and assigned cells
+
+3. PCA.py

@@ -200,7 +200,7 @@ save_figures(fig_zdist, 'figure-violinplots-zscored_parameter_space',
               figure_format = 'png')
 
 
-# %% figure z-scored parameter sapce
+# %% figure z-scored parameter space
 
 # initialize figure
 fig_zdist, ax_zdist = plt.subplots(nrows = 1,
@@ -214,12 +214,13 @@ plot_data_distribution(ax_zdist, distributions_data = celldescriptors_zscored, c
 
 # edit axis
 # y
-ydict = {'ax_min' : -3,
-         'ax_max' : 3,
+ydict = {'ax_min' : -2.5,
+         'ax_max' : 2.5,
          'pad' : 0.2,
          'step' : 2,
          'stepminor' : 0.5,
-         'label' : 'z-transformed parameter value [std]'}
+         'label' : 'z-transformed parameter value [std]',
+         'limits_n_0' : True}
 
 apply_axis_settings(ax_zdist, axis = 'y', **ydict)
 
@@ -241,4 +242,4 @@ fig_zdist_dir = join(clustering_dir, 'temp_figs')
 save_figures(fig_zdist, 'figure-violinplots-zscored_parameter_space-zoom', 
               save_dir = fig_zdist_dir,
               darkmode_bool = darkmode_bool,
-              figure_format = 'png')
+              figure_format = 'both')
