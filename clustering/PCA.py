@@ -28,40 +28,52 @@ from functions.functions_import import get_MetaData
 MetaData = get_MetaData(cell_IDs)
 
 
-# %% z-score celldescriptors
-
 # z-score cellmorph matrix
 celldescriptors_zscored = (celldescriptors - celldescriptors.mean()) / celldescriptors.std()
 
 
-# %% initialize plotting
-
-from functions.initialize_plotting import *
-
-
 # %% principal component analysis
 
+# set up PCA
 celldescriptors_PCA = PCA().fit(celldescriptors_zscored)
 
+# perform transfrom
 celldescriptors_PCA_components = celldescriptors_PCA.transform(celldescriptors_zscored)
 
-celldescriptors_PCA_explained_variance = celldescriptors_PCA.explained_variance_
-
-# # get the eigenvectors and eigenvalues
-#     # index: celldescriptors
-#     # columns: principal components
-celldescriptors_PCA_eigen = pd.DataFrame(celldescriptors_PCA.components_.T,
-                                         columns = [f'PC{i+1}' for i in range(celldescriptors.shape[1])],
-                                         index = celldescriptors.columns)
-
-
+# write to dataframe
 prinicpal_components = pd.DataFrame(celldescriptors_PCA_components,
                                     index = cell_IDs,
                                     columns = [f'PC{i+1}' for i in range(celldescriptors.shape[1])])
 
+# get eigenvectors
+eigenvectors = celldescriptors_PCA.components_
 
-# colors = ['#FFEC9DFF', '#FAC881FF', '#F4A464FF', '#E87444FF', '#D9402AFF',
-#         '#BF2729FF', '#912534FF', '#64243EFF', '#3D1B28FF', '#161212FF']
+celldescriptors_PCA_eigenvectors = pd.DataFrame(eigenvectors,
+                                                columns = celldescriptors.columns,
+                                                index = [f'PC{i+1}' for i in range(celldescriptors.shape[1])])
+
+# get the eigenvalues
+celldescriptors_PCA_eigenvalues = celldescriptors_PCA.explained_variance_
+
+# get components loading
+loadings = eigenvectors.T * np.sqrt(celldescriptors_PCA_eigenvalues)
+
+celldescriptors_PCA_loadings = pd.DataFrame(loadings,
+                                            columns = [f'PC{i+1}' for i in range(celldescriptors.shape[1])],
+                                            index = celldescriptors.columns)
+
+# combine to one dataframe 
+celldescriptors_PCA_metrics = pd.DataFrame(index = [f'PC{i+1}' for i in range(celldescriptors_zscored.shape[1])])
+
+# get eigenvalues and calcuate the explained variance ratio 
+celldescriptors_PCA_metrics.loc[:, "eigenvalue"] = celldescriptors_PCA_eigenvalues
+celldescriptors_PCA_metrics.loc[:, "explained_variance"] = celldescriptors_PCA_eigenvalues / celldescriptors_zscored.var().sum()
+
+# calc cumulative sum of explained variance ratio
+celldescriptors_PCA_metrics.loc[:, "cumsum_explained_variance"] = celldescriptors_PCA_metrics.loc[:, "explained_variance"].cumsum()
+
+
+
 
 colors = [(0.5529411764705883, 0.8274509803921568, 0.7803921568627451),
          (0.996078431372549, 1.0, 0.7019607843137254),
@@ -79,6 +91,13 @@ c_colors = [colors[i] for i in celldescriptors_clustered.loc[cell_IDs, 'hierarch
 
 # get number of clusters
 n_clusters = celldescriptors_clustered.loc[cell_IDs, 'hierarchical_cluster'].nunique()
+
+
+
+
+# %% initialize plotting
+
+from functions.initialize_plotting import *
 
 # %% pca and vectors
 
@@ -132,23 +151,24 @@ axs_PCA2[0].legend(h, l, title = 'cluster id',
 # plot the variables as vectors
 for i in range(celldescriptors_PCA.components_.shape[1]):
     axs_PCA2[1].arrow(x = 0,
-                     y = 0,
-                     dx = celldescriptors_PCA.components_[0, i]*8.5,
-                     dy = celldescriptors_PCA.components_[1, i]*8.5,
-                     head_width=0.05,
-                     head_length=0.05,
-                     linewidth=0.75,
-                     color="w",
-                     )
+                      y = 0,
+                      dx = celldescriptors_PCA.components_[0, i]*8.5,
+                      dy = celldescriptors_PCA.components_[1, i]*8.5,
+                      head_width=0.05,
+                      head_length=0.05,
+                      linewidth=0.75,
+                      color="w",
+                      )
     
 # Plot annotations
-for parameter in celldescriptors_PCA_eigen.index.to_list():
-    axs_PCA2[1].text(x = (celldescriptors_PCA_eigen.loc[parameter, 'PC1'])*10,
-                     y = (celldescriptors_PCA_eigen.loc[parameter, 'PC2'])*10,
+for parameter in celldescriptors_PCA_eigenvectors.columns.to_list():
+    axs_PCA2[1].text(x = (celldescriptors_PCA_eigenvectors.loc['PC1', parameter])*10,
+                     y = (celldescriptors_PCA_eigenvectors.loc['PC2', parameter])*10,
                      s = parameter,
                      color="w",
                      fontsize = 9,
-                     ha = 'center')
+                     ha = 'center',
+                     wrap = True)
 
 PC_dict = {'ax_min' : -6,
            'ax_max' : 8.5,
@@ -248,14 +268,14 @@ for i in range(celldescriptors_PCA.components_.shape[1]):
     
 
 # Plot annotations
-for parameter in celldescriptors_PCA_eigen.index.to_list():
-    axs_PCA_region[1].text(x = (celldescriptors_PCA_eigen.loc[parameter, 'PC1'])*10,
-                     y = (celldescriptors_PCA_eigen.loc[parameter, 'PC2'])*10,
-                     s = parameter,
-                     color="w",
-                     fontsize = 9,
-                     ha = 'center'
-                     )
+for parameter in celldescriptors_PCA_eigenvectors.columns.to_list():
+    axs_PCA_region[1].text(x = (celldescriptors_PCA_eigenvectors.loc['PC1', parameter])*10,
+                           y = (celldescriptors_PCA_eigenvectors.loc['PC2', parameter])*10,
+                           s = parameter,
+                           color="w",
+                           fontsize = 9,
+                           ha = 'center',
+                           wrap = True)
 
 
 PC_dict = {'ax_min' : -6,
@@ -350,13 +370,13 @@ ax.arrow(x = 0,
          )
   
 # Plot annotations
-ax.text(x = (celldescriptors_PCA_eigen.loc[parameter, 'PC1'])*10,
-        y = (celldescriptors_PCA_eigen.loc[parameter, 'PC2'])*10,
+ax.text(x = (celldescriptors_PCA_eigenvectors.loc['PC1', parameter])*10,
+        y = (celldescriptors_PCA_eigenvectors.loc['PC2', parameter])*10,
         s = parameter,
         color="w",
-        fontsize = 12,
-        ha = 'center'
-        )
+        fontsize = 9,
+        ha = 'center',
+        wrap = True)
 
 
 # edit axis
@@ -383,16 +403,16 @@ save_figures(fig_PCA2, f'figure-PCA-{parameter}',
 # show plot
 plt.show()
 
-# %%
+# %% all single parameter
 
 
 # # %% single parameter color code
 
 # parameter = 'r_input'
 
-# for parameter in celldescriptors_PCA_eigen.index.to_list():
+# for parameter in celldescriptors_PCA_eigenvectors.columns.to_list():
 
-#     parameter_i = celldescriptors_PCA_eigen.index.to_list().index(parameter)
+#     parameter_i = celldescriptors_PCA_eigenvectors.columns.to_list().index(parameter)
     
 #     fig_PCA3, axs_PCA3 = plt.subplots(nrows = 1,
 #                                      ncols = 2,
@@ -437,13 +457,14 @@ plt.show()
 #                       )
         
     
-#     # Plot annotations
-#     axs_PCA3[1].text(x = (celldescriptors_PCA_eigen.loc[parameter, 'PC1'])*10,
-#                      y = (celldescriptors_PCA_eigen.loc[parameter, 'PC2'])*10,
+# # Plot annotations
+#     axs_PCA3[1].text(x = (celldescriptors_PCA_eigenvectors.loc['PC1', parameter])*10,
+#                      y = (celldescriptors_PCA_eigenvectors.loc['PC2', parameter])*10,
 #                      s = parameter,
-#                      color="red",
-#                      fontsize = 6,
-#                      )
+#                      color="w",
+#                      fontsize = 9,
+#                      ha = 'center',
+#                      wrap = True)
     
     
 #     PC_dict = {'ax_min' : -6,
@@ -477,74 +498,90 @@ plt.show()
 
 # %% scree plot
 
-celldescriptors_PCA_dict = pd.DataFrame(columns = [f'PC{i+1}' for i in range(celldescriptors_zscored.shape[1])],
-                                        index = celldescriptors_zscored.columns)
-
-# get eigenvalues and calcuate the explained variance ratio 
-celldescriptors_PCA_dict.loc["eigenvalue", :] = celldescriptors_PCA.explained_variance_
-celldescriptors_PCA_dict.loc["explained_variance", :] = celldescriptors_PCA.explained_variance_ / celldescriptors_zscored.var().sum()
-
-# calc cumulative sum of explained variance ratio
-celldescriptors_PCA_dict.loc["cumsum_explained_variance", :] = celldescriptors_PCA_dict.loc["explained_variance", :].cumsum()
-
-
+# set font size
+mtl.rcParams.update({'font.size': 9, 'font.family' : 'Arial'})
 
 fig_scree, axs_scree = plt.subplots(nrows = 1,
-                                   ncols = 2,
-                                   layout = 'constrained',
-                                   figsize = get_figure_size(height = 100, width = 200),
-                                   dpi = 600)
+                                    ncols = 1,
+                                    layout = 'constrained',
+                                    figsize = get_figure_size(height = 100, width = 120),
+                                    dpi = 300)
 
-axs_scree[0].plot(celldescriptors_PCA_dict.loc['explained_variance', :],
+axs_scree.plot(celldescriptors_PCA_metrics.loc[:, 'explained_variance'],
                   marker = 'x',
-                  lw = 0.75)
+                  markersize = 3,
+                  markeredgewidth = 0.5,
+                  lw = 0.75,
+                  alpha = 0.9,
+                  color = colors_dict['primecolor'])
 
+ax_cumsum = axs_scree.twinx()
 
-axs_scree[1].plot(celldescriptors_PCA_dict.loc["cumsum_explained_variance", :],
+ax_cumsum.plot(celldescriptors_PCA_metrics.loc[:, "cumsum_explained_variance"],
                   marker = 'x',
-                  lw = 0.75)
+                  markersize = 3,
+                  markeredgewidth = 0.5,
+                  lw = 0.75,
+                  alpha = 0.9,
+                  color = 'r')
 
+ax_cumsum.spines['right'].set_color('r')
+ax_cumsum.tick_params(axis='y', color = 'r', which = 'both')
+ax_cumsum.yaxis.label.set_color('w')
 
 # edit axis
 xscree_dict = {'ax_min' : 0,
-               'ax_max' : celldescriptors_PCA_eigen.shape[1]-1,
+               'ax_max' : celldescriptors_PCA_eigenvectors.shape[0]-1,
                'pad' : None,
                'step' : 1,
                'stepminor' : 1,
                'label' : None,
-               'ticklabels' : celldescriptors_PCA_eigen.columns.to_list(),
+               'ticklabels' : celldescriptors_PCA_eigenvectors.index.to_list(),
                'rotation' : 90}
 
-[apply_axis_settings(ax, axis = 'x', **xscree_dict) for ax in axs_scree]
-
+apply_axis_settings(axs_scree, axis = 'x', **xscree_dict)
+apply_axis_settings(ax_cumsum, axis = 'x', **xscree_dict)
 
 yscree_dict = {'ax_min' : 0,
-               'ax_max' : 1,
-               'pad' : None,
-               'step' : 0.2,
-               'stepminor' : 0.05,
-               'label' : 'explained variance'}
+                'ax_max' : 0.4,
+                'pad' : None,
+                'step' : 0.1,
+                'stepminor' : 0.05,
+                'label' : 'explained variance'}
 
-# apply_axis_settings(ax_scree, axis = 'y', **yscree_dict)
+apply_axis_settings(axs_scree, axis = 'y', **yscree_dict)
+axs_scree.set_ylabel('explained variance')
 
-axs_scree[0].set_ylabel('explained variance')
-axs_scree[1].set_ylabel('cumultative explained variance')
+ycumsum_dict = {'ax_min' : 0.2,
+                'ax_max' : 1,
+                'pad' : None,
+                'step' : 0.1,
+                'stepminor' : 0.05,
+                'label' : ''}
+
+
+apply_axis_settings(ax_cumsum, axis = 'y', **ycumsum_dict)
+ax_cumsum.spines['right'].set_bounds([ycumsum_dict['ax_min'], ycumsum_dict['ax_max']])
+ax_cumsum.set_ylabel('cumultative explained variance')
 
 # remove spines
-[ax.spines[spine].set_visible(False) for ax in axs_scree for spine in ['top', 'right']]
+[axs_scree.spines[spines].set_visible(False) for spines in ['top', 'right']]
+[ax_cumsum.spines[spines].set_visible(False) for spines in ['top', 'left']]
 
 # set directory for figure
 fig_dir = join(clustering_dir, 'temp_figs')
 
 # save figure
 save_figures(fig_scree, 'figure-PCA-scree_plot', 
-             save_dir = fig_dir,
-             darkmode_bool = darkmode_bool,
-             figure_format = 'png')
+              save_dir = fig_dir,
+              darkmode_bool = darkmode_bool,
+              figure_format = 'both')
 
 # show plot
 plt.show()
 
+# set font size
+mtl.rcParams.update({'font.size': 12, 'font.family' : 'Arial'})
 
 # %% 3d plot
 
@@ -634,7 +671,7 @@ PC_dict = {'PC1': {'ax_min' : -6,
 for ax_i, PCs in zip([0, 1, 4], [('PC1', 'PC2'), ('PC3', 'PC2'), ('PC1', 'PC3')]):
     
     # plot each cluster separatly for coloring
-    for cluster_idx in range(n_clusters):
+    for cluster_idx in [1, 2, 3]:#range(n_clusters):
         
         # set axis
         ax = axs_3ds[ax_i]
@@ -682,13 +719,24 @@ for ax_i, PCs in zip([2, 3, 6], [('PC1', 'PC2'), ('PC3', 'PC2'), ('PC1', 'PC3')]
    
         
         # Plot annotations
-        for parameter in celldescriptors_PCA_eigen.index.to_list():
-            ax.text(x = (celldescriptors_PCA_eigen.loc[parameter, PCs[0]])*5,
-                    y = (celldescriptors_PCA_eigen.loc[parameter, PCs[1]])*5,
+        for parameter in celldescriptors_PCA_eigenvectors.columns.to_list():
+            ax.text(x = (celldescriptors_PCA_eigenvectors.loc['PC1', parameter])*10,
+                    y = (celldescriptors_PCA_eigenvectors.loc['PC2', parameter])*10,
                     s = parameter,
-                    color="red",
-                    fontsize = 4,
-                    )
+                    color="w",
+                    fontsize = 9,
+                    ha = 'center',
+                    wrap = True)
+            
+# Plot annotations
+for parameter in celldescriptors_PCA_eigenvectors.columns.to_list():
+    axs_PCA2[1].text(x = (celldescriptors_PCA_eigenvectors.loc['PC1', parameter])*10,
+                     y = (celldescriptors_PCA_eigenvectors.loc['PC2', parameter])*10,
+                     s = parameter,
+                     color="w",
+                     fontsize = 9,
+                     ha = 'center',
+                     wrap = True)
    
         # set axis labels
         ax.set_xlabel(PCs[0])
@@ -722,47 +770,59 @@ plt.show()
 
 # %% loadings plot
 
-
-eigenvectors = celldescriptors_PCA.components_
-
-celldescriptors_PCA_eigenvectors = pd.DataFrame(eigenvectors,
-                                                columns = celldescriptors.columns,
-                                                index = [f'PC{i+1}' for i in range(celldescriptors.shape[1])])
-
-loadings = eigenvectors.T * np.sqrt(celldescriptors_PCA_explained_variance)
-
-celldescriptors_PCA_loadings = pd.DataFrame(loadings,
-                                            columns = [f'PC{i+1}' for i in range(celldescriptors.shape[1])],
-                                            index = celldescriptors.columns)
-
-
-plt.barh(y = celldescriptors.columns,
-         width = celldescriptors_PCA_loadings['PC1'].to_list(),
-         left = 0,
-         zorder = 1)
-
-plt.barh(y = celldescriptors.columns,
-         width = celldescriptors_PCA_loadings['PC2'].to_list(),
-         left = 2,
-         zorder = 1)
-
+# set font size
+mtl.rcParams.update({'font.size': 9, 'font.family' : 'Arial'})
 
 axline_dict = {'linewidth' : 1.5, 
                'color' : 'w',
                'zorder' : 0,
                'linestyle' : 'solid',
                'alpha' : 0.75}
+    
 
-plt.axline((0, 1), (0, 2), **axline_dict)
-plt.axline((2, 1), (2, 2), **axline_dict)
+fig, axs= plt.subplots(nrows = 1,
+                       ncols = 3,
+                       layout = 'constrained',
+                       figsize = get_figure_size(height = 80, width = 150),
+                       dpi = 300,
+                       sharey = True)
 
-# remove spines
-[plt.gca().spines[spine].set_visible(False) for spine in ['top', 'right', 'bottom', 'left']]
+for ax, PC, color in zip(axs, ['PC1', 'PC2', 'PC3'], ['mediumturquoise', 'sandybrown', 'mediumorchid']):
 
-plt.xticks(ticks = [0, 2],
-           labels = ['PC1', 'PC2'])
+    # plot PC loadings as bar graph
+    ax.barh(y = celldescriptors.columns,
+            width = celldescriptors_PCA_loadings[PC].to_list(),
+            left = 0,
+            zorder = 1,
+            color = color)
 
-# invert y axis
-plt.gca().invert_yaxis()
+    # plot zero line
+    ax.axline((0, 1), (0, 2), **axline_dict)
+    
+    # set x axis
+    ax.set_xticks(ticks = [0], labels = [PC])
+    ax.set_xticks(ticks = np.arange(-1, 1+0.1, 0.5), labels = [], minor = True)
+    ax.set_xlim([-1.15, 1.15])
+    
+    # set y axis
+    ax.set_ylim([0-0.5, 20-0.5])
+    ax.invert_yaxis()
 
-plt.xlim([-1, 3])
+    # remove spines
+    [ax.spines[spine].set_visible(False) for spine in ['top', 'right', 'bottom', 'left']]
+
+    # set grid
+    ax.grid(axis = 'x', which = 'both', lw = 0.5, alpha = 0.5)
+    ax.set_axisbelow(True)
+    
+    
+# remove y ticks
+remove_spines_n_ticks(axs[1:], axis = 'y')
+
+
+
+
+plt.show()
+
+# set font size
+mtl.rcParams.update({'font.size': 12, 'font.family' : 'Arial'})
