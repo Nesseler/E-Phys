@@ -312,7 +312,7 @@ plt.show()
 # %% single parameter
 
 # set parameter
-parameter = 'r_input'
+parameter = 'rheobase_rel'
 parameter_i = celldescriptors.columns.to_list().index(parameter)
 
 # initialize figure
@@ -585,6 +585,8 @@ mtl.rcParams.update({'font.size': 12, 'font.family' : 'Arial'})
 
 # %% 3d plot
 
+# %matplotlib qt5
+
 # initialize figure
 fig = plt.figure(layout = 'constrained',
                   dpi = 100)
@@ -637,6 +639,7 @@ ax.view_init(elev = 90, azim = -90, roll = 0)
 plt.show()
 
 
+# %matplotlib inline
 
 # %% PCA 3d as subplots
 fig_3d_subp, axs_3ds = plt.subplots(nrows = 2,
@@ -671,7 +674,7 @@ PC_dict = {'PC1': {'ax_min' : -6,
 for ax_i, PCs in zip([0, 1, 4], [('PC1', 'PC2'), ('PC3', 'PC2'), ('PC1', 'PC3')]):
     
     # plot each cluster separatly for coloring
-    for cluster_idx in [1, 2, 3]:#range(n_clusters):
+    for cluster_idx in range(n_clusters):
         
         # set axis
         ax = axs_3ds[ax_i]
@@ -716,28 +719,17 @@ for ax_i, PCs in zip([2, 3, 6], [('PC1', 'PC2'), ('PC3', 'PC2'), ('PC1', 'PC3')]
                      linewidth=0.75,
                      color="w",
                      )
-   
-        
+           
         # Plot annotations
         for parameter in celldescriptors_PCA_eigenvectors.columns.to_list():
-            ax.text(x = (celldescriptors_PCA_eigenvectors.loc['PC1', parameter])*10,
-                    y = (celldescriptors_PCA_eigenvectors.loc['PC2', parameter])*10,
-                    s = parameter,
-                    color="w",
-                    fontsize = 9,
-                    ha = 'center',
-                    wrap = True)
-            
-# Plot annotations
-for parameter in celldescriptors_PCA_eigenvectors.columns.to_list():
-    axs_PCA2[1].text(x = (celldescriptors_PCA_eigenvectors.loc['PC1', parameter])*10,
-                     y = (celldescriptors_PCA_eigenvectors.loc['PC2', parameter])*10,
-                     s = parameter,
-                     color="w",
-                     fontsize = 9,
-                     ha = 'center',
-                     wrap = True)
-   
+            axs_PCA2[1].text(x = (celldescriptors_PCA_eigenvectors.loc['PC1', parameter])*10,
+                             y = (celldescriptors_PCA_eigenvectors.loc['PC2', parameter])*10,
+                             s = parameter,
+                             color="w",
+                             fontsize = 9,
+                             ha = 'center',
+                             wrap = True)
+        
         # set axis labels
         ax.set_xlabel(PCs[0])
         ax.set_ylabel(PCs[1])
@@ -747,6 +739,7 @@ for parameter in celldescriptors_PCA_eigenvectors.columns.to_list():
         apply_axis_settings(ax = ax, axis = 'y', **PC_dict[PCs[1]])       
        
         
+
 # legend
 h, l = axs_3ds[4].get_legend_handles_labels() 
 axs_3ds[5].legend(h, l, title = 'cluster id', 
@@ -778,20 +771,20 @@ axline_dict = {'linewidth' : 1.5,
                'zorder' : 0,
                'linestyle' : 'solid',
                'alpha' : 0.75}
-    
+
 
 fig, axs= plt.subplots(nrows = 1,
                        ncols = 3,
                        layout = 'constrained',
-                       figsize = get_figure_size(height = 80, width = 150),
+                       figsize = get_figure_size(height = 100, width = 150),
                        dpi = 300,
                        sharey = True)
 
 for ax, PC, color in zip(axs, ['PC1', 'PC2', 'PC3'], ['mediumturquoise', 'sandybrown', 'mediumorchid']):
 
     # plot PC loadings as bar graph
-    ax.barh(y = celldescriptors.columns,
-            width = celldescriptors_PCA_loadings[PC].to_list(),
+    ax.barh(y = celldescriptors_PCA_loadings.index,
+            width = celldescriptors_PCA_loadings.loc[:, PC].to_list(),
             left = 0,
             zorder = 1,
             color = color)
@@ -819,10 +812,300 @@ for ax, PC, color in zip(axs, ['PC1', 'PC2', 'PC3'], ['mediumturquoise', 'sandyb
 # remove y ticks
 remove_spines_n_ticks(axs[1:], axis = 'y')
 
-
-
-
+# display figure
 plt.show()
+
+
+# %% sorted loadings
+
+fig, axs= plt.subplots(nrows = 3,
+                       ncols = 1,
+                       layout = 'constrained',
+                       figsize = get_figure_size(height = 230, width = 100),
+                       dpi = 300,
+                       sharey = False)
+
+for ax, PC, color in zip(axs, ['PC1', 'PC2', 'PC3'], ['mediumturquoise', 'sandybrown', 'mediumorchid']):
+
+    # sort     
+    PC_loadings = celldescriptors_PCA_loadings.sort_values(by = PC, key = abs, ascending=False)
+    labels = PC_loadings.index
+
+    # plot PC loadings as bar graph
+    ax.barh(y = labels,
+            width = PC_loadings.loc[:, PC].to_list(),
+            left = 0,
+            zorder = 1,
+            color = color)
+
+    # plot zero line
+    ax.axline((0, 1), (0, 2), **axline_dict)
+    
+    # set x axis
+    ax.set_xticks(ticks = [0], labels = [PC])
+    ax.set_xticks(ticks = np.arange(-1, 1+0.1, 0.5), labels = [], minor = True)
+    ax.set_xlim([-1.15, 1.15])
+    
+    # set y axis
+    ax.set_ylim([0-0.5, 20-0.5])
+    ax.invert_yaxis()
+
+    # remove spines
+    [ax.spines[spine].set_visible(False) for spine in ['top', 'right', 'bottom', 'left']]
+
+    # set grid
+    ax.grid(axis = 'x', which = 'both', lw = 0.5, alpha = 0.5)
+    ax.set_axisbelow(True)
+    
+    
+# remove y ticks
+remove_spines_n_ticks(axs[1:], axis = 'y')
+
+# display figure
+plt.show()
+
+
+
+# %% length of eigenvectors
+
+combined_first_twoPCs_loadings_sorted = celldescriptors_PCA_loadings.loc[:, ['PC1', 'PC2']].abs().sum(axis = 1).sort_values(ascending = False)
+
+
+
+# vector_length = np.sqrt((celldescriptors_PCA_loadings**2).loc[:, ['PC1', 'PC2']].sum(axis = 1))
+vector_length = np.sqrt((celldescriptors_PCA_eigenvectors.T**2).loc[:, ['PC1', 'PC2']].sum(axis = 1))
+vector_length_sorted = vector_length.sort_values(ascending = False)
+
+
+fig, ax = plt.subplots(nrows = 1,
+                       ncols = 1,
+                       layout = 'constrained',
+                       figsize = get_figure_size(height = 100, width = 100),
+                       dpi = 300,
+                       sharey = False)
+
+
+# plot PC loadings as bar graph
+ax.barh(y = vector_length_sorted.index,
+        width = vector_length_sorted.to_list(),
+        left = 0,
+        zorder = 1,
+        color = 'cornflowerblue')
+
+# plot zero line
+ax.axline((0, 1), (0, 2), **axline_dict)
+
+# set x axis
+ax.set_xticks(ticks = [0.5], labels = [r'$\sqrt{PC1^2 + PC2^2}$'])
+ax.set_xticks(ticks = np.arange(-1, 1+0.1, 0.5), labels = [], minor = True)
+ax.set_xlim([-0.2, 1.2])
+
+# set y axis
+ax.set_ylim([0-0.5, 20-0.5])
+ax.invert_yaxis()
+
+# remove spines
+[ax.spines[spine].set_visible(False) for spine in ['top', 'right', 'bottom', 'left']]
+
+# set grid
+ax.grid(axis = 'x', which = 'both', lw = 0.5, alpha = 0.5)
+ax.set_axisbelow(True)
+
+
+
+# %% PCA region joint histogram
+
+bin_width = 1
+bin_edges = np.arange(-6, 11, bin_width)
+
+PC_histogram = pd.DataFrame(index = bin_edges)
+
+for PC in ['PC1', 'PC2']:
+    for region in ['BAOT/MeA', 'MeA', 'BAOT']:
+        
+        # get cell_IDs per region
+        region_cellIDs = MetaData[MetaData['Region'] == region].index.to_list()
+        
+        # get histogram
+        counts, bins = np.histogram(prinicpal_components.loc[region_cellIDs, PC], 
+                                    bins = bin_edges)
+        
+        # write to dataframe
+        PC_histogram.loc[bins[:-1], f'{region}-{PC}'] = counts
+
+
 
 # set font size
 mtl.rcParams.update({'font.size': 12, 'font.family' : 'Arial'})
+
+fig, axs = plt.subplots(nrows = 2,
+                        ncols = 2,
+                        layout = 'constrained',
+                        figsize = get_figure_size(width = 160.5),
+                        dpi = 300,
+                        height_ratios = [0.8, 0.2],
+                        width_ratios = [0.2, 0.8],
+                        sharex = 'col',
+                        sharey = 'row')
+
+# flatten axis
+axs = axs.flatten()
+
+# set PCA axis
+ax = axs[1]
+
+# axis lines
+axline_dict = {'linewidth' : 1, 
+               'color' : 'w',
+               'zorder' : 0,
+               'linestyle' : 'dashed',
+               'dashes' : [4, 7],
+               'alpha' : 0.75}
+
+ax.axline((0, 1), (0, 2), **axline_dict)
+ax.axline((1, 0), (2, 0), **axline_dict)
+
+# plot each cluster separatly for coloring
+for cluster_idx in range(n_clusters):
+    
+    # get cell_IDs of cells in cluster
+    cluster_cellIDs = celldescriptors_clustered[celldescriptors_clustered['hierarchical_cluster'] == cluster_idx].index.to_list()
+
+    # plot cluster
+    ax.scatter(x = prinicpal_components.loc[cluster_cellIDs, 'PC1'],
+               y = prinicpal_components.loc[cluster_cellIDs, 'PC2'],
+               c = [colors[cluster_idx]] * len(cluster_cellIDs),
+               s = 60,
+               label = cluster_idx)
+
+# plot cell_IDs
+for cell_ID in prinicpal_components.index.to_list():
+    ax.text(x = prinicpal_components.at[cell_ID, 'PC1'],
+                     y = prinicpal_components.at[cell_ID, 'PC2'],
+                     s = cell_ID,
+                     color = "k",
+                     ha = "center",
+                     va = "center",
+                     fontsize = 3)
+
+# legend
+h, l = ax.get_legend_handles_labels() 
+ax.legend(h, l, 
+          title = 'cluster id', 
+          frameon = False, 
+          ncol = 2, 
+          loc = 'upper left',
+          fontsize = 9)
+
+
+PC_dict = {'ax_min' : -6,
+           'ax_max' : 8.5,
+           'pad' : None,
+           'step' : 2,
+           'stepminor' : 0.5,
+           'label' : None}
+
+# edit axis
+apply_axis_settings(ax, axis = 'x', **PC_dict)
+apply_axis_settings(ax, axis = 'y', **PC_dict)
+
+# axis labels
+axs[3].set_xlabel('PC 1')
+axs[0].set_ylabel('PC 2')
+
+# remove spines
+[ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
+
+
+# set axis to histogram
+ax = axs[3]
+
+# set array for stacking
+bottom = np.zeros_like(bin_edges)
+
+# plot stacked bar plot
+for ri, region in enumerate(['BAOT/MeA', 'MeA', 'BAOT']):
+    
+    # get counts
+    region_counts = PC_histogram[f'{region}-PC1']
+    
+    p = ax.bar(PC_histogram.index, 
+               region_counts,
+               align = 'edge', 
+               width = bin_width, 
+               label = region, 
+               bottom = bottom,
+                edgecolor = 'None',
+                facecolor = region_colors[region],
+                alpha = 0.5,
+                zorder = 3-ri,
+                lw = 1.5)
+    
+    p = ax.bar(PC_histogram.index, 
+               region_counts,
+               align = 'edge', 
+               width = bin_width, 
+               label = region, 
+               bottom = bottom,
+                edgecolor = region_colors[region],
+                facecolor = 'None',
+                zorder = 3-ri,
+                lw = 1.5)
+    
+    # add to stacking array
+    bottom += region_counts
+
+
+# set axis to histogram
+ax = axs[0]
+
+# set array for stacking
+bottom = np.zeros_like(bin_edges)
+
+# plot stacked bar plot
+for ri, region in enumerate(['BAOT/MeA', 'MeA', 'BAOT']):
+    
+    # get counts
+    region_counts = PC_histogram[f'{region}-PC2']
+    
+    p = ax.barh(PC_histogram.index, 
+                region_counts, 
+                height = bin_width,
+                align = 'edge',
+                label = region,
+                left = bottom,
+                edgecolor = 'None',
+                facecolor = region_colors[region],
+                alpha = 0.5,
+                zorder = 3-ri,
+                lw = 1.5)
+    
+    p = ax.barh(PC_histogram.index, 
+                region_counts, 
+                height = bin_width,
+                align = 'edge',
+                label = region,
+                left = bottom,
+                edgecolor = region_colors[region],
+                facecolor = 'None',
+                zorder = 3-ri,
+                lw = 1.5)
+    
+    # add to stacking array
+    bottom += region_counts
+
+# delete unused axis
+fig.delaxes(axs[2])
+
+# # set directory for figure
+# fig_dir = join(clustering_dir, 'temp_figs')
+
+# # save figure
+# save_figures(fig_PCA_region, 'figure-PCA-components_plot-region', 
+#              save_dir = fig_dir,
+#              darkmode_bool = darkmode_bool,
+#              figure_format = 'both')
+
+# show plot
+plt.show()
+
