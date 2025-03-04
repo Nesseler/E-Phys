@@ -16,10 +16,10 @@ from functions.functions_filter import butter_filter
 
 PGF = 'vc_Erest_3min'
 
-conditions = ['ctrl', 'AP5_NBQX_washin', 'AP5_NBQX', 'AP5_NBQX_GBZ_washin', 'AP5_NBQX_GBZ']
-# conditions = ['ctrl', 'GBZ_washin', 'GBZ', 'AP5_NBQX_GBZ_washin', 'AP5_NBQX_GBZ']
-blkr2 = 'GBZ'
-blkr1 = 'AP5_NBQX'
+# conditions = ['ctrl', 'AP5_NBQX_washin', 'AP5_NBQX', 'AP5_NBQX_GBZ_washin', 'AP5_NBQX_GBZ']
+conditions = ['ctrl', 'GBZ_washin', 'GBZ', 'AP5_NBQX_GBZ_washin', 'AP5_NBQX_GBZ']
+blkr1 = 'GBZ'
+blkr2 = 'AP5_NBQX'
 
 SR = vc_Erest_parameters['SR']
 
@@ -30,7 +30,7 @@ n_steps = vc_Erest_parameters['n_steps']
 # get cell_IDs
 # cell_IDs = get_cell_IDs_one_protocol(PGF = PGF + '_' + 'adaEk', sheet_name= 'PGFs_Syn')
 
-cell_ID = 'E-301' # 305 (AP5-GBZ) # 304 (GBZ-AP5)
+cell_ID = 'E-304' # 305 (AP5-GBZ) # 304 (GBZ-AP5)
 
 condition = 'ctrl'
 

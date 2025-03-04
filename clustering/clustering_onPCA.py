@@ -103,7 +103,7 @@ from sklearn.cluster import KMeans
 data = celldescriptors_PCA_components
 
 # 
-model = KMeans(n_clusters = 5, init = "k-means++", random_state=7) #5 #7
+model = KMeans(n_clusters = 6, init = "k-means++", random_state=5) #5 #7
 # centers = np.array(celldescriptors_PCA.cluster_centers_)
 label = model.fit_predict(data)
 plt.figure(figsize=(10,10))

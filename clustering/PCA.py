@@ -585,7 +585,7 @@ mtl.rcParams.update({'font.size': 12, 'font.family' : 'Arial'})
 
 # %% 3d plot
 
-# %matplotlib qt5
+%matplotlib qt5
 
 # initialize figure
 fig = plt.figure(layout = 'constrained',
@@ -674,7 +674,7 @@ PC_dict = {'PC1': {'ax_min' : -6,
 for ax_i, PCs in zip([0, 1, 4], [('PC1', 'PC2'), ('PC3', 'PC2'), ('PC1', 'PC3')]):
     
     # plot each cluster separatly for coloring
-    for cluster_idx in range(n_clusters):
+    for cluster_idx in [4, 6, 7]: #range(n_clusters):
         
         # set axis
         ax = axs_3ds[ax_i]
@@ -722,13 +722,13 @@ for ax_i, PCs in zip([2, 3, 6], [('PC1', 'PC2'), ('PC3', 'PC2'), ('PC1', 'PC3')]
            
         # Plot annotations
         for parameter in celldescriptors_PCA_eigenvectors.columns.to_list():
-            axs_PCA2[1].text(x = (celldescriptors_PCA_eigenvectors.loc['PC1', parameter])*10,
-                             y = (celldescriptors_PCA_eigenvectors.loc['PC2', parameter])*10,
-                             s = parameter,
-                             color="w",
-                             fontsize = 9,
-                             ha = 'center',
-                             wrap = True)
+            ax.text(x = (celldescriptors_PCA_eigenvectors.loc[PCs[0], parameter])*10,
+                    y = (celldescriptors_PCA_eigenvectors.loc[PCs[1], parameter])*10,
+                    s = parameter,
+                    color="w",
+                    fontsize = 6,
+                    ha = 'center',
+                    wrap = True)
         
         # set axis labels
         ax.set_xlabel(PCs[0])
