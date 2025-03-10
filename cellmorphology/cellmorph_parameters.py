@@ -23,12 +23,16 @@ orientation_labels = ['p', 'pd', 'd', 'ad', 'a', 'av', 'v', 'pv']
     
 # %% cell coordinates
 
-cell_coordinates_field_of_view = 590.76 #µm
+field_of_view = 590.76 #µm
+
+max_depth = 300 #µm
 
 
 # %% cell_IDs that will be excluded from analysis
 
-cell_IDs_toDrop = ['E-108', 'E-126', 'E-158',
-                    'E-065', # BAOT/MeA
-                    'E-070'] # BAOT/MeA
+cell_IDs_toDrop = ['E-108', # very small (probably not filled)
+                   'E-126', 
+                   'E-158',
+                   'E-065', # BAOT/MeA
+                   'E-070'] # BAOT/MeA
 

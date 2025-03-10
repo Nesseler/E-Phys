@@ -572,7 +572,7 @@ if vplots:
                        bifurcation_ratios = bifurcation_ratios)
 
 
-# %% terminal branches orientation
+# %% plot terminal branches orientation
 
 
 
