@@ -15,11 +15,6 @@ sholl_step_size = 1 # um
 sholl_profile_range = np.arange(1, 500 +sholl_step_size, sholl_step_size)
 
 
-
-# %% polar plots
-
-orientation_labels = ['p', 'pd', 'd', 'ad', 'a', 'av', 'v', 'pv']
-
     
 # %% cell coordinates
 

@@ -406,7 +406,7 @@ if vplots:
 
 print('\nnumber of primary and terminal points ...')
 
-# initialize dataframes
+# define output
 n_primary = pd.DataFrame(columns = [f'n_primary-{ntype}' for ntype in neurite_types],
                           index = cell_IDs)
 n_terminal = pd.DataFrame(columns = [f'n_terminal-{ntype}' for ntype in neurite_types],

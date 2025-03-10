@@ -5,6 +5,9 @@ Created on Mon Jul 29 16:48:58 2024
 @author: nesseler
 """
 
+import warnings
+warnings.warn('Script not up-to-date!')
+
 import pandas as pd
 from os import mkdir
 from os.path import join, exists
