@@ -15,15 +15,18 @@ from os.path import join, exists
 from os import mkdir
 
 # get directories
-from cellmorphology.cellmorph_functions.cellmorph_dir import cellmorph_anaylsis_dir
+from cellmorphology.cellmorph_functions.cellmorph_dir import cellmorph_analysis_dir
 
 # %% set shared variables
 
 # get field of view
-from cellmorphology.cellmorph_parameters import field_of_view, max_depth
+from cellmorphology.cellmorph_functions.cellmorph_parameters import field_of_view, max_depth
 
 # get orientation labels
-from cellmorphology.cellmorph_functions.cellmorph_polarplot_functions import orientation_labels
+from cellmorphology.cellmorph_functions.cellmorph_polarplot_functions import orientation_labels, hist_bins, binsize
+
+# get polar plot functions
+from cellmorphology.cellmorph_functions.cellmorph_polarplot_functions import create_polar_histogram
 
 # set neurite types
 neurite_types = ['neurites', 
@@ -193,7 +196,7 @@ def plot_cellcoordinates(cell_ID, cell_coordinates):
                        **scatter_plot_dict)
     
     # get figure path
-    figpath = join(cellmorph_anaylsis_dir, 'plots-cell_coordinates')
+    figpath = join(cellmorph_analysis_dir, 'plots-cell_coordinates')
     
     # save figure
     save_figures(fig, 
@@ -295,7 +298,7 @@ def plot_cellhwd(cell_ID, cell_coordinates, cell_hwd):
                 size = 4)
     
     # get figure path
-    figpath = join(cellmorph_anaylsis_dir, 'plots-height_width_depth')
+    figpath = join(cellmorph_analysis_dir, 'plots-height_width_depth')
     
     # save figure
     save_figures(fig, 
@@ -396,7 +399,7 @@ def plot_all_terminal_branches(cell_ID, cell_coordinates, terminal_branches):
                     size = 4)
             
         # create figure directory
-        fig_dir = join(cellmorph_anaylsis_dir, 'plots-terminal_branches', f'{cell_ID}-terminal_branches')
+        fig_dir = join(cellmorph_analysis_dir, 'plots-terminal_branches', f'{cell_ID}-terminal_branches')
         
         # test if folder exists and create new one, if necessary
         if not exists(fig_dir):
@@ -414,7 +417,6 @@ def plot_all_terminal_branches(cell_ID, cell_coordinates, terminal_branches):
         
         
 # %% plot primary and terminal points
-
 
 def plot_endpoints(cell_ID, cell_coordinates, n_primary, n_terminal, bifurcation_ratios):
     '''
@@ -583,7 +585,7 @@ def plot_endpoints(cell_ID, cell_coordinates, n_primary, n_terminal, bifurcation
             size = 4)
     
     # get figure path
-    figpath = join(cellmorph_anaylsis_dir, 'plots-primary_terminal_bifurcation')
+    figpath = join(cellmorph_analysis_dir, 'plots-primary_terminal_bifurcation')
     
     # save figure
     save_figures(fig, 
@@ -596,18 +598,24 @@ def plot_endpoints(cell_ID, cell_coordinates, n_primary, n_terminal, bifurcation
     plt.show()
 
 
-# %% cell polar plot (absolute)
+# %% plot cell polar plot (absolute)
 
-def plot_polar_plot_abs(cell_ID, terminal_branches):
+def plot_polar_plot_abs(cell_ID, terminal_branches, circ_stats):
     '''
     This function creates an polar histogram of the orientation of all terminal
     branches for one cell.
     Parameters:
         cell_ID: str, like 'E-137', unifque cell identifier
         terminal_branches: pandas Dataframe, containing the measurements of all
-                           terminal branches
+                            terminal branches
+        circ_stats: pandas Dataframe, describing the circular statistics of 
+                    the terminal paths per type
     '''
 
+    # set colors 
+    from cellmorphology.cellmorph_functions.cellmorph_init_plotting import neurite_color_dict
+    neurite_color_dict = neurite_color_dict['all']
+    
     from cellmorphology.cellmorph_functions.cellmorph_polarplot_functions import create_polar_histogram
     
     # sort dataframe of terminal branches measurements to plot histogram
@@ -625,7 +633,31 @@ def plot_polar_plot_abs(cell_ID, terminal_branches):
     fig.suptitle(cell_ID)
     
     # create polar plot on axis
-    create_polar_histogram(ax, terminal_branches)
+    occu = create_polar_histogram(ax, terminal_branches)
+    
+    # plot circ means
+    for ntype_idx, ntype in enumerate(neurite_types):
+        
+        # get circ stats
+        circmean_rad = circ_stats.at[cell_ID, f'circmean_rad-{ntype}']
+        circmean_deg = circ_stats.at[cell_ID, f'circmean_deg-{ntype}']
+        circstd_rad = circ_stats.at[cell_ID, f'circstd_rad-{ntype}']
+    
+        # check if ntype exsits
+        if not np.isnan(circmean_rad):
+        
+            # transform marker to rotate marker
+            t = mtl.markers.MarkerStyle(marker='_')
+            t._transform = t.get_transform().rotate_deg(circmean_deg)
+            
+            # plot circular mean and std
+            ax.errorbar(x = circmean_rad,
+                        y = np.max(occu) + 1 + (ntype_idx/2), 
+                        xerr = circstd_rad,
+                        marker = t,
+                        markeredgewidth = 1.5,
+                        color = neurite_color_dict[ntype],
+                        label = f'{ntype} circ mean+std')
     
     # set grid
     ax.grid(True, alpha = 0.5)
@@ -643,16 +675,15 @@ def plot_polar_plot_abs(cell_ID, terminal_branches):
     # legend
     ax.legend(unique_h, unique_l, 
               title = 'neurite type',
-              title_fontsize = 6,
+              title_fontsize = 9,
               frameon = False, 
-              ncol = 2, 
+              ncol = 3, 
               loc = 'upper center',
               fontsize = 6,
               bbox_to_anchor=(0.5, -0.08))
     
-    
     # get figure path
-    figpath = join(cellmorph_anaylsis_dir, 'plots-polar_plot_abs')
+    figpath = join(cellmorph_analysis_dir, 'plots-polar_plot_abs')
     
     # save figure
     save_figures(fig, 
@@ -663,3 +694,169 @@ def plot_polar_plot_abs(cell_ID, terminal_branches):
     
     # display figure
     plt.show()
+
+
+# %% plot axon carrying dendrite
+
+def plot_AcD(cell_ID, cell_coordinates, AcD):
+    '''
+    This function creates a figure displaying the coordinates of the reconstructed
+    cell in xy and the corresponding primary and terminal end points.
+    Parameters:
+        cell_ID: str, like 'E-137', unifque cell identifier
+        cell_coordinates: dict, includes all-, end-, soma coordinates dataframes
+                          as well as a list of path_IDs
+        AcD: pandas Dataframe, describing the axon carrying dendrite(s)
+    '''
+
+    # pre sort the cell_coordinates
+    allcoor_paths_dict = {pathID : group for pathID, group in cell_coordinates['all_coor'].groupby('path_ID')}
+    
+    # set colors 
+    from cellmorphology.cellmorph_functions.cellmorph_init_plotting import neurite_color_dict
+    neurite_color_dict = neurite_color_dict['all']
+    
+    # init figure
+    fig, axs = plt.subplots(nrows = 1,
+                            ncols = 2,
+                            layout = 'constrained',
+                            figsize = get_figure_size(width = 200, height = 100),
+                            dpi = 300)
+    
+    # set axis of coordinates plot
+    ax = axs[0]
+    
+    # plot all cell coordinates
+    ax.scatter(x = cell_coordinates['all_coor'].loc[:, 'X'],
+               y = cell_coordinates['all_coor'].loc[:, 'Y'],
+               color = 'gray',
+               s = 0.25,
+               alpha = 0.1)
+    
+    # get all pathIDs
+    all_AcDpathIDs = AcD.at[cell_ID, 'dendrites_pathIDs'] + AcD.at[cell_ID, 'axons_pathIDs']
+    
+    for path_ID in all_AcDpathIDs:
+        
+        # get path coordinates
+        path_all_coordinates = allcoor_paths_dict[path_ID]
+        
+        # get label of current path
+        cur_path_label = path_all_coordinates['path_label'].iloc[0]
+        
+        # get average depth for zorder
+        avg_depth = np.mean(path_all_coordinates['Z'])
+        scatter_plot_dict = {'s' : 0.5,
+                              'zorder' : avg_depth}
+        
+        # all coordinates
+        ax.scatter(x = path_all_coordinates['X'],
+                    y = path_all_coordinates['Y'],
+                    color = neurite_color_dict[cur_path_label],
+                    label = cur_path_label,
+                    **scatter_plot_dict)
+    
+    
+    # plot soma on top
+    ax.scatter(x = cell_coordinates['all_coor'].loc[0, 'X'],
+               y = cell_coordinates['all_coor'].loc[0, 'Y'],
+               color = neurite_color_dict['soma'],
+               zorder = 600)
+    
+    # plane label
+    ax.text(x = 10, 
+            y = 10, 
+            s = 'XY', 
+            ha = 'left', 
+            va = 'top', 
+            fontsize = 9)
+    
+    # edit axes
+    ax.set_ylim([0, field_of_view])
+    ax.set_ylabel('Height [µm]')
+    ax.set_yticks(ticks = np.arange(0, field_of_view, 200))
+    ax.set_yticks(ticks = np.arange(0, field_of_view, 25), minor = True)
+    
+    ax.set_xlim([0, field_of_view])
+    ax.set_xlabel('Width [µm]')
+    ax.set_xticks(ticks = np.arange(0, field_of_view, 200))
+    ax.set_xticks(ticks = np.arange(0, field_of_view, 25), minor = True)
+    
+    # invert y axis
+    ax.invert_yaxis()
+    
+    # polar histogram
+    change_projection(fig, axs, axs[1], projection = 'polar')
+    
+    # set axis
+    ax = axs[1]
+    
+    # get occurances
+    AcD_occu = AcD.loc[cell_ID, orientation_labels].to_list()
+    
+    # plot histogram as barplot
+    ax.bar(hist_bins, AcD_occu,
+            width = binsize, 
+            align = 'edge',
+            edgecolor = 'none',
+            color = neurite_color_dict['dendrites'],
+            label = 'dendrites')
+    
+    # calc ymax
+    ymax = np.ceil(max(AcD_occu)/5) * 5
+    
+    # get circ stats
+    circmean_rad = AcD.at[cell_ID, 'circmean_rad']
+    circmean_deg = AcD.at[cell_ID, 'circmean_deg']
+    circstd_rad = AcD.at[cell_ID, 'circstd_rad']
+    
+    # transform marker to rotate marker
+    t = mtl.markers.MarkerStyle(marker='_')
+    t._transform = t.get_transform().rotate_deg(circmean_deg)
+    
+    # plot circular mean and std
+    ax.errorbar(x = circmean_rad,
+                y = ymax, 
+                xerr = circstd_rad,
+                marker = t,
+                markeredgewidth = 1.5,
+                color = neurite_color_dict['dendrites'],
+                label = 'circ mean+std')
+    
+    # legend
+    ax.legend(title = 'neurite type',
+              title_fontsize = 9,
+              frameon = False, 
+              ncol = 2, 
+              loc = 'upper center',
+              fontsize = 9,
+              bbox_to_anchor=(0.5, -0.08))
+    
+    # x axis
+    ax.set_xticks(np.arange(0, np.pi*2, np.pi / 4))
+    ax.set_xticklabels(orientation_labels)
+    
+    # y axis
+    ax.set_yticks(ticks = np.arange(0, ymax + 1, 5))
+    ax.set_ylim([0, ymax + 1])
+    
+    # set grid
+    ax.grid(True, alpha = 0.5)
+    
+    # set grid behind plot
+    ax.set_axisbelow(True)
+    
+    # get figure path
+    figpath = join(cellmorph_analysis_dir, 'plots-axon_carrying_dendrite')
+    
+    # save figure
+    save_figures(fig, 
+                 f'{cell_ID}-AcD', 
+                 figpath, 
+                 darkmode_bool, 
+                 figure_format='png')
+    
+    # display figure
+    plt.show()
+
+

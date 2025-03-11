@@ -146,7 +146,7 @@ sholl_metrics.to_excel(join(AMCs_metrics_dir, 'sholl_metrics.xlsx'),
 # %% create plots
 
 # initialize plotting packages
-from cellmorphology.cellmorph_functions.initialize_AMC_cellmorph_plotting import *
+from cellmorphology.AMC_analysis.initialize_AMC_cellmorph_plotting import *
 
 print('plotting ...')
 

@@ -9,11 +9,11 @@ Created on Mon Mar 10 10:14:45 2025
 from functions.initialize_packages import *
 
 # get directories
-from cellmorphology.cellmorph_functions.cellmorph_dir import cellmorph_coordinates_dir, cellmorph_anaylsis_dir
+from cellmorphology.cellmorph_functions.cellmorph_dir import cellmorph_coordinates_dir, cellmorph_analysis_dir
 
 # get parameters & functions
-from cellmorphology.cellmorph_parameters import field_of_view
-from cellmorphology.cellmorph_functions.cellmorph_polarplot_functions import assign_bin2branch
+from cellmorphology.cellmorph_functions.cellmorph_parameters import field_of_view
+from cellmorphology.cellmorph_functions.cellmorph_polarplot_functions import assign_bin2branch, get_orientation_occurances
 
 # get files in traces folder
 from functions.get_onlyfiles_list import get_onlyfiles_list
@@ -31,13 +31,31 @@ neurite_types = ['neurites',
                  'dendrites',
                  'axons']
 
-vplots = True
+vplots = False
 
 
-# %% check wether cell has been anaylzed
+# %% check for new cells to be analyzed
+
+# load anaylsis worksheet
+from parameters.directories_win import table_file
+analyzed = pd.read_excel(table_file,
+                         sheet_name = 'analyzed',
+                         index_col = 'cell_ID')
+
+# get list of cell_IDs already analyzed
+analyzed_cell_IDs = analyzed.loc[analyzed['cellmorpho_cellcoordinates'].notna()]['cellmorpho_cellcoordinates'].index.to_list()
+
+# redefine cell_IDs list
+cellIDs_toAnalyze = [cell_ID for cell_ID in cell_IDs if cell_ID not in analyzed_cell_IDs]
+
+# raise error
+if len(cellIDs_toAnalyze) == 0:
+    raise ValueError('Nothing new to analyze!')
+
 
 # cellIDs_toAnalyze = ['E-217', 'E-218', 'E-219', 'E-222', 'E-238', 'E-239', 'E-240', 'E-242', 'E-243', 'E-244', 'E-245', 'E-236', 'E-277', 'E-280', 'E-284', 'E-290', 'E-292', 'E-296', 'E-297']
-cellIDs_toAnalyze = ['E-137']
+# cellIDs_toAnalyze = ['E-056']
+# cellIDs_toAnalyze = cell_IDs
 
 # %% define output
 
@@ -59,21 +77,24 @@ bifurcation_ratios = pd.DataFrame(columns = [f'bifurcation_ratio-{ntype}' for nt
 axon_origins = pd.DataFrame(columns = ['axon_origin'],
                             index = cellIDs_toAnalyze)
 
+circ_stats = pd.DataFrame(columns = [f'{stat}_{unit}-{ntype}'  for unit in ['rad', 'deg'] for ntype in neurite_types for stat in ['circmean', 'circstd']],
+                          index = cellIDs_toAnalyze)
+
 from cellmorphology.cellmorph_functions.cellmorph_polarplot_functions import orientation_labels
 orientations = pd.DataFrame(columns = [f'{ntype}-{orientation}' for ntype in neurite_types for orientation in orientation_labels],
                             index = cellIDs_toAnalyze)
 
+AcD = pd.DataFrame(columns = ['dendrites_pathIDs', 'axons_pathIDs', 'terminal_pathIDs', 'circmean_rad', 'circstd_rad', 'circmean_deg'] + orientation_labels,
+                   index = cellIDs_toAnalyze)
+
 # rename index
-for df in [height_width_depth, total_cable_length, n_primary, n_terminal, bifurcation_ratios, axon_origins, orientations]:
+for df in [height_width_depth, total_cable_length, n_primary, n_terminal, bifurcation_ratios, axon_origins, circ_stats, AcD, orientations]:
     df.index.name = 'cell_ID'
 
 # %% start analysis (per cell)
 
-for cell_ID in cellIDs_toAnalyze:
-    
-    # feedback
-    print(f'Started with {cell_ID}')
-    
+for cell_ID in tqdm(cellIDs_toAnalyze):
+        
     # get region of cell
     region = MetaData.at[cell_ID, 'Region']
 
@@ -123,7 +144,7 @@ for cell_ID in cellIDs_toAnalyze:
                         'path_IDs' : path_IDs}
    
     # plot coordinates
-    if True:   
+    if vplots:   
         # load plotting function    
         from cellmorphology.cellmorph_analysis.plot_cellcoordinates_analysis import plot_cellcoordinates
         
@@ -166,7 +187,7 @@ for cell_ID in cellIDs_toAnalyze:
         height_width_depth.at[cell_ID, ntype + '-' + 'depth'] = zmax - zmin
     
     # plot height, width, depth
-    if False:   
+    if vplots:   
         # load plotting function    
         from cellmorphology.cellmorph_analysis.plot_cellcoordinates_analysis import plot_cellhwd
         
@@ -238,6 +259,10 @@ for cell_ID in cellIDs_toAnalyze:
     path_IDs = cell_allcoordinates['path_ID'].drop_duplicates().astype(int).to_list()
     terminal_pathIDs = cell_terminalcoordinates.index.astype(int).to_list()
     
+    # get dict for all path and their labels
+    unique_pathidc = cell_allcoordinates['path_ID'].drop_duplicates().index
+    pathlabel_dict = dict(zip(path_IDs, cell_allcoordinates.loc[unique_pathidc, 'path_label']))
+    
     # define output
     terminal_branches = pd.DataFrame(columns = ['x_end', 'y_end', 'z_end', 'path_label', 'pathIDs_2soma', 
                                                 'x_diff', 'y_diff', 'z_diff', 
@@ -258,7 +283,7 @@ for cell_ID in cellIDs_toAnalyze:
     allcoor_paths_dict = {pathID : group for pathID, group in cell_allcoordinates.groupby('path_ID')}
 
     # iterate through terminal paths
-    for terminal_pathID in tqdm(terminal_pathIDs):
+    for terminal_pathID in terminal_pathIDs:
         
         ### orientation of terminal points ###
         
@@ -366,7 +391,7 @@ for cell_ID in cellIDs_toAnalyze:
         terminal_branches.at[terminal_pathID ,'bin_id'] = assigned_bin
     
     # save dataframe
-    terminal_branches.to_excel(join(cellmorph_anaylsis_dir, 'metrics-terminal_branches' , f'{cell_ID}-terminal_branches.xlsx'),
+    terminal_branches.to_excel(join(cellmorph_analysis_dir, 'metrics-terminal_branches' , f'{cell_ID}-terminal_branches.xlsx'),
                                index_label = 'terminal_pathIDs')
         
     # plot terminal branches
@@ -378,21 +403,43 @@ for cell_ID in cellIDs_toAnalyze:
         plot_all_terminal_branches(cell_ID = cell_ID,
                                    cell_coordinates = cell_coordinates,
                                    terminal_branches = terminal_branches)
+        
+        
+    # %% orientation histogram and circular mean
     
-    # TODO: write orientations per type to dataframe
-    
-    
-    
+    for ntype in neurite_types:
+        
+        # get orientation per type
+        if ntype == 'neurites':
+            angles_rad = terminal_branches['angle_rad'].to_list()
+        else:
+            angles_rad = terminal_branches[terminal_branches['path_label'] == ntype]['angle_rad'].to_list()
 
-    # %% plot cell polar plots
-    
-    if True:
+        # calc occurances
+        orientation_occu_pertype = get_orientation_occurances(angles_rad)
+
+        # write to dataframe
+        orientations.loc[cell_ID, [f'{ntype}-{orientation}' for orientation in orientation_labels]] = orientation_occu_pertype
+        
+        # calc circular stats
+        circmean_pertype = sc.stats.circmean(angles_rad)
+        circstd_pertype = sc.stats.circstd(angles_rad)
+        
+        # write to dataframe
+        circ_stats.at[cell_ID, f'circmean_rad-{ntype}'] = circmean_pertype
+        circ_stats.at[cell_ID, f'circstd_rad-{ntype}'] = circstd_pertype
+        circ_stats.at[cell_ID, f'circmean_deg-{ntype}'] = np.rad2deg(circmean_pertype)
+        circ_stats.at[cell_ID, f'circstd_deg-{ntype}'] = np.rad2deg(circstd_pertype)
+        
+    # plot cell polar plots
+    if vplots:
         # load plotting function    
         from cellmorphology.cellmorph_analysis.plot_cellcoordinates_analysis import plot_polar_plot_abs
         
         # plot terminal branches
         plot_polar_plot_abs(cell_ID = cell_ID,
-                            terminal_branches = terminal_branches)
+                            terminal_branches = terminal_branches,
+                            circ_stats = circ_stats)
     
     
     # %% number of primary, terminal points, bifurcation ratio
@@ -435,7 +482,8 @@ for cell_ID in cellIDs_toAnalyze:
             
             # condition for no axons
             elif n_primary_pertype == 0 and n_terminal_pertype == 0:
-                raise ValueError('Check axon labels')
+                bif_ratio_pertype = np.nan
+                cell_axonorigin = np.nan
                 
             else:
                 raise ValueError('Bifurcation ratio not calculated')
@@ -445,10 +493,12 @@ for cell_ID in cellIDs_toAnalyze:
             
         # write to dataframe
         bifurcation_ratios.at[cell_ID, f'bifurcation_ratio-{ntype}'] = bif_ratio_pertype
-                
+    
+    # write to dataframe
+    axon_origins.at[cell_ID, 'axon_origin'] = cell_axonorigin
         
     # plot number of primary and terminal points and bifurcation ratios
-    if False:
+    if vplots:
         # load plotting function    
         from cellmorphology.cellmorph_analysis.plot_cellcoordinates_analysis import plot_endpoints
         
@@ -459,21 +509,178 @@ for cell_ID in cellIDs_toAnalyze:
                        n_terminal = n_terminal,
                        bifurcation_ratios = bifurcation_ratios)
     
-
     
     # %% get axon carrying dendrite
     
-    # check for number of axon primary points
+    # precompute dictionary for path label access
+    terminalbranches_pertype = {pathID : group for pathID, group in terminal_branches.groupby('path_label')}
     
-    # create dataframe for axonic origin
+    # check axon origin type
+    if cell_axonorigin == 'dendritic':
     
-    # if dendritic axon - continue
+        # # create dict for path ids per type
+        # neuritetype_pathIDs = dict.fromkeys(neurite_types)
+        
+        # # get all path_IDs for same type
+        # for ntype in neurite_types:
+        #     neuritetype_pathIDs[ntype] = [k for k, v in pathlabel_dict.items() if v == ntype]
+    
+        # get axonic terminal branches
+        axon_terminalbranches = terminalbranches_pertype['axons']
+        
+        # create empty list
+        axon_stems = set()
 
-    # 2 panel verification plot: coordinates + polar plot
+        # iterate through axonic terminal branches    
+        for terminal_pathID, terminal_branch in axon_terminalbranches.iterrows():
+            
+            # get last path_ID
+            l_pathID = terminal_branch['pathIDs_2soma'][-1]
+            
+            # set as axon_stem
+            if l_pathID not in axon_stems:
+                axon_stems.add(l_pathID)
     
+        # all terminal axons should be carried by same dendritic path
+        if len(axon_stems) > 1:
+            raise ValueError('More than one axon stem!')
+        else:
+            axonstem_pathID = list(axon_stems)[0]
     
+        # create list of axon carrying dendrite terminal path_IDs
+        AcD_terminalpathIDs = list()
     
+        # get all terminal paths with same stem
+        for terminal_pathID, terminal_branch in terminal_branches.iterrows():
+
+            # add to list if in paths to soma
+            if axonstem_pathID in terminal_branch['pathIDs_2soma']:
+                AcD_terminalpathIDs.append(terminal_pathID)
+                
+        # create dataframe of terminal branches
+        AcD_terminalbranches = terminal_branches.loc[AcD_terminalpathIDs, :]
+    
+        # create list of axon carrying dendrite path_IDs
+        AcD_pathIDs = list()
+        Axon_pathIDs = list()
+    
+        # get all path_IDs on axon carrying dendrites
+        for terminal_pathID, terminal_branch in AcD_terminalbranches.iterrows():
+            
+            # iterate through paths 2 soma
+            for path_ID in terminal_branch['pathIDs_2soma'][::-1]:
+                
+                # get path label
+                path_label = pathlabel_dict[path_ID]
+            
+                # add to list if in paths to soma
+                if path_label == 'dendrites':
+                    
+                    if path_ID not in AcD_pathIDs:
+                        AcD_pathIDs.append(path_ID)
+                
+                elif path_label == 'axons':
+
+                    if path_ID not in Axon_pathIDs:
+                        Axon_pathIDs.append(path_ID)
+        
+        # write to dataframe
+        AcD.at[cell_ID, 'dendrites_pathIDs'] = AcD_pathIDs
+        AcD.at[cell_ID, 'axons_pathIDs'] = Axon_pathIDs
+        AcD.at[cell_ID, 'terminal_pathIDs'] = AcD_terminalbranches.index.to_list()
+        
+        # calc circular mean for AcD terminal points
+        AcDterminals_angles_rad = AcD_terminalbranches[AcD_terminalbranches['path_label'] == 'dendrites']['angle_rad'].to_list()
+        circmean_rad = sc.stats.circmean(AcDterminals_angles_rad)
+        circstd_rad = sc.stats.circstd(AcDterminals_angles_rad)
+        circmean_deg = np.rad2deg(circmean_rad)
+        
+        # get orientation of dendrites
+        AcD_occu = get_orientation_occurances(AcDterminals_angles_rad)
+        
+        # write to dataframe
+        AcD.at[cell_ID, 'circmean_rad'] = circmean_rad
+        AcD.at[cell_ID, 'circstd_rad'] = circstd_rad
+        AcD.at[cell_ID, 'circmean_deg'] = circmean_deg
+        AcD.loc[cell_ID, orientation_labels] = AcD_occu
+    
+        # plot axon carrying dendrite plot
+        if vplots:
+            # load plotting function    
+            from cellmorphology.cellmorph_analysis.plot_cellcoordinates_analysis import plot_AcD
+            
+            # plot terminal branches
+            plot_AcD(cell_ID = cell_ID,
+                     cell_coordinates = cell_coordinates,
+                     AcD = AcD)
+ 
+    
+# %% calc population orientation
+    
+population_orientation = pd.DataFrame(columns = orientation_labels,
+                                      index = [f'{ntype}-{region}' for region in ['MeA', 'BAOT'] for ntype in neurite_types])
+
+# TODO
+    
+
 # %% save dataframes
 
+# # get directory
+# from cellmorphology.cellmorph_functions.cellmorph_dir import cellmorph_metrics_dir
 
-# %% calc population orientation
+# # tobe saved ('filename' : variable)
+# export_vars = {'height_width_depth' : height_width_depth,
+#                 'total_cable_length' : total_cable_length,
+#                 'n_primary' : n_primary,
+#                 'n_terminal' : n_terminal,
+#                 'bifurcation_ratios' : bifurcation_ratios,
+#                 'axon_origins' : axon_origins,
+#                 'circ_stats' : circ_stats,
+#                 'AcD' : AcD,
+#                 'orientations' : orientations}
+
+# export_extension = '.xlsx'
+
+# # iterate through export variables
+# for export_name, export_var in export_vars.items():
+    
+#     # get rows and cols
+#     rows = export_var.index.to_list()
+#     cols = export_var.columns.to_list()
+
+#     # try loading and writing or create new file
+#     try:
+#         loaded_export_var = pd.read_excel(join(cellmorph_metrics_dir, export_name + export_extension),
+#                                           index_col = 'cell_ID')
+      
+#         try:
+#             # combine both dataframes
+#             loaded_export_var.loc[rows, cols] = export_var.loc[rows, cols].values
+    
+#         # if values not yet in file, append/concat new values
+#         except KeyError:
+#             loaded_export_var = pd.concat([loaded_export_var, export_var.loc[rows, cols]], axis = 0)
+                
+#         # sort by index
+#         loaded_export_var.sort_index(inplace = True)
+        
+#         # save activity dataframe
+#         loaded_export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
+#                                     index_label = 'cell_ID')
+    
+#     except FileNotFoundError:
+#         # save activity dataframe
+#         export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
+#                             index_label = 'cell_ID')
+
+
+
+
+
+
+
+# # %% update analyzed cells
+
+# from functions.update_database import update_analyzed_sheet
+    
+# update_analyzed_sheet(cellIDs_toAnalyze, PGF = 'cellmorpho_cellcoordinates')

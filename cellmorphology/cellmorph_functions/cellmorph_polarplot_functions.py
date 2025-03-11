@@ -91,10 +91,27 @@ def assign_bin2branch(angle_rad):
     return assigned_bin
 
 
+def get_orientation_occurances(angles_rad):
+    '''
+    This function calculates the orientation occurances per bin for a list of
+    orientations in rad.
+    Parameters:
+        angles_rad: list of floats, describes the orientation angles for a 
+                    series of terminal branches.
+    Returns:
+        occu: list, occurances of angles per bins
+    '''
+    # get occurances per bin for temporary bins
+    temp_occu, _ = np.histogram(angles_rad, temp_bins)
+    
+    # get occurances per bin for original bins
+    occu = np.roll(temp_occu, 1).reshape((n_bins, 2)).sum(axis = 1)
+
+    return occu
+
+
 # %% polar plots plotting
 
-# ax = ax
-# terminal branches
 
 def create_polar_histogram(ax, terminal_branches):
 
@@ -145,5 +162,7 @@ def create_polar_histogram(ax, terminal_branches):
     #     ymax = 15
 
     ax.set_yticks(ticks = np.arange(0, ymax + 1, 5))
+    
+    return bottom
 
 

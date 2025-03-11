@@ -6,7 +6,7 @@ Created on Thu Feb 20 13:22:43 2025
 """
 
 # init plotting
-from cellmorphology.cellmorph_functions.initialize_AMC_cellmorph_plotting import *
+from cellmorphology.AMC_analysis.initialize_AMC_cellmorph_plotting import *
 
 # init additional packages
 import numpy as np
