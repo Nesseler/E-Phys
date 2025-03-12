@@ -323,7 +323,7 @@ def plot_all_terminal_branches(cell_ID, cell_coordinates, terminal_branches):
         cell_coordinates: dict, includes all-, end-, soma coordinates dataframes
                           as well as a list of path_IDs
         terminal_branches: pandas Dataframe, containing the measurements of all
-                           terminal branches
+                            terminal branches
     '''
 
     # set colors 
@@ -337,6 +337,7 @@ def plot_all_terminal_branches(cell_ID, cell_coordinates, terminal_branches):
     
         # get coordinates
         pathIDs_2soma = terminal_branches.at[terminal_path_ID, 'pathIDs_2soma']
+        allcooridx_2soma = terminal_branches.at[terminal_path_ID, 'parent_idx_allcoor']
         terminal_coor = terminal_branches.loc[terminal_path_ID, ['x_end', 'y_end', 'z_end']]
         cell_somacoordinates = allcoor_paths_dict[1].loc[0, :]
     
@@ -349,13 +350,14 @@ def plot_all_terminal_branches(cell_ID, cell_coordinates, terminal_branches):
         # scatter plots
         for ax, dim1, dim2 in zip(axs[:3], ['X', 'Z', 'X'], ['Y', 'Y', 'Z']):
     
-            for path_ID in pathIDs_2soma:
+            for path_ID, allcoor_idx in zip(pathIDs_2soma, allcooridx_2soma):
+                
                 # get path label
                 path_label = allcoor_paths_dict[path_ID]['path_label'].unique()[0]
                 
                 # plot coordinates
-                ax.scatter(x = allcoor_paths_dict[path_ID][dim1], 
-                            y = allcoor_paths_dict[path_ID][dim2],
+                ax.scatter(x = cell_coordinates['all_coor'][dim1][allcoor_idx[0]:allcoor_idx[1]], 
+                            y = cell_coordinates['all_coor'][dim2][allcoor_idx[0]:allcoor_idx[1]],
                             s = 0.25, 
                             zorder = 1,
                             color = neurite_color_dict[path_label],
@@ -383,13 +385,13 @@ def plot_all_terminal_branches(cell_ID, cell_coordinates, terminal_branches):
             
         # measurments
         m_label = [f'branch angle [deg] = {round(terminal_branches.at[terminal_path_ID ,"angle_deg"], 2)}',
-                    f'branch angle [rad] = {round(terminal_branches.at[terminal_path_ID ,"angle_rad"], 2)}',
-                    f'branch length [µm] = {round(terminal_branches.at[terminal_path_ID ,"length"], 2)}',
-                    f'branch euclidean dist. [µm] = {round(terminal_branches.at[terminal_path_ID ,"euc_dist"], 2)}',
-                    f'branch contraction = {round(terminal_branches.at[terminal_path_ID ,"contraction"], 2)}',
-                    f'bin id = {terminal_branches.at[terminal_path_ID ,"bin_id"]}',
-                    f'orientation = {orientation_labels[terminal_branches.at[terminal_path_ID ,"bin_id"]]}',
-                    ]
+                   f'branch angle [rad] = {round(terminal_branches.at[terminal_path_ID ,"angle_rad"], 2)}',
+                   f'branch length [µm] = {round(terminal_branches.at[terminal_path_ID ,"length"], 2)}',
+                   f'branch euclidean dist. [µm] = {round(terminal_branches.at[terminal_path_ID ,"euc_dist"], 2)}',
+                   f'branch contraction = {round(terminal_branches.at[terminal_path_ID ,"contraction"], 2)}',
+                   f'bin id = {terminal_branches.at[terminal_path_ID ,"bin_id"]}',
+                   f'orientation = {orientation_labels[terminal_branches.at[terminal_path_ID ,"bin_id"]]}',
+                   ]
         
         # branch measurement
         axs[0].text(x = 580, y = 580, 
@@ -600,12 +602,14 @@ def plot_endpoints(cell_ID, cell_coordinates, n_primary, n_terminal, bifurcation
 
 # %% plot cell polar plot (absolute)
 
-def plot_polar_plot_abs(cell_ID, terminal_branches, circ_stats):
+def plot_polar_plot_abs(cell_ID, cell_coordinates, terminal_branches, circ_stats):
     '''
     This function creates an polar histogram of the orientation of all terminal
     branches for one cell.
     Parameters:
         cell_ID: str, like 'E-137', unifque cell identifier
+        cell_coordinates: dict, includes all-, end-, soma coordinates dataframes
+                          as well as a list of path_IDs
         terminal_branches: pandas Dataframe, containing the measurements of all
                             terminal branches
         circ_stats: pandas Dataframe, describing the circular statistics of 
@@ -622,15 +626,88 @@ def plot_polar_plot_abs(cell_ID, terminal_branches, circ_stats):
     terminal_branches.sort_values('length', inplace = True)
     
     # init figure
-    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'},
-                           layout = 'constrained',
-                           height_ratios= [1],
-                           width_ratios=[1],
-                           figsize = get_figure_size(width = 100, height = 100),
-                           dpi = 300)
+    fig, axs = plt.subplots(nrows = 1,
+                            ncols = 2,
+                            layout = 'constrained',
+                            figsize = get_figure_size(width = 200, height = 90),
+                            dpi = 300)
     
     # set title
-    fig.suptitle(cell_ID)
+    fig.suptitle(f'{cell_ID} terminal point orientations')
+    
+    # set axis of coordinates plot
+    ax = axs[0]
+    
+    # set aspect ration of plot
+    ax.set_aspect(1)
+    
+    # plot all cell coordinates
+    ax.scatter(x = cell_coordinates['all_coor'].loc[:, 'X'],
+               y = cell_coordinates['all_coor'].loc[:, 'Y'],
+               color = 'gray',
+               s = 0.25,
+               alpha = 0.1)
+    
+    # get all pathIDs
+    all_pathIDs = cell_coordinates['path_IDs']
+    
+    # pre sort the cell_coordinates
+    allcoor_paths_dict = {pathID : group for pathID, group in cell_coordinates['all_coor'].groupby('path_ID')}
+    
+    for path_ID in all_pathIDs:
+        
+        # get path coordinates
+        path_all_coordinates = allcoor_paths_dict[path_ID]
+        
+        # get label of current path
+        cur_path_label = path_all_coordinates['path_label'].iloc[0]
+        
+        # get average depth for zorder
+        avg_depth = np.mean(path_all_coordinates['Z'])
+        scatter_plot_dict = {'s' : 0.5,
+                              'zorder' : avg_depth}
+        
+        # all coordinates
+        ax.scatter(x = path_all_coordinates['X'],
+                    y = path_all_coordinates['Y'],
+                    color = neurite_color_dict[cur_path_label],
+                    label = cur_path_label,
+                    **scatter_plot_dict)
+    
+    
+    # plot soma on top
+    ax.scatter(x = cell_coordinates['all_coor'].loc[0, 'X'],
+               y = cell_coordinates['all_coor'].loc[0, 'Y'],
+               color = neurite_color_dict['soma'],
+               zorder = 600)
+    
+    # plane label
+    ax.text(x = 10, 
+            y = 10, 
+            s = 'XY', 
+            ha = 'left', 
+            va = 'top', 
+            fontsize = 9)
+    
+    # edit axes
+    ax.set_ylim([0, field_of_view])
+    ax.set_ylabel('Height [µm]')
+    ax.set_yticks(ticks = np.arange(0, field_of_view, 200))
+    ax.set_yticks(ticks = np.arange(0, field_of_view, 25), minor = True)
+    
+    ax.set_xlim([0, field_of_view])
+    ax.set_xlabel('Width [µm]')
+    ax.set_xticks(ticks = np.arange(0, field_of_view, 200))
+    ax.set_xticks(ticks = np.arange(0, field_of_view, 25), minor = True)
+    
+    # invert y axis
+    ax.invert_yaxis()
+    
+    # polar histogram
+    change_projection(fig, axs, axs[1], projection = 'polar')
+    
+    # set axis
+    ax = axs[1]
     
     # create polar plot on axis
     occu = create_polar_histogram(ax, terminal_branches)
@@ -638,13 +715,30 @@ def plot_polar_plot_abs(cell_ID, terminal_branches, circ_stats):
     # plot circ means
     for ntype_idx, ntype in enumerate(neurite_types):
         
+        # get angles
+        if ntype == 'neurites':
+            angles_rad = terminal_branches['angle_rad']
+        else:
+            angles_rad = terminal_branches[terminal_branches['path_label'] == ntype]['angle_rad']
+        
         # get circ stats
         circmean_rad = circ_stats.at[cell_ID, f'circmean_rad-{ntype}']
         circmean_deg = circ_stats.at[cell_ID, f'circmean_deg-{ntype}']
         circstd_rad = circ_stats.at[cell_ID, f'circstd_rad-{ntype}']
+        
+        # calc y position
+        y_pos = np.max(occu) + 2 + (ntype_idx/1.25)
     
         # check if ntype exsits
         if not np.isnan(circmean_rad):
+            
+            # plot angles of terminal branches as scatter plot
+            ax.scatter(x = angles_rad,
+                       y = [y_pos-0.25] * len(angles_rad),
+                       marker = '.',
+                       color = neurite_color_dict[ntype],
+                       s = 5,
+                       label = f'{ntype} terminal point angle')
         
             # transform marker to rotate marker
             t = mtl.markers.MarkerStyle(marker='_')
@@ -652,7 +746,7 @@ def plot_polar_plot_abs(cell_ID, terminal_branches, circ_stats):
             
             # plot circular mean and std
             ax.errorbar(x = circmean_rad,
-                        y = np.max(occu) + 1 + (ntype_idx/2), 
+                        y = y_pos, 
                         xerr = circstd_rad,
                         marker = t,
                         markeredgewidth = 1.5,
@@ -677,10 +771,10 @@ def plot_polar_plot_abs(cell_ID, terminal_branches, circ_stats):
               title = 'neurite type',
               title_fontsize = 9,
               frameon = False, 
-              ncol = 3, 
-              loc = 'upper center',
+              ncol = 1, 
+              loc = 'center left',
               fontsize = 6,
-              bbox_to_anchor=(0.5, -0.08))
+              bbox_to_anchor=(1.1, 0.5))
     
     # get figure path
     figpath = join(cellmorph_analysis_dir, 'plots-polar_plot_abs')
@@ -725,6 +819,9 @@ def plot_AcD(cell_ID, cell_coordinates, AcD):
     
     # set axis of coordinates plot
     ax = axs[0]
+    
+    # set aspect ration of plot
+    ax.set_aspect(1)
     
     # plot all cell coordinates
     ax.scatter(x = cell_coordinates['all_coor'].loc[:, 'X'],

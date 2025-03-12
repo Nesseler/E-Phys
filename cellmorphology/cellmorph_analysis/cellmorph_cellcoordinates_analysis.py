@@ -27,9 +27,7 @@ from functions.functions_import import get_MetaData
 MetaData = get_MetaData(cell_IDs)
 
 # set neurite types
-neurite_types = ['neurites', 
-                 'dendrites',
-                 'axons']
+neurite_types = ['neurites', 'dendrites', 'axons']
 
 vplots = False
 
@@ -54,7 +52,7 @@ if len(cellIDs_toAnalyze) == 0:
 
 
 # cellIDs_toAnalyze = ['E-217', 'E-218', 'E-219', 'E-222', 'E-238', 'E-239', 'E-240', 'E-242', 'E-243', 'E-244', 'E-245', 'E-236', 'E-277', 'E-280', 'E-284', 'E-290', 'E-292', 'E-296', 'E-297']
-# cellIDs_toAnalyze = ['E-056']
+# cellIDs_toAnalyze = ['E-147']
 # cellIDs_toAnalyze = cell_IDs
 
 # %% define output
@@ -77,14 +75,15 @@ bifurcation_ratios = pd.DataFrame(columns = [f'bifurcation_ratio-{ntype}' for nt
 axon_origins = pd.DataFrame(columns = ['axon_origin'],
                             index = cellIDs_toAnalyze)
 
-circ_stats = pd.DataFrame(columns = [f'{stat}_{unit}-{ntype}'  for unit in ['rad', 'deg'] for ntype in neurite_types for stat in ['circmean', 'circstd']],
+circ_stats = pd.DataFrame(columns = [f'terminal_angles_rad-{ntype}' for ntype in neurite_types] 
+                                    + [f'{stat}_{unit}-{ntype}'  for unit in ['rad', 'deg'] for ntype in neurite_types for stat in ['circmean', 'circstd', 'circvar']],
                           index = cellIDs_toAnalyze)
 
 from cellmorphology.cellmorph_functions.cellmorph_polarplot_functions import orientation_labels
 orientations = pd.DataFrame(columns = [f'{ntype}-{orientation}' for ntype in neurite_types for orientation in orientation_labels],
                             index = cellIDs_toAnalyze)
 
-AcD = pd.DataFrame(columns = ['dendrites_pathIDs', 'axons_pathIDs', 'terminal_pathIDs', 'circmean_rad', 'circstd_rad', 'circmean_deg'] + orientation_labels,
+AcD = pd.DataFrame(columns = ['dendrites_pathIDs', 'axons_pathIDs', 'terminal_pathIDs', 'dendrites-angles_rad' , 'circmean_rad', 'circstd_rad', 'circmean_deg'] + orientation_labels,
                    index = cellIDs_toAnalyze)
 
 # rename index
@@ -264,7 +263,8 @@ for cell_ID in tqdm(cellIDs_toAnalyze):
     pathlabel_dict = dict(zip(path_IDs, cell_allcoordinates.loc[unique_pathidc, 'path_label']))
     
     # define output
-    terminal_branches = pd.DataFrame(columns = ['x_end', 'y_end', 'z_end', 'path_label', 'pathIDs_2soma', 
+    terminal_branches = pd.DataFrame(columns = ['x_end', 'y_end', 'z_end', 'path_label', 
+                                                'pathIDs_2soma', 'parent_idx_allcoor',
                                                 'x_diff', 'y_diff', 'z_diff', 
                                                 'angle_deg', 'angle_rad', 
                                                 'length', 'euc_dist', 'contraction',
@@ -283,7 +283,7 @@ for cell_ID in tqdm(cellIDs_toAnalyze):
     allcoor_paths_dict = {pathID : group for pathID, group in cell_allcoordinates.groupby('path_ID')}
 
     # iterate through terminal paths
-    for terminal_pathID in terminal_pathIDs:
+    for terminal_pathID in terminal_pathIDs: #[39]: #
         
         ### orientation of terminal points ###
         
@@ -337,8 +337,9 @@ for cell_ID in tqdm(cellIDs_toAnalyze):
         path_ID = terminal_pathID
         parent_pathID = terminal_pathID
         
-        # set list of path ID that describe terminal branch
+        # set list of path ID that describe terminal branch (and list for start and stop index in all coordinates)
         terminal_branch_pathIDs_2soma = list()
+        terminal_branch_parent_idx_allcoor = [(terminal_path_coor.index[0], terminal_path_coor.index[-1])]
         
         while parent_pathID != 1:
             
@@ -365,12 +366,14 @@ for cell_ID in tqdm(cellIDs_toAnalyze):
             
             # write parent path to list
             terminal_branch_pathIDs_2soma.append(path_ID)
+            terminal_branch_parent_idx_allcoor.append((parent_indices[0], parent_indices[-1]))
             
             # set path_ID to parent for next step in while loop
             path_ID = parent_pathID
           
         # write list of path IDs to dataframe
         terminal_branches.at[terminal_pathID ,'pathIDs_2soma'] = terminal_branch_pathIDs_2soma
+        terminal_branches.at[terminal_pathID ,'parent_idx_allcoor'] = terminal_branch_parent_idx_allcoor
         
         # calculate length
         terminal_branch_length = calc_length_of_branch(branch_terminal2soma.drop(columns = ['path_ID', 'path_label']))
@@ -392,10 +395,10 @@ for cell_ID in tqdm(cellIDs_toAnalyze):
     
     # save dataframe
     terminal_branches.to_excel(join(cellmorph_analysis_dir, 'metrics-terminal_branches' , f'{cell_ID}-terminal_branches.xlsx'),
-                               index_label = 'terminal_pathIDs')
+                                index_label = 'terminal_pathIDs')
         
     # plot terminal branches
-    if False:
+    if vplots:
         # load plotting function    
         from cellmorphology.cellmorph_analysis.plot_cellcoordinates_analysis import plot_all_terminal_branches
         
@@ -424,12 +427,16 @@ for cell_ID in tqdm(cellIDs_toAnalyze):
         # calc circular stats
         circmean_pertype = sc.stats.circmean(angles_rad)
         circstd_pertype = sc.stats.circstd(angles_rad)
+        circvar_pertype = sc.stats.circvar(angles_rad)
         
         # write to dataframe
+        circ_stats.at[cell_ID, f'terminal_angles_rad-{ntype}'] = angles_rad
         circ_stats.at[cell_ID, f'circmean_rad-{ntype}'] = circmean_pertype
         circ_stats.at[cell_ID, f'circstd_rad-{ntype}'] = circstd_pertype
+        circ_stats.at[cell_ID, f'circvar_rad-{ntype}'] = circvar_pertype
         circ_stats.at[cell_ID, f'circmean_deg-{ntype}'] = np.rad2deg(circmean_pertype)
         circ_stats.at[cell_ID, f'circstd_deg-{ntype}'] = np.rad2deg(circstd_pertype)
+        circ_stats.at[cell_ID, f'circvar_deg-{ntype}'] = np.rad2deg(circvar_pertype)
         
     # plot cell polar plots
     if vplots:
@@ -438,6 +445,7 @@ for cell_ID in tqdm(cellIDs_toAnalyze):
         
         # plot terminal branches
         plot_polar_plot_abs(cell_ID = cell_ID,
+                            cell_coordinates = cell_coordinates,
                             terminal_branches = terminal_branches,
                             circ_stats = circ_stats)
     
@@ -518,13 +526,6 @@ for cell_ID in tqdm(cellIDs_toAnalyze):
     # check axon origin type
     if cell_axonorigin == 'dendritic':
     
-        # # create dict for path ids per type
-        # neuritetype_pathIDs = dict.fromkeys(neurite_types)
-        
-        # # get all path_IDs for same type
-        # for ntype in neurite_types:
-        #     neuritetype_pathIDs[ntype] = [k for k, v in pathlabel_dict.items() if v == ntype]
-    
         # get axonic terminal branches
         axon_terminalbranches = terminalbranches_pertype['axons']
         
@@ -599,6 +600,7 @@ for cell_ID in tqdm(cellIDs_toAnalyze):
         AcD_occu = get_orientation_occurances(AcDterminals_angles_rad)
         
         # write to dataframe
+        AcD.at[cell_ID, 'dendrites-angles_rad'] = AcDterminals_angles_rad
         AcD.at[cell_ID, 'circmean_rad'] = circmean_rad
         AcD.at[cell_ID, 'circstd_rad'] = circstd_rad
         AcD.at[cell_ID, 'circmean_deg'] = circmean_deg
@@ -614,73 +616,123 @@ for cell_ID in tqdm(cellIDs_toAnalyze):
                      cell_coordinates = cell_coordinates,
                      AcD = AcD)
  
-    
-# %% calc population orientation
-    
-population_orientation = pd.DataFrame(columns = orientation_labels,
-                                      index = [f'{ntype}-{region}' for region in ['MeA', 'BAOT'] for ntype in neurite_types])
-
-# TODO
-    
 
 # %% save dataframes
 
-# # get directory
-# from cellmorphology.cellmorph_functions.cellmorph_dir import cellmorph_metrics_dir
+# get directory
+from cellmorphology.cellmorph_functions.cellmorph_dir import cellmorph_metrics_dir
 
-# # tobe saved ('filename' : variable)
-# export_vars = {'height_width_depth' : height_width_depth,
-#                 'total_cable_length' : total_cable_length,
-#                 'n_primary' : n_primary,
-#                 'n_terminal' : n_terminal,
-#                 'bifurcation_ratios' : bifurcation_ratios,
-#                 'axon_origins' : axon_origins,
-#                 'circ_stats' : circ_stats,
-#                 'AcD' : AcD,
-#                 'orientations' : orientations}
+# tobe saved ('filename' : variable)
+export_vars = {'height_width_depth' : height_width_depth,
+                'total_cable_length' : total_cable_length,
+                'n_primary' : n_primary,
+                'n_terminal' : n_terminal,
+                'bifurcation_ratios' : bifurcation_ratios,
+                'axon_origins' : axon_origins,
+                'circ_stats' : circ_stats,
+                'AcD' : AcD,
+                'orientations' : orientations}
 
-# export_extension = '.xlsx'
+export_extension = '.xlsx'
 
-# # iterate through export variables
-# for export_name, export_var in export_vars.items():
+# iterate through export variables
+for export_name, export_var in export_vars.items():
     
-#     # get rows and cols
-#     rows = export_var.index.to_list()
-#     cols = export_var.columns.to_list()
+    # get rows and cols
+    rows = export_var.index.to_list()
+    cols = export_var.columns.to_list()
 
-#     # try loading and writing or create new file
-#     try:
-#         loaded_export_var = pd.read_excel(join(cellmorph_metrics_dir, export_name + export_extension),
-#                                           index_col = 'cell_ID')
+    # try loading and writing or create new file
+    try:
+        loaded_export_var = pd.read_excel(join(cellmorph_metrics_dir, export_name + export_extension),
+                                          index_col = 'cell_ID')
       
-#         try:
-#             # combine both dataframes
-#             loaded_export_var.loc[rows, cols] = export_var.loc[rows, cols].values
+        try:
+            # combine both dataframes
+            loaded_export_var.loc[rows, cols] = export_var.loc[rows, cols].values
     
-#         # if values not yet in file, append/concat new values
-#         except KeyError:
-#             loaded_export_var = pd.concat([loaded_export_var, export_var.loc[rows, cols]], axis = 0)
+        # if values not yet in file, append/concat new values
+        except KeyError:
+            loaded_export_var = pd.concat([loaded_export_var, export_var.loc[rows, cols]], axis = 0)
                 
-#         # sort by index
-#         loaded_export_var.sort_index(inplace = True)
+        # sort by index
+        loaded_export_var.sort_index(inplace = True)
         
-#         # save activity dataframe
-#         loaded_export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
-#                                     index_label = 'cell_ID')
+        # save activity dataframe
+        loaded_export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
+                                    index_label = 'cell_ID')
     
-#     except FileNotFoundError:
-#         # save activity dataframe
-#         export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
-#                             index_label = 'cell_ID')
+    except FileNotFoundError:
+        # save activity dataframe
+        export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
+                            index_label = 'cell_ID')
 
-
-
-
-
-
-
-# # %% update analyzed cells
+# %% update analyzed cells
 
 # from functions.update_database import update_analyzed_sheet
     
 # update_analyzed_sheet(cellIDs_toAnalyze, PGF = 'cellmorpho_cellcoordinates')
+
+
+# %% calc population orientation
+
+# re-load orientations dataframe to include all cells
+orientations = pd.read_excel(join(cellmorph_metrics_dir, 'orientations.xlsx'),
+                             index_col = 'cell_ID')
+
+# initialize dataframe for populations
+population_orientation = pd.DataFrame(columns = orientation_labels,
+                                      index = [f'{ntype}-{region}-{measure}' for measure in ['abs', 'norm_toall', 'norm_totype'] for region in ['MeA', 'BAOT'] for ntype in neurite_types])
+
+for region in ['BAOT', 'MeA']:
+    
+    # get region cell_IDs
+    region_cellIDs = MetaData[MetaData['Region'] == region].index.to_list()
+    
+    # limit to reconstructed cells in region
+    region_cellIDs = [cell_ID for cell_ID in cell_IDs if cell_ID in region_cellIDs]
+    
+    # get number of neurites
+    occu_neurites = orientations.loc[region_cellIDs, [f'neurites-{o_label}' for o_label in orientation_labels]]
+    
+    # get total number
+    n_neurites = occu_neurites.sum(axis = 1)
+    
+    for ntype in neurite_types:
+        
+        # get orientation labels per type
+        orientation_labels_pertype = [f'{ntype}-{o_label}' for o_label in orientation_labels]
+        
+        # get orientation occurances per region
+        occu_pertype_percell = orientations.loc[region_cellIDs, orientation_labels_pertype]
+        occu_pertype = occu_pertype_percell.sum(axis = 0)
+
+        # calc total number 
+        n_pertype = occu_pertype_percell.sum(axis = 1)
+        
+        # normalize to total number per type
+        occu_norm_totype_percell = occu_pertype_percell.div(n_pertype, axis = 'rows')
+        
+        # drop rows (cells) with zeros (condition for cells with no axons)
+        occu_norm_totype_percell = occu_norm_totype_percell.loc[(occu_norm_totype_percell!=0).any(axis=1)]
+        
+        # calc average over all cells per bin
+        occu_norm_totype = occu_norm_totype_percell.mean(axis = 0)
+
+        # normalize to number of neurites
+        occu_norm_toall_percell = occu_pertype_percell.div(n_neurites, axis = 'rows')
+        occu_norm_toall = occu_norm_toall_percell.mean(axis = 0)
+
+        # write to dataframe
+        population_orientation.loc[f'{ntype}-{region}-abs', :] = occu_pertype.to_list()
+        population_orientation.loc[f'{ntype}-{region}-norm_totype', :] = occu_norm_totype.to_list()
+        population_orientation.loc[f'{ntype}-{region}-norm_toall', :] = occu_norm_toall.to_list()
+        
+# save dataframe
+population_orientation.to_excel(join(cellmorph_metrics_dir, 'population_orientation.xlsx'), 
+                                index_label = 'ntype-region-measure')
+
+
+# %% calc population circular stats
+
+
