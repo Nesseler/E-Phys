@@ -33,5 +33,6 @@ cellmorph_reconstructions_dir = cell_morph_parent + '/cellmorph_reconstructions'
 
 cellmorph_traces_dir = cellmorph_reconstructions_dir + '/Traces'
 cellmorph_coordinates_dir = cellmorph_reconstructions_dir + '/cell_coordinates'
+cellmorph_sholl_dir = cellmorph_reconstructions_dir + '/sholl_tables'
 
 cellmorph_metrics_dir = cellmorph_analysis_dir + '/metrics'
