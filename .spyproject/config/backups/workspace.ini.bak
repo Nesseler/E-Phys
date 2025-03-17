@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['cellmorphology\\cellmorph_functions\\cellmorph_dir.py', 'cellmorphology\\cellmorph_functions\\cellmorph_functions.py', 'cellmorphology\\cellmorph_analysis\\cellmorph_cellcoordinates_analysis.py', 'cellmorphology\\cellmorph_analysis\\plot_cellcoordinates_analysis.py', 'cellmorphology\\cellmorph_functions\\cellmorph_polarplot_functions.py']
+recent_files = ['cellmorphology\\cellmorph_functions\\cellmorph_dir.py', 'cellmorphology\\cellmorph_functions\\cellmorph_functions.py', 'cellmorphology\\cellmorph_analysis\\cellmorph_cellcoordinates_analysis.py', 'cellmorphology\\cellmorph_analysis\\plot_cellcoordinates_analysis.py', 'cellmorphology\\cellmorph_functions\\cellmorph_polarplot_functions.py', 'cellmorphology\\AMC_analysis\\AMC_sholl_analysis.py', 'cellmorphology\\cellmorph_analysis\\cellmorph_sholl_analysis.py']
 
 [main]
 version = 0.2.0

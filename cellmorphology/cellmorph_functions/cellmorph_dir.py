@@ -27,12 +27,15 @@ cell_morph_parent = 'Z:/n2021_MOS_AOS_Integration/cellmorphology_BAOT_MeA'
 
 
 # NEW
-cellmorph_analysis_dir = cell_morph_parent + '/cellmorph_analysis'
-cellmorph_figures_dir = cell_morph_parent + '/cellmorph_figures'
 cellmorph_reconstructions_dir = cell_morph_parent + '/cellmorph_reconstructions'
-
 cellmorph_traces_dir = cellmorph_reconstructions_dir + '/Traces'
 cellmorph_coordinates_dir = cellmorph_reconstructions_dir + '/cell_coordinates'
 cellmorph_sholl_dir = cellmorph_reconstructions_dir + '/sholl_tables'
 
+cellmorph_analysis_dir = cell_morph_parent + '/cellmorph_analysis'
 cellmorph_metrics_dir = cellmorph_analysis_dir + '/metrics'
+
+cellmorph_figures_dir = cell_morph_parent + '/cellmorph_figures'
+cellmorph_shollfigs_dir = cellmorph_figures_dir + '/sholl_figures'
+
+

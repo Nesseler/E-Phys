@@ -34,7 +34,7 @@ spines_color_dict = {'both' : {'high' : '#776B5D' , 'moderate' : '#B0A695', 'low
                      'BAOT' : {'high' : '#201E43' , 'moderate' : '#134B70', 'low': '#508C9B'}}
 
 # set colors
-darkmode_bool = False
+darkmode_bool = True
 
 if darkmode_bool:
     plt.style.use('default')

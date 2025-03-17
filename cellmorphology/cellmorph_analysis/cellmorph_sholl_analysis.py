@@ -20,6 +20,8 @@ filenames = {'E-' + filename[-15:-12] : filename for filename in onlyfiles}
 
 # get cell_IDs from list of all coordinates filenames
 cell_IDs = list(filenames.keys())
+# cell_IDs = ['E-111', 'E-137', 'E-147', 'E-162']
+cell_IDs = cell_IDs[:-20] # for leonie NWG poster
 
 # load Metadata
 from functions.functions_import import get_MetaData
@@ -38,8 +40,12 @@ max_sholl_radius = 590 # µm
 radius = np.arange(0, max_sholl_radius + sholl_step_size, sholl_step_size)
 
 # create combined sholl profile dataframe
-all_sholl_profiles_template = pd.DataFrame(index = radius,
+all_sholl_profiles_template = pd.DataFrame(0.,
+                                           index = radius,
                                            columns = cell_IDs)
+all_sholl_profiles_template_nans = pd.DataFrame(np.nan,
+                                                index = radius,
+                                                columns = cell_IDs)
 
 # rename index column in template
 all_sholl_profiles_template.index.name = 'Radius'
@@ -51,7 +57,7 @@ all_sholl_profiles = {'neurites'  : all_sholl_profiles_template.copy(),
 
 # create dataframe for average profiles
 avgs = ['mean', 'median', 'std']
-avg_columns = [f'{avg}-sholl_profile-{ntype}' for ntype in neurite_types for avg in avgs]
+avg_columns = [f'{avg}-sholl_profile-{ntype}-{region}' for ntype in neurite_types for region in ['all', 'BAOT', 'MeA'] for avg in avgs]
 avg_sholl_profiles = pd.DataFrame(columns = avg_columns,
                                   index = radius)
 avg_sholl_profiles.index.name = 'Radius'
@@ -96,7 +102,7 @@ for cell_ID in tqdm(cell_IDs):
     except FileNotFoundError:
         # if file does not exsist, no axons was labeled
         # axon profile will be set as nans
-        sholl_profile_axons = all_sholl_profiles_template.copy()[[cell_ID]]
+        sholl_profile_axons = all_sholl_profiles_template_nans.copy()[[cell_ID]]
         
         # set sholl profile of dendrites as profile of neurites
         sholl_profile_dendrites = sholl_profile_neurites
@@ -106,27 +112,39 @@ for cell_ID in tqdm(cell_IDs):
                                                                            index_label = 'Radius')
     
     # write profiles to dictionary
-    all_sholl_profiles['neurites'].loc[:, cell_ID] = sholl_profile_neurites[cell_ID]
-    all_sholl_profiles['dendrites'].loc[:, cell_ID] = sholl_profile_dendrites[cell_ID]
-    all_sholl_profiles['axons'].loc[:, cell_ID] = sholl_profile_axons[cell_ID]
+    all_sholl_profiles['neurites'].loc[sholl_profile_neurites.index, cell_ID] = sholl_profile_neurites[cell_ID]
+    all_sholl_profiles['dendrites'].loc[sholl_profile_dendrites.index, cell_ID] = sholl_profile_dendrites[cell_ID]
+    all_sholl_profiles['axons'].loc[sholl_profile_axons.index, cell_ID] = sholl_profile_axons[cell_ID]
 
 # save collection of profiles
 for ntype in neurite_types:
     all_sholl_profiles[ntype].to_excel(join(cellmorph_analysis_dir, 'sholl-combined_profiles', f'sholl_profiles-{ntype}.xlsx'),
-                                       index_label = 'Radius')
+                                        index_label = 'Radius')
     
+    
+# %% get all cell_IDs
+
+# get cell_IDs
+cell_IDs_dict = {'all': cell_IDs,
+                 'MeA': [cell_ID for cell_ID in MetaData[MetaData['Region'] == 'MeA'].index.to_list() if cell_ID in cell_IDs],
+                 'BAOT': [cell_ID for cell_ID in MetaData[MetaData['Region'] == 'BAOT'].index.to_list() if cell_ID in cell_IDs]}
     
 # %% calc average profiles
 
-for ntype in neurite_types:
-    # mean
-    avg_sholl_profiles[f'mean-sholl_profile-{ntype}'] = all_sholl_profiles['neurites'].mean(axis = 1)
+for region in ['all', 'BAOT', 'MeA']:
     
-    # median
-    avg_sholl_profiles[f'median-sholl_profile-{ntype}'] = all_sholl_profiles['neurites'].median(axis = 1)
+    # get specific cell_IDs:
+    region_cellIDs = cell_IDs_dict[region] 
     
-    # std
-    avg_sholl_profiles[f'std-sholl_profile-{ntype}'] = all_sholl_profiles['neurites'].std(axis = 1)
+    for ntype in neurite_types:
+        # mean
+        avg_sholl_profiles[f'mean-sholl_profile-{ntype}-{region}'] = all_sholl_profiles[ntype].loc[:, region_cellIDs].mean(axis = 1)
+        
+        # median
+        avg_sholl_profiles[f'median-sholl_profile-{ntype}-{region}'] = all_sholl_profiles[ntype].loc[:, region_cellIDs].median(axis = 1)
+        
+        # std
+        avg_sholl_profiles[f'std-sholl_profile-{ntype}-{region}'] = all_sholl_profiles[ntype].loc[:, region_cellIDs].std(axis = 1)
 
 # save average profiles
 avg_sholl_profiles.to_excel(join(cellmorph_analysis_dir, 'sholl-combined_profiles', 'sholl_profiles-avg.xlsx'),
@@ -151,7 +169,7 @@ sholl_metrics.astype(float).replace({-1: np.nan}, inplace = True)
 # save sholl metrics
 from cellmorphology.cellmorph_functions.cellmorph_dir import cellmorph_metrics_dir
 sholl_metrics.to_excel(join(cellmorph_metrics_dir, 'sholl_metrics.xlsx'),
-                       index_label = 'cell_ID')
+                        index_label = 'cell_ID')
 
 
 # %% create plots
@@ -159,63 +177,65 @@ sholl_metrics.to_excel(join(cellmorph_metrics_dir, 'sholl_metrics.xlsx'),
 # init plotting
 from cellmorphology.cellmorph_functions.cellmorph_init_plotting import *
 
-print('plotting ...')
-
-for cell_ID in tqdm(cell_IDs):
-
-    # init figure and axes
-    fig, ax = plt.subplots(nrows = 1,
-                           ncols = 1,
-                           layout = 'constrained',
-                           figsize = get_figure_size(width = 160, height = 100),
-                           dpi = 300)
+if vplots: 
     
-    # set figure title
-    fig.suptitle(f'{cell_ID} sholl profiles',
-                 fontsize = 9)
+    print('plotting ...')
     
-    # plot sholl profiles
-    for ntype in neurite_types:
-        ax.plot(radius,
-                all_sholl_profiles[ntype][cell_ID],
-                color = neurite_color_dict['all'][ntype],
-                lw = 1,
-                label = ntype)
+    for cell_ID in tqdm(cell_IDs):
     
-    # set legend
-    ax.legend(title = 'neurite type', 
-              frameon = False,
-              loc = 'upper right')
-    
-    # y axis
-    ydict = {'ax_min' : 0,
-             'ax_max' : 40,
-             'pad' : None,
-             'step' : 5,
-             'stepminor' : 1,
-             'label' : 'Number of intersections [#]'}
-    
-    apply_axis_settings(ax, axis = 'y', **ydict)
-    
-    # x axis
-    xdict = {'ax_min' : 0,
-             'ax_max' : 400,
-             'pad' : None,
-             'step' : 100,
-             'stepminor' : 10,
-             'label' : 'Radius [µm]'}
-    
-    apply_axis_settings(ax, axis = 'x', **xdict)
-    
-    # remove spines
-    [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
-   
-    # create saving path and save
-    save_figures(fig, 
-                 f'{cell_ID}-sholl_profiles', 
-                 join(cellmorph_analysis_dir, 'plots-sholl_profile'), 
-                 darkmode_bool, 
-                 figure_format='png')
-    
-    # display figure
-    plt.show()
+        # init figure and axes
+        fig, ax = plt.subplots(nrows = 1,
+                               ncols = 1,
+                               layout = 'constrained',
+                               figsize = get_figure_size(width = 160, height = 100),
+                               dpi = 300)
+        
+        # set figure title
+        fig.suptitle(f'{cell_ID} sholl profiles',
+                     fontsize = 9)
+        
+        # plot sholl profiles
+        for ntype in neurite_types:
+            ax.plot(radius,
+                    all_sholl_profiles[ntype][cell_ID],
+                    color = neurite_color_dict['all'][ntype],
+                    lw = 1,
+                    label = ntype)
+        
+        # set legend
+        ax.legend(title = 'neurite type', 
+                  frameon = False,
+                  loc = 'upper right')
+        
+        # y axis
+        ydict = {'ax_min' : 0,
+                 'ax_max' : 40,
+                 'pad' : None,
+                 'step' : 5,
+                 'stepminor' : 1,
+                 'label' : 'Number of intersections [#]'}
+        
+        apply_axis_settings(ax, axis = 'y', **ydict)
+        
+        # x axis
+        xdict = {'ax_min' : 0,
+                 'ax_max' : 400,
+                 'pad' : None,
+                 'step' : 100,
+                 'stepminor' : 10,
+                 'label' : 'Radius [µm]'}
+        
+        apply_axis_settings(ax, axis = 'x', **xdict)
+        
+        # remove spines
+        [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
+       
+        # create saving path and save
+        save_figures(fig, 
+                     f'{cell_ID}-sholl_profiles', 
+                     join(cellmorph_analysis_dir, 'plots-sholl_profile'), 
+                     darkmode_bool, 
+                     figure_format='png')
+        
+        # display figure
+        plt.show()

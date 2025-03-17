@@ -203,7 +203,7 @@ def plot_cellcoordinates(cell_ID, cell_coordinates):
                  f'{cell_ID}-cellcoordinates_xyz', 
                  figpath, 
                  darkmode_bool, 
-                 figure_format='png')
+                 figure_format='both')
     
     # display figure
     plt.show()
@@ -305,7 +305,7 @@ def plot_cellhwd(cell_ID, cell_coordinates, cell_hwd):
                  f'{cell_ID}-cell_hwd_xyz', 
                  figpath, 
                  darkmode_bool, 
-                 figure_format='png')
+                 figure_format='both')
     
     # display figure
     plt.show()
@@ -412,7 +412,7 @@ def plot_all_terminal_branches(cell_ID, cell_coordinates, terminal_branches):
                       f'{cell_ID}-terminal_branch-{terminal_path_ID}', 
                       fig_dir, 
                       darkmode_bool, 
-                      figure_format='png')
+                      figure_format='both')
         
         # display plot
         plt.show()
@@ -594,7 +594,7 @@ def plot_endpoints(cell_ID, cell_coordinates, n_primary, n_terminal, bifurcation
                  f'{cell_ID}-primary_terminal_bifurcation', 
                  figpath, 
                  darkmode_bool, 
-                 figure_format='png')
+                 figure_format='both')
     
     # display figure
     plt.show()
@@ -784,7 +784,7 @@ def plot_polar_plot_abs(cell_ID, cell_coordinates, terminal_branches, circ_stats
                  f'{cell_ID}-polar_plot_abs', 
                  figpath, 
                  darkmode_bool, 
-                 figure_format='png')
+                 figure_format='both')
     
     # display figure
     plt.show()
@@ -951,7 +951,7 @@ def plot_AcD(cell_ID, cell_coordinates, AcD):
                  f'{cell_ID}-AcD', 
                  figpath, 
                  darkmode_bool, 
-                 figure_format='png')
+                 figure_format='both')
     
     # display figure
     plt.show()

@@ -29,7 +29,7 @@ MetaData = get_MetaData(cell_IDs)
 # set neurite types
 neurite_types = ['neurites', 'dendrites', 'axons']
 
-vplots = False
+vplots = True
 
 
 # %% check for new cells to be analyzed
@@ -52,7 +52,7 @@ if len(cellIDs_toAnalyze) == 0:
 
 
 # cellIDs_toAnalyze = ['E-217', 'E-218', 'E-219', 'E-222', 'E-238', 'E-239', 'E-240', 'E-242', 'E-243', 'E-244', 'E-245', 'E-236', 'E-277', 'E-280', 'E-284', 'E-290', 'E-292', 'E-296', 'E-297']
-# cellIDs_toAnalyze = ['E-147']
+cellIDs_toAnalyze = ['E-111', 'E-137', 'E-147', 'E-162']
 # cellIDs_toAnalyze = cell_IDs
 
 # %% define output
@@ -398,7 +398,7 @@ for cell_ID in tqdm(cellIDs_toAnalyze):
                                 index_label = 'terminal_pathIDs')
         
     # plot terminal branches
-    if vplots:
+    if False:
         # load plotting function    
         from cellmorphology.cellmorph_analysis.plot_cellcoordinates_analysis import plot_all_terminal_branches
         
@@ -684,53 +684,53 @@ orientations = pd.read_excel(join(cellmorph_metrics_dir, 'orientations.xlsx'),
 population_orientation = pd.DataFrame(columns = orientation_labels,
                                       index = [f'{ntype}-{region}-{measure}' for measure in ['abs', 'norm_toall', 'norm_totype'] for region in ['MeA', 'BAOT'] for ntype in neurite_types])
 
-for region in ['BAOT', 'MeA']:
+# for region in ['BAOT', 'MeA']:
     
-    # get region cell_IDs
-    region_cellIDs = MetaData[MetaData['Region'] == region].index.to_list()
+#     # get region cell_IDs
+#     region_cellIDs = MetaData[MetaData['Region'] == region].index.to_list()
     
-    # limit to reconstructed cells in region
-    region_cellIDs = [cell_ID for cell_ID in cell_IDs if cell_ID in region_cellIDs]
+#     # limit to reconstructed cells in region
+#     region_cellIDs = [cell_ID for cell_ID in cell_IDs if cell_ID in region_cellIDs]
     
-    # get number of neurites
-    occu_neurites = orientations.loc[region_cellIDs, [f'neurites-{o_label}' for o_label in orientation_labels]]
+#     # get number of neurites
+#     occu_neurites = orientations.loc[region_cellIDs, [f'neurites-{o_label}' for o_label in orientation_labels]]
     
-    # get total number
-    n_neurites = occu_neurites.sum(axis = 1)
+#     # get total number
+#     n_neurites = occu_neurites.sum(axis = 1)
     
-    for ntype in neurite_types:
+#     for ntype in neurite_types:
         
-        # get orientation labels per type
-        orientation_labels_pertype = [f'{ntype}-{o_label}' for o_label in orientation_labels]
+#         # get orientation labels per type
+#         orientation_labels_pertype = [f'{ntype}-{o_label}' for o_label in orientation_labels]
         
-        # get orientation occurances per region
-        occu_pertype_percell = orientations.loc[region_cellIDs, orientation_labels_pertype]
-        occu_pertype = occu_pertype_percell.sum(axis = 0)
+#         # get orientation occurances per region
+#         occu_pertype_percell = orientations.loc[region_cellIDs, orientation_labels_pertype]
+#         occu_pertype = occu_pertype_percell.sum(axis = 0)
 
-        # calc total number 
-        n_pertype = occu_pertype_percell.sum(axis = 1)
+#         # calc total number 
+#         n_pertype = occu_pertype_percell.sum(axis = 1)
         
-        # normalize to total number per type
-        occu_norm_totype_percell = occu_pertype_percell.div(n_pertype, axis = 'rows')
+#         # normalize to total number per type
+#         occu_norm_totype_percell = occu_pertype_percell.div(n_pertype, axis = 'rows')
         
-        # drop rows (cells) with zeros (condition for cells with no axons)
-        occu_norm_totype_percell = occu_norm_totype_percell.loc[(occu_norm_totype_percell!=0).any(axis=1)]
+#         # drop rows (cells) with zeros (condition for cells with no axons)
+#         occu_norm_totype_percell = occu_norm_totype_percell.loc[(occu_norm_totype_percell!=0).any(axis=1)]
         
-        # calc average over all cells per bin
-        occu_norm_totype = occu_norm_totype_percell.mean(axis = 0)
+#         # calc average over all cells per bin
+#         occu_norm_totype = occu_norm_totype_percell.mean(axis = 0)
 
-        # normalize to number of neurites
-        occu_norm_toall_percell = occu_pertype_percell.div(n_neurites, axis = 'rows')
-        occu_norm_toall = occu_norm_toall_percell.mean(axis = 0)
+#         # normalize to number of neurites
+#         occu_norm_toall_percell = occu_pertype_percell.div(n_neurites, axis = 'rows')
+#         occu_norm_toall = occu_norm_toall_percell.mean(axis = 0)
 
-        # write to dataframe
-        population_orientation.loc[f'{ntype}-{region}-abs', :] = occu_pertype.to_list()
-        population_orientation.loc[f'{ntype}-{region}-norm_totype', :] = occu_norm_totype.to_list()
-        population_orientation.loc[f'{ntype}-{region}-norm_toall', :] = occu_norm_toall.to_list()
+#         # write to dataframe
+#         population_orientation.loc[f'{ntype}-{region}-abs', :] = occu_pertype.to_list()
+#         population_orientation.loc[f'{ntype}-{region}-norm_totype', :] = occu_norm_totype.to_list()
+#         population_orientation.loc[f'{ntype}-{region}-norm_toall', :] = occu_norm_toall.to_list()
         
-# save dataframe
-population_orientation.to_excel(join(cellmorph_metrics_dir, 'population_orientation.xlsx'), 
-                                index_label = 'ntype-region-measure')
+# # save dataframe
+# population_orientation.to_excel(join(cellmorph_metrics_dir, 'population_orientation.xlsx'), 
+#                                 index_label = 'ntype-region-measure')
 
 
 # %% calc population circular stats

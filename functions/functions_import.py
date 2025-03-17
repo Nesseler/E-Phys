@@ -254,7 +254,7 @@ def get_PSCs_steps(PGF = 'vc_Erest_3min_ctrl', cell_ID = 'E-304', sheet_name = '
     
 
 
-def get_MetaData(cell_IDs):
+def get_MetaData(cell_IDs = None):
     '''
     This function loads the Metadata sheet and limits it to only the cell_IDs
     specified in the cell_IDs list.
@@ -270,6 +270,7 @@ def get_MetaData(cell_IDs):
                              sheet_name="MetaData",
                              index_col='cell_ID')
 
-    MetaData = MetaData.loc[cell_IDs, :]
+    if cell_IDs:
+        MetaData = MetaData.loc[cell_IDs, :]
     
     return MetaData
