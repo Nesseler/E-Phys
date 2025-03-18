@@ -117,7 +117,7 @@ def create_polar_histogram(ax, terminal_branches):
 
     # set colors 
     from cellmorphology.cellmorph_functions.cellmorph_init_plotting import neurite_color_dict
-    neurite_color_dict = neurite_color_dict['all']
+    neurite_color_dict = neurite_color_dict['BAOT']
              
     # define array with number of previouse numbers of branches in bin
     bottom = [0] * n_bins

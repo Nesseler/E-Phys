@@ -16,7 +16,7 @@ from matplotlib.lines import Line2D
 import seaborn as sbn
 
 # import custom functions
-from functions.functions_plotting import save_figures, get_figure_size, apply_axis_settings, plot_half_violin, remove_spines_n_ticks, change_projection
+from functions.functions_plotting import save_figures, get_figure_size, apply_axis_settings, plot_half_violin, remove_spines_n_ticks, change_projection, simple_beeswarm
 
 # set colors for regions
 region_colors = {'BAOT'     : '#7a66fc',
@@ -25,8 +25,8 @@ region_colors = {'BAOT'     : '#7a66fc',
 
 # colors for neurites, dendrites, axons 
 neurite_color_dict = {'all' : {'neurites' : '#FFAD0AFF', 'dendrites' : '#0424ACFF', 'axons' : '#B10318FF', 'soma' : '#D3D3D3'},
-                      'MeA' : {'neurites' : '#FDC067FF', 'dendrites' : '#6EC5ABFF', 'axons' : '#751C6DFF', 'soma' : '#D3D3D3'},
-                      'BAOT': {'neurites' : '#FF8811FF', 'dendrites' : '#046E8FFF', 'axons' : '#D44D5CFF', 'soma' : '#D3D3D3'}}
+                      'MeA' : {'neurites' : '#FFAD0A', 'dendrites' : '#00ACAC', 'axons' : '#FB473E', 'soma' : '#D3D3D3'},
+                      'BAOT': {'neurites' : '#7A66FC', 'dendrites' : '#0424AC', 'axons' : '#B10318', 'soma' : '#D3D3D3'}}
 
 # colors for spinyness categories
 spines_color_dict = {'both' : {'high' : '#776B5D' , 'moderate' : '#B0A695', 'low': '#EBE3D5'},
@@ -55,4 +55,4 @@ elif not darkmode_bool:
     primecolor = 'k'
     
 # set font size
-mtl.rcParams.update({'font.size': 9, 'font.family' : 'Arial'})
+mtl.rcParams.update({'font.size': 14, 'font.family' : 'Arial'})

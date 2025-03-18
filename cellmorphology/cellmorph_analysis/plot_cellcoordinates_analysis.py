@@ -40,12 +40,12 @@ def create_multiview_figure(title):
     
     # set colors 
     from cellmorphology.cellmorph_functions.cellmorph_init_plotting import neurite_color_dict
-    neurite_color_dict = neurite_color_dict['all']
+    neurite_color_dict = neurite_color_dict['BAOT']
 
     fig, axs = plt.subplots(nrows = 2,
                             ncols = 2,
                             layout = 'constrained',
-                            figsize = get_figure_size(width = 100, height = 100),
+                            figsize = get_figure_size(width = 125.103, height = 125.103),
                             width_ratios = [1, max_depth/field_of_view],
                             height_ratios = [1, max_depth/field_of_view],
                             sharey = 'row',
@@ -56,8 +56,8 @@ def create_multiview_figure(title):
     axs = axs.flatten()
     
     # set figure title
-    fig.suptitle(title, 
-                 fontsize = 9)
+    # fig.suptitle(title, 
+    #              fontsize = 9)
     
     ## legend
     
@@ -74,14 +74,15 @@ def create_multiview_figure(title):
     # get legend handles
     h, l = axs[2].get_legend_handles_labels()
     
-    axs[3].legend(points, neurite_color_dict.keys(), 
-                  title = 'neurite type',
-                  title_fontsize = 6,
+    axs[3].legend(points, [k.capitalize() for k in neurite_color_dict.keys()], 
+                  title = 'Neurite type',
+                  title_fontsize = 14,
                   frameon = False, 
                   ncol = 1, 
                   loc = 'center',
-                  fontsize = 6,
-                  markerscale = 5)
+                  fontsize = 12,
+                  markerscale = 5,
+                  handletextpad = 0.2)
     
     axs[3].set_xticklabels(labels = [])
     axs[3].tick_params(axis = 'y', size = 0)
@@ -155,7 +156,7 @@ def plot_cellcoordinates(cell_ID, cell_coordinates):
 
     # set colors 
     from cellmorphology.cellmorph_functions.cellmorph_init_plotting import neurite_color_dict
-    neurite_color_dict = neurite_color_dict['all']
+    neurite_color_dict = neurite_color_dict['BAOT']
     
     # set title
     title = f'{cell_ID} cell coordinates'
@@ -225,7 +226,7 @@ def plot_cellhwd(cell_ID, cell_coordinates, cell_hwd):
 
     # set colors 
     from cellmorphology.cellmorph_functions.cellmorph_init_plotting import neurite_color_dict
-    neurite_color_dict = neurite_color_dict['all']
+    neurite_color_dict = neurite_color_dict['BAOT']
     
     # set title
     title = f'{cell_ID} cell height, width, depth'
@@ -277,8 +278,8 @@ def plot_cellhwd(cell_ID, cell_coordinates, cell_hwd):
                                               height = cell_hwd[f'{ntype}-{measure[1]}'],
                                               facecolor = 'None',
                                               edgecolor = neurite_color_dict[ntype],
-                                              alpha = 0.5,
-                                              lw = 0.5)
+                                              alpha = 1,
+                                              lw = 1.5)
         
             # add rectangle as patch
             ax.add_patch(rectangle)
@@ -328,7 +329,7 @@ def plot_all_terminal_branches(cell_ID, cell_coordinates, terminal_branches):
 
     # set colors 
     from cellmorphology.cellmorph_functions.cellmorph_init_plotting import neurite_color_dict
-    neurite_color_dict = neurite_color_dict['all']
+    neurite_color_dict = neurite_color_dict['BAOT']
     
     # group paths by label
     allcoor_paths_dict = {pathID : group for pathID, group in cell_coordinates['all_coor'].groupby('path_ID')}
@@ -435,7 +436,7 @@ def plot_endpoints(cell_ID, cell_coordinates, n_primary, n_terminal, bifurcation
 
     # set colors 
     from cellmorphology.cellmorph_functions.cellmorph_init_plotting import neurite_color_dict
-    neurite_color_dict = neurite_color_dict['all']
+    neurite_color_dict = neurite_color_dict['BAOT']
 
     # init figure
     fig, ax = plt.subplots(nrows = 1,
@@ -444,9 +445,9 @@ def plot_endpoints(cell_ID, cell_coordinates, n_primary, n_terminal, bifurcation
                            figsize = get_figure_size(width = 150, height = 100),
                            dpi = 300)
     
-    # set figure title
-    fig.suptitle(f'{cell_ID} primary and terminal points', 
-                 fontsize = 9)
+    # # set figure title
+    # fig.suptitle(f'{cell_ID} primary and terminal points', 
+    #              fontsize = 9)
     
     # set aspect ration of plot
     ax.set_aspect(1)
@@ -455,7 +456,7 @@ def plot_endpoints(cell_ID, cell_coordinates, n_primary, n_terminal, bifurcation
     ax.scatter(x = cell_coordinates['all_coor'].loc[:, 'X'],
                y = cell_coordinates['all_coor'].loc[:, 'Y'],
                color = 'gray',
-               s = 0.25,
+               s = 0.75,
                alpha = 0.1)
     
     # plot primary points (end points of primary paths)
@@ -538,8 +539,8 @@ def plot_endpoints(cell_ID, cell_coordinates, n_primary, n_terminal, bifurcation
     ax_inset.scatter(x = cell_coordinates['all_coor'].loc[:, 'X'],
                      y = cell_coordinates['all_coor'].loc[:, 'Y'],
                      color = 'gray',
-                     s = 0.25,
-                     alpha = 0.1)
+                     s = 1.25,
+                     alpha = 0.2)
     
     # plot primary points (end points of primary paths)
     for path_i in cell_coordinates['pri_coor'].index.to_list():
@@ -618,7 +619,7 @@ def plot_polar_plot_abs(cell_ID, cell_coordinates, terminal_branches, circ_stats
 
     # set colors 
     from cellmorphology.cellmorph_functions.cellmorph_init_plotting import neurite_color_dict
-    neurite_color_dict = neurite_color_dict['all']
+    neurite_color_dict = neurite_color_dict['BAOT']
     
     from cellmorphology.cellmorph_functions.cellmorph_polarplot_functions import create_polar_histogram
     
@@ -629,11 +630,11 @@ def plot_polar_plot_abs(cell_ID, cell_coordinates, terminal_branches, circ_stats
     fig, axs = plt.subplots(nrows = 1,
                             ncols = 2,
                             layout = 'constrained',
-                            figsize = get_figure_size(width = 200, height = 90),
+                            figsize = get_figure_size(width = 125.167, height = 67.77),
                             dpi = 300)
     
     # set title
-    fig.suptitle(f'{cell_ID} terminal point orientations')
+    # fig.suptitle(f'{cell_ID} terminal point orientations')
     
     # set axis of coordinates plot
     ax = axs[0]
@@ -738,7 +739,7 @@ def plot_polar_plot_abs(cell_ID, cell_coordinates, terminal_branches, circ_stats
                        marker = '.',
                        color = neurite_color_dict[ntype],
                        s = 5,
-                       label = f'{ntype} terminal point angle')
+                       label = f'{ntype} angle')
         
             # transform marker to rotate marker
             t = mtl.markers.MarkerStyle(marker='_')
@@ -751,7 +752,7 @@ def plot_polar_plot_abs(cell_ID, cell_coordinates, terminal_branches, circ_stats
                         marker = t,
                         markeredgewidth = 1.5,
                         color = neurite_color_dict[ntype],
-                        label = f'{ntype} circ mean+std')
+                        label = f'{ntype} circ. mean')
     
     # set grid
     ax.grid(True, alpha = 0.5)
@@ -760,21 +761,23 @@ def plot_polar_plot_abs(cell_ID, cell_coordinates, terminal_branches, circ_stats
     ax.set_axisbelow(True)
     
     # get legend handles
-    h, l = ax.get_legend_handles_labels()
+    hs, ls = ax.get_legend_handles_labels()
     
     # get unique labels and handles
-    unique_l = np.unique(l)
-    unique_h = [h[l.index(ntype)] for ntype in unique_l]
+    unique_l = [l.capitalize() for l in np.unique(ls)]
+    unique_h = [hs[ls.index(ntype)] for ntype in np.unique(ls)]
     
     # legend
-    ax.legend(unique_h, unique_l, 
-              title = 'neurite type',
-              title_fontsize = 9,
+    fig.legend(unique_h, unique_l, 
+              title = 'Neurite type',
+              title_fontsize = 14,
               frameon = False, 
-              ncol = 1, 
-              loc = 'center left',
-              fontsize = 6,
-              bbox_to_anchor=(1.1, 0.5))
+              ncol = 3, 
+              loc = 'upper center',
+              fontsize = 9,
+                # bbox_to_anchor=(1.1, 0.5))
+              bbox_to_anchor=(0.5, 0),
+              handletextpad = 0.4)
     
     # get figure path
     figpath = join(cellmorph_analysis_dir, 'plots-polar_plot_abs')
@@ -808,7 +811,7 @@ def plot_AcD(cell_ID, cell_coordinates, AcD):
     
     # set colors 
     from cellmorphology.cellmorph_functions.cellmorph_init_plotting import neurite_color_dict
-    neurite_color_dict = neurite_color_dict['all']
+    neurite_color_dict = neurite_color_dict['BAOT']
     
     # init figure
     fig, axs = plt.subplots(nrows = 1,

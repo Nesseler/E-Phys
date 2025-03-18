@@ -509,7 +509,8 @@ def apply_axis_settings(ax, axis = 'y',
                         start_at_0 = False,
                         limits_n_0 = False,
                         ticklabels = None,
-                        rotation = None):
+                        rotation = None,
+                        pad_factor = 0.01):
     """
     Function uses specified settings to change yaxis layout of specified subplot.
     Parameter:
@@ -528,17 +529,17 @@ def apply_axis_settings(ax, axis = 'y',
     """
     
     if start_at_0:
-        ticks = np.arange(0, ax_max+ stepminor, step)
+        ticks = np.arange(0, ax_max+ stepminor/3, step)
     elif limits_n_0:
         ticks = [ax_min, 0, ax_max]
     else:
-        ticks = np.arange(ax_min, ax_max+ stepminor, step)
+        ticks = np.arange(ax_min, ax_max+ stepminor/3, step)
         
-    ticksminor = np.arange(ax_min, ax_max+ stepminor, stepminor)
+    ticksminor = np.arange(ax_min, ax_max+ stepminor/3, stepminor)
     
     # set padding as 1 % 
     if not pad:
-        pad = abs(ax_max - ax_min) / 100
+        pad = abs(ax_max - ax_min) * pad_factor
         
     
     if axis == 'y':
@@ -634,3 +635,42 @@ def draw_rectangle_gradient(ax, x1, y1, width, height, color1='white', color2='b
     for i, color in enumerate(gradient_colors):
         ax.add_patch(plt.Rectangle((x1 + width/n * i, y1), width/n, height, color=color, linewidth=0, zorder=0))
     return ax
+
+
+
+def simple_beeswarm(y, nbins=None, width = 1.0):
+    """
+    https://stackoverflow.com/questions/36153410/how-to-create-a-swarm-plot-with-matplotlib
+    Returns x coordinates for the points in ``y``, so that plotting ``x`` and
+    ``y`` results in a bee swarm plot.
+    """
+    y = np.asarray(y)
+    if nbins is None:
+        # nbins = len(y) // 6
+        nbins = np.ceil(len(y) / 6).astype(int)
+
+    # Get upper bounds of bins
+    x = np.zeros(len(y))
+
+    nn, ybins = np.histogram(y, bins=nbins)
+    nmax = nn.max()
+
+    #Divide indices into bins
+    ibs = []#np.nonzero((y>=ybins[0])*(y<=ybins[1]))[0]]
+    for ymin, ymax in zip(ybins[:-1], ybins[1:]):
+        i = np.nonzero((y>ymin)*(y<=ymax))[0]
+        ibs.append(i)
+
+    # Assign x indices
+    dx = width / (nmax // 2)
+    for i in ibs:
+        yy = y[i]
+        if len(i) > 1:
+            j = len(i) % 2
+            i = i[np.argsort(yy)]
+            a = i[j::2]
+            b = i[j+1::2]
+            x[a] = (0.5 + j / 3 + np.arange(len(b))) * dx
+            x[b] = (0.5 + j / 3 + np.arange(len(b))) * -dx
+
+    return x

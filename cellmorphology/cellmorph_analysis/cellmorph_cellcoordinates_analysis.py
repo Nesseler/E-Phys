@@ -52,7 +52,10 @@ if len(cellIDs_toAnalyze) == 0:
 
 
 # cellIDs_toAnalyze = ['E-217', 'E-218', 'E-219', 'E-222', 'E-238', 'E-239', 'E-240', 'E-242', 'E-243', 'E-244', 'E-245', 'E-236', 'E-277', 'E-280', 'E-284', 'E-290', 'E-292', 'E-296', 'E-297']
-cellIDs_toAnalyze = ['E-111', 'E-137', 'E-147', 'E-162']
+# cellIDs_toAnalyze = ['E-089', 'E-096', 'E-111', 'E-137', 'E-147', 'E-162']
+
+cellIDs_toAnalyze = ['E-089', 'E-137'] # BAOT
+# cellIDs_toAnalyze = ['E-096', 'E-111', 'E-147', 'E-162'] # MeA
 # cellIDs_toAnalyze = cell_IDs
 
 # %% define output
@@ -60,7 +63,7 @@ cellIDs_toAnalyze = ['E-111', 'E-137', 'E-147', 'E-162']
 height_width_depth = pd.DataFrame(columns = [ntype + '-' + col for ntype in neurite_types for col in ['x_min', 'y_min', 'z_min', 'width', 'height', 'depth']], 
                                   index = cellIDs_toAnalyze)
 
-total_cable_length = pd.DataFrame(columns = [ntype + '-total_cable_length' for ntype in neurite_types], 
+total_cable_length = pd.DataFrame(columns = [f'total_cable_length-{ntype}' for ntype in neurite_types], 
                                   index = cellIDs_toAnalyze)
 
 n_primary = pd.DataFrame(columns = [f'n_primary-{ntype}' for ntype in neurite_types],
@@ -236,7 +239,7 @@ for cell_ID in tqdm(cellIDs_toAnalyze):
             tcl = path_measurements[path_measurements['path_label'] == ntype]['path_length'].sum()
         
         # write to dataframe
-        total_cable_length.at[cell_ID, f'{ntype}-total_cable_length'] = tcl
+        total_cable_length.at[cell_ID, f'total_cable_length-{ntype}'] = tcl
     
     
     # %% reconstruct terminal branches
@@ -624,48 +627,48 @@ from cellmorphology.cellmorph_functions.cellmorph_dir import cellmorph_metrics_d
 
 # tobe saved ('filename' : variable)
 export_vars = {'height_width_depth' : height_width_depth,
-                'total_cable_length' : total_cable_length,
-                'n_primary' : n_primary,
-                'n_terminal' : n_terminal,
-                'bifurcation_ratios' : bifurcation_ratios,
-                'axon_origins' : axon_origins,
-                'circ_stats' : circ_stats,
-                'AcD' : AcD,
-                'orientations' : orientations}
+               'total_cable_length' : total_cable_length,
+               'n_primary' : n_primary,
+               'n_terminal' : n_terminal,
+               'bifurcation_ratio' : bifurcation_ratios,
+               'axon_origins' : axon_origins,
+               'circ_stats' : circ_stats,
+               'AcD' : AcD,
+               'orientations' : orientations}
 
 export_extension = '.xlsx'
 
-# iterate through export variables
-for export_name, export_var in export_vars.items():
+# # iterate through export variables
+# for export_name, export_var in export_vars.items():
     
-    # get rows and cols
-    rows = export_var.index.to_list()
-    cols = export_var.columns.to_list()
+#     # get rows and cols
+#     rows = export_var.index.to_list()
+#     cols = export_var.columns.to_list()
 
-    # try loading and writing or create new file
-    try:
-        loaded_export_var = pd.read_excel(join(cellmorph_metrics_dir, export_name + export_extension),
-                                          index_col = 'cell_ID')
+#     # try loading and writing or create new file
+#     try:
+#         loaded_export_var = pd.read_excel(join(cellmorph_metrics_dir, export_name + export_extension),
+#                                           index_col = 'cell_ID')
       
-        try:
-            # combine both dataframes
-            loaded_export_var.loc[rows, cols] = export_var.loc[rows, cols].values
+#         try:
+#             # combine both dataframes
+#             loaded_export_var.loc[rows, cols] = export_var.loc[rows, cols].values
     
-        # if values not yet in file, append/concat new values
-        except KeyError:
-            loaded_export_var = pd.concat([loaded_export_var, export_var.loc[rows, cols]], axis = 0)
+#         # if values not yet in file, append/concat new values
+#         except KeyError:
+#             loaded_export_var = pd.concat([loaded_export_var, export_var.loc[rows, cols]], axis = 0)
                 
-        # sort by index
-        loaded_export_var.sort_index(inplace = True)
+#         # sort by index
+#         loaded_export_var.sort_index(inplace = True)
         
-        # save activity dataframe
-        loaded_export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
-                                    index_label = 'cell_ID')
+#         # save activity dataframe
+#         loaded_export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
+#                                     index_label = 'cell_ID')
     
-    except FileNotFoundError:
-        # save activity dataframe
-        export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
-                            index_label = 'cell_ID')
+#     except FileNotFoundError:
+#         # save activity dataframe
+#         export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
+#                             index_label = 'cell_ID')
 
 # %% update analyzed cells
 
@@ -684,51 +687,51 @@ orientations = pd.read_excel(join(cellmorph_metrics_dir, 'orientations.xlsx'),
 population_orientation = pd.DataFrame(columns = orientation_labels,
                                       index = [f'{ntype}-{region}-{measure}' for measure in ['abs', 'norm_toall', 'norm_totype'] for region in ['MeA', 'BAOT'] for ntype in neurite_types])
 
-# for region in ['BAOT', 'MeA']:
+for region in ['BAOT', 'MeA']:
     
-#     # get region cell_IDs
-#     region_cellIDs = MetaData[MetaData['Region'] == region].index.to_list()
+    # get region cell_IDs
+    region_cellIDs = MetaData[MetaData['Region'] == region].index.to_list()
     
-#     # limit to reconstructed cells in region
-#     region_cellIDs = [cell_ID for cell_ID in cell_IDs if cell_ID in region_cellIDs]
+    # limit to reconstructed cells in region
+    region_cellIDs = [cell_ID for cell_ID in cell_IDs if cell_ID in region_cellIDs]
     
-#     # get number of neurites
-#     occu_neurites = orientations.loc[region_cellIDs, [f'neurites-{o_label}' for o_label in orientation_labels]]
+    # get number of neurites
+    occu_neurites = orientations.loc[region_cellIDs, [f'neurites-{o_label}' for o_label in orientation_labels]]
     
-#     # get total number
-#     n_neurites = occu_neurites.sum(axis = 1)
+    # get total number
+    n_neurites = occu_neurites.sum(axis = 1)
     
-#     for ntype in neurite_types:
+    for ntype in neurite_types:
         
-#         # get orientation labels per type
-#         orientation_labels_pertype = [f'{ntype}-{o_label}' for o_label in orientation_labels]
+        # get orientation labels per type
+        orientation_labels_pertype = [f'{ntype}-{o_label}' for o_label in orientation_labels]
         
-#         # get orientation occurances per region
-#         occu_pertype_percell = orientations.loc[region_cellIDs, orientation_labels_pertype]
-#         occu_pertype = occu_pertype_percell.sum(axis = 0)
+        # get orientation occurances per region
+        occu_pertype_percell = orientations.loc[region_cellIDs, orientation_labels_pertype]
+        occu_pertype = occu_pertype_percell.sum(axis = 0)
 
-#         # calc total number 
-#         n_pertype = occu_pertype_percell.sum(axis = 1)
+        # calc total number 
+        n_pertype = occu_pertype_percell.sum(axis = 1)
         
-#         # normalize to total number per type
-#         occu_norm_totype_percell = occu_pertype_percell.div(n_pertype, axis = 'rows')
+        # normalize to total number per type
+        occu_norm_totype_percell = occu_pertype_percell.div(n_pertype, axis = 'rows')
         
-#         # drop rows (cells) with zeros (condition for cells with no axons)
-#         occu_norm_totype_percell = occu_norm_totype_percell.loc[(occu_norm_totype_percell!=0).any(axis=1)]
+        # drop rows (cells) with zeros (condition for cells with no axons)
+        occu_norm_totype_percell = occu_norm_totype_percell.loc[(occu_norm_totype_percell!=0).any(axis=1)]
         
-#         # calc average over all cells per bin
-#         occu_norm_totype = occu_norm_totype_percell.mean(axis = 0)
+        # calc average over all cells per bin
+        occu_norm_totype = occu_norm_totype_percell.mean(axis = 0)
 
-#         # normalize to number of neurites
-#         occu_norm_toall_percell = occu_pertype_percell.div(n_neurites, axis = 'rows')
-#         occu_norm_toall = occu_norm_toall_percell.mean(axis = 0)
+        # normalize to number of neurites
+        occu_norm_toall_percell = occu_pertype_percell.div(n_neurites, axis = 'rows')
+        occu_norm_toall = occu_norm_toall_percell.mean(axis = 0)
 
-#         # write to dataframe
-#         population_orientation.loc[f'{ntype}-{region}-abs', :] = occu_pertype.to_list()
-#         population_orientation.loc[f'{ntype}-{region}-norm_totype', :] = occu_norm_totype.to_list()
-#         population_orientation.loc[f'{ntype}-{region}-norm_toall', :] = occu_norm_toall.to_list()
+        # write to dataframe
+        population_orientation.loc[f'{ntype}-{region}-abs', :] = occu_pertype.to_list()
+        population_orientation.loc[f'{ntype}-{region}-norm_totype', :] = occu_norm_totype.to_list()
+        population_orientation.loc[f'{ntype}-{region}-norm_toall', :] = occu_norm_toall.to_list()
         
-# # save dataframe
+# save dataframe
 # population_orientation.to_excel(join(cellmorph_metrics_dir, 'population_orientation.xlsx'), 
 #                                 index_label = 'ntype-region-measure')
 

@@ -104,7 +104,7 @@ from functions.initialize_plotting import *
 fig_PCA2, axs_PCA2 = plt.subplots(nrows = 1,
                                  ncols = 2,
                                  layout = 'constrained',
-                                 figsize = get_figure_size(),
+                                 figsize = get_figure_size(width = 220, height = 120),
                                  dpi = 600)
 
 # plot zero lines
@@ -130,23 +130,30 @@ for cluster_idx in range(n_clusters):
     axs_PCA2[0].scatter(x = prinicpal_components.loc[cluster_cellIDs, 'PC1'],
                         y = prinicpal_components.loc[cluster_cellIDs, 'PC2'],
                         c = [colors[cluster_idx]] * len(cluster_cellIDs),
-                        s = 60,
+                        s = 30,
                         label = cluster_idx)
 
-# plot cell_IDs
-for cell_ID in prinicpal_components.index.to_list():
-    axs_PCA2[0].text(x = prinicpal_components.at[cell_ID, 'PC1'],
-                     y = prinicpal_components.at[cell_ID, 'PC2'],
-                     s = cell_ID,
-                     color = "k",
-                     ha = "center",
-                     va = "center",
-                     fontsize = 3)
+# # plot cell_IDs
+# for cell_ID in prinicpal_components.index.to_list():
+#     axs_PCA2[0].text(x = prinicpal_components.at[cell_ID, 'PC1'],
+#                      y = prinicpal_components.at[cell_ID, 'PC2'],
+#                      s = cell_ID,
+#                      color = "k",
+#                      ha = "center",
+#                      va = "center",
+#                      fontsize = 3)
 
 # legend
 h, l = axs_PCA2[0].get_legend_handles_labels() 
-axs_PCA2[0].legend(h, l, title = 'cluster id', 
-                   frameon = False, ncol = 2, loc = 'upper left')
+axs_PCA2[0].legend(h, l, 
+                   title = 'Cluster ID',
+                   title_fontsize = 12,
+                   frameon = False, 
+                   ncol = 2, 
+                   loc = 'upper left',
+                   fontsize = 12,
+                   handletextpad = 0.05,
+                   columnspacing = 0.4)
 
 # plot the variables as vectors
 for i in range(celldescriptors_PCA.components_.shape[1]):
@@ -182,6 +189,7 @@ PC_dict = {'ax_min' : -6,
 [apply_axis_settings(ax, axis = 'y', **PC_dict) for ax in axs_PCA2]
 
 for ax in axs_PCA2:
+    ax.set_aspect(1)
     ax.set_xlabel('PC 1')
     ax.set_ylabel('PC 2')
 
@@ -206,7 +214,7 @@ plt.show()
 fig_PCA_region, axs_PCA_region = plt.subplots(nrows = 1,
                                               ncols = 2,
                                               layout = 'constrained',
-                                              figsize = get_figure_size(),
+                                              figsize = get_figure_size(width = 220, height = 120),
                                               dpi = 600)
 
 # plot zero lines
@@ -232,26 +240,30 @@ for region in ['BAOT', 'BAOT/MeA', 'MeA']:
     axs_PCA_region[0].scatter(x = prinicpal_components.loc[region_cellIDs, 'PC1'],
                               y = prinicpal_components.loc[region_cellIDs, 'PC2'],
                               c = [region_colors[region]] * len(region_cellIDs),
-                              s = 60,
+                              s = 30,
                               label = cluster_idx)
 
 # plot cell_IDs
-for cell_ID in prinicpal_components.index.to_list():
-    axs_PCA_region[0].text(x = prinicpal_components.at[cell_ID, 'PC1'],
-                     y = prinicpal_components.at[cell_ID, 'PC2'],
-                     s = cell_ID,
-                     color = "k",
-                     ha = "center",
-                     va = "center",
-                     fontsize = 3)
+# for cell_ID in prinicpal_components.index.to_list():
+#     axs_PCA_region[0].text(x = prinicpal_components.at[cell_ID, 'PC1'],
+#                      y = prinicpal_components.at[cell_ID, 'PC2'],
+#                      s = cell_ID,
+#                      color = "k",
+#                      ha = "center",
+#                      va = "center",
+#                      fontsize = 3)
 
 # legend
 h, l = axs_PCA_region[0].get_legend_handles_labels() 
 axs_PCA_region[0].legend(h, ['BAOT', 'BAOT/MeA', 'MeA'], 
                          title = 'Region', 
+                         title_fontsize = 12,
                          frameon = False, 
                          ncol = 1, 
-                         loc = 'upper left')
+                         loc = 'upper left',
+                         fontsize = 12,
+                         handletextpad = 0.05,
+                         columnspacing = 0.4)
 
 
 # plot the variables as vectors
@@ -290,6 +302,7 @@ PC_dict = {'ax_min' : -6,
 [apply_axis_settings(ax, axis = 'y', **PC_dict) for ax in axs_PCA_region]
 
 for ax in axs_PCA_region:
+    ax.set_aspect(1)
     ax.set_xlabel('PC 1')
     ax.set_ylabel('PC 2')
 
@@ -585,7 +598,7 @@ mtl.rcParams.update({'font.size': 12, 'font.family' : 'Arial'})
 
 # %% 3d plot
 
-%matplotlib qt5
+# %matplotlib qt5
 
 # initialize figure
 fig = plt.figure(layout = 'constrained',

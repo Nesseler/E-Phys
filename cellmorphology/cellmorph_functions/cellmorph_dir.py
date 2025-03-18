@@ -37,5 +37,6 @@ cellmorph_metrics_dir = cellmorph_analysis_dir + '/metrics'
 
 cellmorph_figures_dir = cell_morph_parent + '/cellmorph_figures'
 cellmorph_shollfigs_dir = cellmorph_figures_dir + '/sholl_figures'
+cellmorph_polarpop_dir = cellmorph_figures_dir + '/population_orientation'
 
 
