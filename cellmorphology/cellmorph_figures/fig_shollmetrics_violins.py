@@ -260,288 +260,288 @@ sholl_metrics_plot_df = pd.concat([sholl_metrics, MetaData.loc[cell_IDs, 'Region
 
 # %% create figure: violins
 
-# initialise figure
-fig_metrics_violins, axs_metrics_violins = plt.subplots(nrows=2,
-                                                        ncols=2,
-                                                        figsize=get_figure_size(width=160, height=160),
-                                                        layout='constrained',
-                                                        dpi=600)
+# # initialise figure
+# fig, axs = plt.subplots(nrows=2,
+#                         ncols=2,
+#                         figsize=get_figure_size(width=160, height=160),
+#                         layout='constrained',
+#                         dpi=600)
 
-# flatten axes array
-axs_metrics_violins = axs_metrics_violins.flatten()
+# # flatten axes array
+# axs_metrics_violins = axs.flatten()
 
-# create plotting dict for plotting order
-order_dict = {1: 'enclosing_radius',
-              2: 'critical_radius',
-              3: 'max_intersections'}
+# # create plotting dict for plotting order
+# order_dict = {1: 'enclosing_radius',
+#               2: 'critical_radius',
+#               3: 'max_intersections'}
 
-# create list for subplot alphabetical labels
-alpha_labels = ['', 'B', 'C', 'D']
+# # create list for subplot alphabetical labels
+# alpha_labels = ['', 'B', 'C', 'D']
 
-# plot different sholl metrics
-for axs_idx, metric in order_dict.items():
+# # plot different sholl metrics
+# for axs_idx, metric in order_dict.items():
 
-    # set axis
-    ax = axs_metrics_violins[axs_idx]
+#     # set axis
+#     ax = axs[axs_idx]
 
-    # set label for subplot
-    ax.set_title(alpha_labels[axs_idx], fontsize=12, loc='left')
+#     # set label for subplot
+#     ax.set_title(alpha_labels[axs_idx], fontsize=12, loc='left')
 
-    # violin plots
-    violins = sbn.violinplot(data=sholl_metrics_plot_df,
-                             x='neurite_type',
-                             y=metric,
-                             hue='Region',
-                             hue_order = ['MeA', 'BAOT'],
-                             bw=0.4,
-                             inner=None,
-                             split = True,
-                             gap = 0.15,
-                             ax=ax,
-                             linewidth=1,
-                             palette=region_colors,
-                             zorder = 1,
-                             density_norm= 'width')
+#     # violin plots
+#     violins = sbn.violinplot(data = sholl_metrics_plot_df,
+#                              x = 'neurite_type',
+#                              y = metric,
+#                              hue='Region',
+#                              hue_order = ['MeA', 'BAOT'],
+#                              bw=0.4,
+#                              inner=None,
+#                              split = True,
+#                              gap = 0.15,
+#                              ax=ax,
+#                              linewidth=1,
+#                              palette=region_colors,
+#                              zorder = 1,
+#                              density_norm= 'width')
 
-    # edit lines of quarts
-    # for v_idx in np.arange(len(order_dict.items()) * len(sholl_metrics_plot_df['Region'].drop_duplicates())):
+#     # edit lines of quarts
+#     # for v_idx in np.arange(len(order_dict.items()) * len(sholl_metrics_plot_df['Region'].drop_duplicates())):
 
-    #     for l_idx in np.arange(0, 3):
-    #         all_l_idx = v_idx * 3 + l_idx
+#     #     for l_idx in np.arange(0, 3):
+#     #         all_l_idx = v_idx * 3 + l_idx
 
-    #         if v_idx % 2 == 0:
-    #             violins.lines[all_l_idx].set_color(region_colors['MeA'])
-    #         else:
-    #             violins.lines[all_l_idx].set_color(region_colors['BAOT'])
+#     #         if v_idx % 2 == 0:
+#     #             violins.lines[all_l_idx].set_color(region_colors['MeA'])
+#     #         else:
+#     #             violins.lines[all_l_idx].set_color(region_colors['BAOT'])
 
-    # edit color of edges and faces
-    for n_idx, neurite_type in enumerate(neurite_types):
+#     # edit color of edges and faces
+#     for n_idx, neurite_type in enumerate(neurite_types):
         
-        for r_idx, region in enumerate(['MeA', 'BAOT']):
-            v_idx = n_idx * 2 + r_idx
+#         for r_idx, region in enumerate(['MeA', 'BAOT']):
+#             v_idx = n_idx * 2 + r_idx
             
-            violins.collections[v_idx].set_edgecolor(region_colors[region])
-            violins.collections[v_idx].set_facecolor(region_colors[region])
+#             violins.collections[v_idx].set_edgecolor(region_colors[region])
+#             violins.collections[v_idx].set_facecolor(region_colors[region])
 
-    # swarmplots
-    swarm = sbn.swarmplot(data=sholl_metrics_plot_df,
-                          x='neurite_type',
-                          y=metric,
-                          hue='Region',
-                          hue_order = ['MeA', 'BAOT'],
-                          ax=ax,
-                          size=2,
-                          color=colors_dict['primecolor'],
-                          dodge=True,
-                          zorder = 2)
+#     # swarmplots
+#     swarm = sbn.swarmplot(data=sholl_metrics_plot_df,
+#                           x='neurite_type',
+#                           y=metric,
+#                           hue='Region',
+#                           hue_order = ['MeA', 'BAOT'],
+#                           ax=ax,
+#                           size=2,
+#                           color=colors_dict['primecolor'],
+#                           dodge=True,
+#                           zorder = 2)
     
-    # errorbar
-    for neurite_idx, neurite_type in enumerate(neurite_types):
-        for region_x, region in zip([-0.1, +0.1], ['MeA', 'BAOT']):
+#     # errorbar
+#     for neurite_idx, neurite_type in enumerate(neurite_types):
+#         for region_x, region in zip([-0.1, +0.1], ['MeA', 'BAOT']):
             
             
-            if neurite_type == 'axons':
-                cur_cell_IDs_dict = cell_IDs_w_axon_dict
-            else:
-                cur_cell_IDs_dict = cell_IDs_dict
+#             if neurite_type == 'axons':
+#                 cur_cell_IDs_dict = cell_IDs_w_axon_dict
+#             else:
+#                 cur_cell_IDs_dict = cell_IDs_dict
             
-            # data set per type and region for mean and std calculation
-            sholl_metric_per_type_n_region = sholl_metrics[neurite_type].loc[cur_cell_IDs_dict[region], :]
-            sholl_metric_mean = sholl_metric_per_type_n_region[metric].mean()
-            sholl_metric_std = sholl_metric_per_type_n_region[metric].std()
-            sholl_metric_median = sholl_metric_per_type_n_region[metric].median()
+#             # data set per type and region for mean and std calculation
+#             sholl_metric_per_type_n_region = sholl_metrics[neurite_type].loc[cur_cell_IDs_dict[region], :]
+#             sholl_metric_mean = sholl_metric_per_type_n_region[metric].mean()
+#             sholl_metric_std = sholl_metric_per_type_n_region[metric].std()
+#             sholl_metric_median = sholl_metric_per_type_n_region[metric].median()
             
-            ax.errorbar(x = neurite_idx + region_x,
-                        y = sholl_metric_mean,
-                        yerr = sholl_metric_std,
-                        fmt='_', 
-                        markersize = 6,
-                        markerfacecolor = 'none',
-                        capsize = 2,
-                        color= colors_dict['primecolor'],
-                        linewidth = 1,
-                        label = '_nolegend_',
-                        zorder = 3)
+#             ax.errorbar(x = neurite_idx + region_x,
+#                         y = sholl_metric_mean,
+#                         yerr = sholl_metric_std,
+#                         fmt='_', 
+#                         markersize = 6,
+#                         markerfacecolor = 'none',
+#                         capsize = 2,
+#                         color= colors_dict['primecolor'],
+#                         linewidth = 1,
+#                         label = '_nolegend_',
+#                         zorder = 3)
             
-            # plot median
-            ax.scatter(x = neurite_idx + region_x,
-                       y = sholl_metric_median,
-                       marker='D', 
-                       s = 5,
-                       color=colors_dict['primecolor'],
-                       linewidth = 1,
-                       label = '_nolegend_',
-                       zorder = 4)
+#             # plot median
+#             ax.scatter(x = neurite_idx + region_x,
+#                        y = sholl_metric_median,
+#                        marker='D', 
+#                        s = 5,
+#                        color=colors_dict['primecolor'],
+#                        linewidth = 1,
+#                        label = '_nolegend_',
+#                        zorder = 4)
         
     
-    # get handles and labels of legend
-    legend_handles, legend_labels = ax.get_legend_handles_labels()
+#     # get handles and labels of legend
+#     legend_handles, legend_labels = ax.get_legend_handles_labels()
 
-    # remove seaborn legend
-    if axs_idx != 3:
-        ax.legend().set_visible(False)
-    else:
-        ax.legend(handles = legend_handles[:2],
-                  labels = legend_labels[:2],
-                  loc='upper right',
-                  ncol=1)
-
-
-    # x
-    ax.set_xlim(0-0.5, 2+0.5)
-    ax.set_xticks(ticks=np.arange(0, 2 + 0.5, 1),
-                  labels=[label.title() for label in neurite_types], rotation=45)
-    ax.spines['bottom'].set_bounds([0, 2])
-    ax.set_xlabel('Type of neurites')
-
-    # y
-    if metric == 'critical_radius':
-        ax.set_ylabel('Critical radius\nper cell [µm]')
-        ymin = 0
-        ymax = 300
-        ystep = 100
-        ystepminor = 25
-
-    elif metric == 'enclosing_radius':
-        ax.set_ylabel('Enclosing radius\nper cell [µm]')
-        ymin = 0
-        ymax = 500
-        ystep = 100
-        ystepminor = 25
-
-    elif metric == 'max_intersections':
-        ax.set_ylabel('Max. number of intersections\nper cell [#]')
-        ymin = 0
-        ymax = 50
-        ystep = 25
-        ystepminor = 5
-
-    # define ypad relative to range
-    ypad = (ymax - ymin) * 0.03
-
-    # apply y axis settings
-    ax.set_ylim(ymin - ypad, ymax)
-    ax.set_yticks(ticks=np.arange(ymin, ymax + ystepminor, ystep))
-    ax.set_yticks(ticks=np.arange(
-        ymin, ymax + ystepminor, ystepminor), minor=True)
-    ax.spines['left'].set_bounds([ymin, ymax])
-
-    [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
-
-# delete first subplot
-fig_metrics_violins.delaxes(axs_metrics_violins[0])
-
-# align labels
-fig_metrics_violins.align_labels()
-
-# show plot
-plt.show()
-
-# save plot
-sholl_metrics_violins_fig_dir = join(cell_morph_plots_dir, 'figure-sholl_metrics-violins')
+#     # remove seaborn legend
+#     if axs_idx != 3:
+#         ax.legend().set_visible(False)
+#     else:
+#         ax.legend(handles = legend_handles[:2],
+#                   labels = legend_labels[:2],
+#                   loc='upper right',
+#                   ncol=1)
 
 
-# %% sholl metrics statistics
+#     # x
+#     ax.set_xlim(0-0.5, 2+0.5)
+#     ax.set_xticks(ticks=np.arange(0, 2 + 0.5, 1),
+#                   labels=[label.title() for label in neurite_types], rotation=45)
+#     ax.spines['bottom'].set_bounds([0, 2])
+#     ax.set_xlabel('Type of neurites')
 
-from scipy.stats import normaltest, mannwhitneyu, ks_1samp
-from scipy import stats
-from statsmodels.stats.multitest import multipletests # bonferroni correction
+#     # y
+#     if metric == 'critical_radius':
+#         ax.set_ylabel('Critical radius\nper cell [µm]')
+#         ymin = 0
+#         ymax = 300
+#         ystep = 100
+#         ystepminor = 25
 
-# create dataframe for statistics measures
-sholl_metrics_normaltest = pd.DataFrame()
-sholl_metrics_mannwhitneyu = pd.DataFrame()
+#     elif metric == 'enclosing_radius':
+#         ax.set_ylabel('Enclosing radius\nper cell [µm]')
+#         ymin = 0
+#         ymax = 500
+#         ystep = 100
+#         ystepminor = 25
 
-# iterate through metric
-for sholl_metric in ['enclosing_radius', 'critical_radius', 'max_intersections']:
+#     elif metric == 'max_intersections':
+#         ax.set_ylabel('Max. number of intersections\nper cell [#]')
+#         ymin = 0
+#         ymax = 50
+#         ystep = 25
+#         ystepminor = 5
+
+#     # define ypad relative to range
+#     ypad = (ymax - ymin) * 0.03
+
+#     # apply y axis settings
+#     ax.set_ylim(ymin - ypad, ymax)
+#     ax.set_yticks(ticks=np.arange(ymin, ymax + ystepminor, ystep))
+#     ax.set_yticks(ticks=np.arange(
+#         ymin, ymax + ystepminor, ystepminor), minor=True)
+#     ax.spines['left'].set_bounds([ymin, ymax])
+
+#     [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
+
+# # delete first subplot
+# fig_metrics_violins.delaxes(axs_metrics_violins[0])
+
+# # align labels
+# fig_metrics_violins.align_labels()
+
+# # show plot
+# plt.show()
+
+# # save plot
+# sholl_metrics_violins_fig_dir = join(cell_morph_plots_dir, 'figure-sholl_metrics-violins')
+
+
+# # %% sholl metrics statistics
+
+# from scipy.stats import normaltest, mannwhitneyu, ks_1samp
+# from scipy import stats
+# from statsmodels.stats.multitest import multipletests # bonferroni correction
+
+# # create dataframe for statistics measures
+# sholl_metrics_normaltest = pd.DataFrame()
+# sholl_metrics_mannwhitneyu = pd.DataFrame()
+
+# # iterate through metric
+# for sholl_metric in ['enclosing_radius', 'critical_radius', 'max_intersections']:
     
-    # iterate through neurite type
-    for neurite_type in neurite_types:
+#     # iterate through neurite type
+#     for neurite_type in neurite_types:
         
-        # set cell_IDs per neurite types
-        # get cell_IDs per neurite_type
-        if neurite_type != 'axons':
-            cell_IDs_perNeuriteType = cell_IDs_dict
-        elif neurite_type == 'axons':
-            cell_IDs_perNeuriteType = cell_IDs_w_axon_dict
+#         # set cell_IDs per neurite types
+#         # get cell_IDs per neurite_type
+#         if neurite_type != 'axons':
+#             cell_IDs_perNeuriteType = cell_IDs_dict
+#         elif neurite_type == 'axons':
+#             cell_IDs_perNeuriteType = cell_IDs_w_axon_dict
         
-        # iterate through regions
-        for region in ['MeA', 'BAOT']:
+#         # iterate through regions
+#         for region in ['MeA', 'BAOT']:
             
-            # get cell_IDs per neurite_type and region
-            cell_IDs_perNeuriteType_n_region = cell_IDs_perNeuriteType[region]
+#             # get cell_IDs per neurite_type and region
+#             cell_IDs_perNeuriteType_n_region = cell_IDs_perNeuriteType[region]
 
-            # run normal test
-            normaltest_res = normaltest(sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType_n_region, sholl_metric])
+#             # run normal test
+#             normaltest_res = normaltest(sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType_n_region, sholl_metric])
 
-            # write to dataframe
-            sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest_statistic'] = normaltest_res.statistic
-            sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest_p_value'] = normaltest_res.pvalue
+#             # write to dataframe
+#             sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest_statistic'] = normaltest_res.statistic
+#             sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest_p_value'] = normaltest_res.pvalue
             
-            # write boolean
-            if normaltest_res.pvalue < 0.05 :
-                sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest-normally_distributed'] = True
-            else:
-                sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest-normally_distributed'] = False
+#             # write boolean
+#             if normaltest_res.pvalue < 0.05 :
+#                 sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest-normally_distributed'] = True
+#             else:
+#                 sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'normaltest-normally_distributed'] = False
             
-            # run rest
-            kstest_res = ks_1samp(sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType_n_region, sholl_metric],
-                                  stats.norm.cdf,
-                                  nan_policy='omit')
+#             # run rest
+#             kstest_res = ks_1samp(sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType_n_region, sholl_metric],
+#                                   stats.norm.cdf,
+#                                   nan_policy='omit')
             
-            # write to dataframe
-            sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'kstest_statistic'] = kstest_res.statistic
-            sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'kstest_pvalue'] = kstest_res.pvalue
+#             # write to dataframe
+#             sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'kstest_statistic'] = kstest_res.statistic
+#             sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'kstest_pvalue'] = kstest_res.pvalue
             
-            # write boolean
-            if kstest_res.pvalue > 0.05 :  
-                sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'kstest-normally_distributed'] = True
-            else:
-                sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'kstest-normally_distributed'] = False
+#             # write boolean
+#             if kstest_res.pvalue > 0.05 :  
+#                 sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'kstest-normally_distributed'] = True
+#             else:
+#                 sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-{region}', 'kstest-normally_distributed'] = False
 
   
-        # compare both regions
-        sholl_metric_perNeurite_MeA = sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType['MeA'], sholl_metric]
-        sholl_metric_perNeurite_BAOT = sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType['BAOT'], sholl_metric]
+#         # compare both regions
+#         sholl_metric_perNeurite_MeA = sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType['MeA'], sholl_metric]
+#         sholl_metric_perNeurite_BAOT = sholl_metrics[neurite_type].loc[cell_IDs_perNeuriteType['BAOT'], sholl_metric]
 
-        if not (sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-MeA', 'kstest-normally_distributed'] and sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-BAOT', 'kstest-normally_distributed']):
-            # run test
-            mannwhitneyu_res = mannwhitneyu(sholl_metric_perNeurite_MeA, sholl_metric_perNeurite_BAOT, 
-                                            alternative = 'two-sided', 
-                                            nan_policy='omit')
+#         if not (sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-MeA', 'kstest-normally_distributed'] and sholl_metrics_normaltest.at[f'{sholl_metric}-{neurite_type}-BAOT', 'kstest-normally_distributed']):
+#             # run test
+#             mannwhitneyu_res = mannwhitneyu(sholl_metric_perNeurite_MeA, sholl_metric_perNeurite_BAOT, 
+#                                             alternative = 'two-sided', 
+#                                             nan_policy='omit')
 
-            # write to dataframe
-            sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'mannwhitneyu_statistic'] = mannwhitneyu_res.statistic
-            sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'mannwhitneyu_pvalue'] = mannwhitneyu_res.pvalue
+#             # write to dataframe
+#             sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'mannwhitneyu_statistic'] = mannwhitneyu_res.statistic
+#             sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'mannwhitneyu_pvalue'] = mannwhitneyu_res.pvalue
             
-            # write boolean
-            if mannwhitneyu_res.pvalue < 0.05:
-                sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'mannwhitneyu-statistically_different'] = True
-            else:
-                sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'mannwhitneyu-statistically_different'] = False
+#             # write boolean
+#             if mannwhitneyu_res.pvalue < 0.05:
+#                 sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'mannwhitneyu-statistically_different'] = True
+#             else:
+#                 sholl_metrics_mannwhitneyu.at[f'{sholl_metric}-{neurite_type}', 'mannwhitneyu-statistically_different'] = False
         
         
-    # Bonferroni correction
-    # get rows of pvalues
-    rows = [sholl_metric + '-' + neurite_type for neurite_type in neurite_types]
+#     # Bonferroni correction
+#     # get rows of pvalues
+#     rows = [sholl_metric + '-' + neurite_type for neurite_type in neurite_types]
     
-    # get pvalues
-    mannwhitneyu_pvalues = sholl_metrics_mannwhitneyu.loc[rows, 'mannwhitneyu_pvalue']
+#     # get pvalues
+#     mannwhitneyu_pvalues = sholl_metrics_mannwhitneyu.loc[rows, 'mannwhitneyu_pvalue']
     
-    # apply bonferroni correction
-    rejects, pvals_corrected, _, _ = multipletests(mannwhitneyu_pvalues,
-                                                   alpha=0.05, 
-                                                   method='bonferroni')
+#     # apply bonferroni correction
+#     rejects, pvals_corrected, _, _ = multipletests(mannwhitneyu_pvalues,
+#                                                    alpha=0.05, 
+#                                                    method='bonferroni')
     
-    # write to dataframe
-    sholl_metrics_mannwhitneyu.loc[rows, 'bonferroni_pvalue'] = pvals_corrected
+#     # write to dataframe
+#     sholl_metrics_mannwhitneyu.loc[rows, 'bonferroni_pvalue'] = pvals_corrected
     
-    # write boolean
-    sholl_metrics_mannwhitneyu.loc[rows, 'bonferroni-statistical_difference'] = sholl_metrics_mannwhitneyu.loc[rows, 'bonferroni_pvalue'] < 0.05
+#     # write boolean
+#     sholl_metrics_mannwhitneyu.loc[rows, 'bonferroni-statistical_difference'] = sholl_metrics_mannwhitneyu.loc[rows, 'bonferroni_pvalue'] < 0.05
 
 
-# save statistics dataframes
-# sholl_metrics_normaltest.to_excel(join(sholl_metrics_violins_fig_dir, 'sholl_metrics_normaltest.xlsx'), index_label='sholl_metric-neurite_type-region')
-# sholl_metrics_mannwhitneyu.to_excel(join(sholl_metrics_violins_fig_dir, 'sholl_metrics_mannwhitneyu.xlsx'), index_label='sholl_metric-neurite_type')
+# # save statistics dataframes
+# # sholl_metrics_normaltest.to_excel(join(sholl_metrics_violins_fig_dir, 'sholl_metrics_normaltest.xlsx'), index_label='sholl_metric-neurite_type-region')
+# # sholl_metrics_mannwhitneyu.to_excel(join(sholl_metrics_violins_fig_dir, 'sholl_metrics_mannwhitneyu.xlsx'), index_label='sholl_metric-neurite_type')
 
 
 # %% figure for critical vs enclosing radius

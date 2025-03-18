@@ -161,7 +161,7 @@ for ntype in neurite_types:
     sholl_metrics.loc[:, f'critical_radius-{ntype}'] = all_sholl_profiles[ntype].dropna(axis = 1, how = 'all').idxmax(axis = 0)
     
     # enclosing radius
-    sholl_metrics.loc[:, f'enclosing_radius-{ntype}'] = all_sholl_profiles[ntype].count(axis = 0) -1
+    sholl_metrics.loc[:, f'enclosing_radius-{ntype}'] = all_sholl_profiles[ntype].replace(to_replace = 0, value = np.nan).count(axis = 0) -1
     
 # replace -1 values in axons with nans
 sholl_metrics.astype(float).replace({-1: np.nan}, inplace = True)

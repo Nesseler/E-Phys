@@ -33,8 +33,17 @@ spines_color_dict = {'both' : {'high' : '#776B5D' , 'moderate' : '#B0A695', 'low
                      'MeA'  : {'high' : '#A02334' , 'moderate' : '#EB5B00', 'low': '#FFB200'},
                      'BAOT' : {'high' : '#201E43' , 'moderate' : '#134B70', 'low': '#508C9B'}}
 
+# init colors dict
+colors_dict = {True  : {'primecolor' : 'w',
+                        'seccolor'   : 'k'},
+               False : {'primecolor' : 'k',
+                        'seccolor'   : 'w'}}
+
 # set colors
 darkmode_bool = True
+
+# reset color dict based on darkmode bool
+colors_dict = colors_dict[darkmode_bool]
 
 if darkmode_bool:
     plt.style.use('default')
@@ -44,6 +53,6 @@ if darkmode_bool:
 elif not darkmode_bool:
     plt.style.use('default')
     primecolor = 'k'
-
+    
 # set font size
 mtl.rcParams.update({'font.size': 9, 'font.family' : 'Arial'})
