@@ -19,7 +19,7 @@ MetaData = get_MetaData()
 regions = ['BAOT', 'MeA']
 
 # set neurite types
-neurite_types = ['neurites', 'dendrites', 'axons']
+neurite_types = ['dendrites', 'axons']
 
 # define sholl radius step size
 sholl_step_size = 1 # µm
@@ -59,7 +59,7 @@ cell_IDs_w_axon_dict = {'all': sholl_metrics['critical_radius-axons'].dropna().i
 # %% sholl profiles figure 
 
 # initialise figure
-fig_sholl, axs_sholl = plt.subplot_mosaic('BBBCCC;DDEEFF',#'BD;BD;BE;CE;CF;CF',
+fig_sholl, axs_sholl = plt.subplot_mosaic('BBCC;EEFF',#'BD;BD;BE;CE;CF;CF',
                                           figsize=get_figure_size(height=125.103, width=260.334),
                                           layout='tight',
                                           height_ratios = [2.5,1],
@@ -67,20 +67,20 @@ fig_sholl, axs_sholl = plt.subplot_mosaic('BBBCCC;DDEEFF',#'BD;BD;BE;CE;CF;CF',
 
 # flatten nd array of axes
 # axs_sholl = axs_sholl.flatten()
-axs_keys = {'MeA': 'B', 'BAOT': 'C'}
+axs_keys = {'BAOT': 'B', 'MeA': 'C'}
 
 # specify line
 line_dict = {'lw': 1, 'alpha': 1}
 
 # set labels for subplots
-axs_titles = {'MeA' : 'A: MeA',
-              'BAOT': 'B: BAOT',
+axs_titles = {'MeA' : 'B: MeA',
+              'BAOT': 'A: BAOT',
               'neurites' : '$\mathregular{C_{i}}$: Neurites',
-              'dendrites' : '$\mathregular{C_{ii}}$: Dendrites',
-              'axons' : '$\mathregular{C_{iii}}$: Axons'}
+              'dendrites' : '$\mathregular{C_{i}}$: Dendrites',
+              'axons' : '$\mathregular{C_{ii}}$: Axons'}
 
 # plot all profiles together
-for region in ['MeA', 'BAOT']:
+for region in regions:
     for neurite_type in ['dendrites', 'axons']:
 
         # set axis
@@ -107,19 +107,19 @@ for region in ['MeA', 'BAOT']:
                 label = neurite_type.title())
 
 # edit sholl profile axes
-for region in ['MeA', 'BAOT']:
+for region in regions:
 
     # set axis
     ax = axs_sholl[axs_keys[region]]
 
     # subplot title
-    ax.set_title(axs_titles[region], fontsize=12, loc='left')
+    ax.set_title(axs_titles[region], fontsize=14, loc='left')
 
     # legend
-    ax.legend(fontsize = 9,
+    ax.legend(fontsize = 12,
               frameon = False,
               title = 'Neurite types',
-              title_fontsize = 9)
+              title_fontsize = 14)
 
     # y
     ymin = 0
@@ -135,7 +135,7 @@ for region in ['MeA', 'BAOT']:
 
 
 # comparisons of neurite types between regions
-axs_keys_neurites = {'neurites': 'D', 'dendrites': 'E', 'axons': 'F'}
+axs_keys_neurites = {'dendrites': 'E', 'axons': 'F'}
 
 # add color for 'all' to region_colors
 region_colors['all'] = 'gray'
@@ -147,7 +147,7 @@ for neurite_type in neurite_types:
 
     for region in ['BAOT', 'MeA']:
 
-        ax.set_title(axs_titles[neurite_type], fontsize=12, loc='left')
+        ax.set_title(axs_titles[neurite_type], fontsize=14, loc='left')
 
         ax.plot(avg_sholl_profiles[f'mean-sholl_profile-{neurite_type}-{region}'],
                 color = neurite_color_dict[region][neurite_type],
@@ -155,14 +155,14 @@ for neurite_type in neurite_types:
                 label  =region)
 
     # legend
-    ax.legend(fontsize = 9,
+    ax.legend(fontsize = 12,
               frameon = False,
               title = 'Region',
-              title_fontsize = 9)
+              title_fontsize = 14)
 
 
 # configure axis of neurites and dendrites
-for neurite_type in ['neurites', 'dendrites']:
+for neurite_type in ['dendrites']:
 
     # set axis
     ax = axs_sholl[axs_keys_neurites[neurite_type]]
@@ -199,7 +199,7 @@ for neurite_type in ['axons']:
 
 
 # set all x axis
-for key in ['B', 'C', 'D', 'E', 'F']:
+for key in ['B', 'C', 'E', 'F']:
     # set axis
     ax = axs_sholl[key]
 
@@ -216,8 +216,8 @@ for key in ['B', 'C', 'D', 'E', 'F']:
 
 
 # axis labels
-[axs_sholl[key].set_ylabel('Number of\nintersections [#]') for key in ['B', 'C', 'D']]
-[axs_sholl[key].set_xlabel('Radius  [µm]') for key in ['B', 'C', 'D','E', 'F']]
+[axs_sholl[key].set_ylabel('Number of\nintersections [#]') for key in ['B', 'E']]
+[axs_sholl[key].set_xlabel('Radius  [µm]') for key in ['B', 'C', 'E', 'F']]
 
 # align all axis labels
 fig_sholl.align_labels()
@@ -226,7 +226,6 @@ fig_sholl.align_labels()
 plt.show()
 
 # save figure
-# sholl_profiles_fig_dir = join(cellmorph_shollfigs_dir, 'figure-sholl_profiles')
 save_figures(fig_sholl, 
               figure_name = 'sholl_profiles_figure', 
               save_dir = cellmorph_shollfigs_dir,

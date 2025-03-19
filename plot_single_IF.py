@@ -39,7 +39,7 @@ SR = PGF_parameters['SR']
 
 # define protocol
 PGF = 'cc_IF'
-sheet_name = 'PGFs'
+sheet_name = 'PGFs_Syn'
 
 # get all cell_IDs for cc_rest
 cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = sheet_name)
@@ -95,17 +95,17 @@ for df in [IF_dict, IF_rheobase, adaptation]:
 # init plotting
 from functions.initialize_plotting import *
 
-# verification plots
-vplots = True
-if vplots:
-    # load plotting functions
-    from analysis.celldescrip_anaylsis_Syn.plot_analyze_cc_IF_syn import plot_full_IF, plot_IF_step_spike_detection, plot_rheobase, plot_adaptation
+# # verification plots
+# vplots = True
+# if vplots:
+#     # load plotting functions
+#     from analysis.celldescrip_analysis_Syn.plot_analyze_cc_IF_syn import plot_full_IF, plot_IF_step_spike_detection, plot_rheobase, plot_adaptation
 
     
 # %% load
 
 # 223, 276, 300, 315
-cell_IDs = ['E-137']
+cell_IDs = ['E-230']
 
 for cell_ID in tqdm(cell_IDs):
 

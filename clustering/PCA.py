@@ -133,15 +133,15 @@ for cluster_idx in range(n_clusters):
                         s = 30,
                         label = cluster_idx)
 
-# # plot cell_IDs
-# for cell_ID in prinicpal_components.index.to_list():
-#     axs_PCA2[0].text(x = prinicpal_components.at[cell_ID, 'PC1'],
-#                      y = prinicpal_components.at[cell_ID, 'PC2'],
-#                      s = cell_ID,
-#                      color = "k",
-#                      ha = "center",
-#                      va = "center",
-#                      fontsize = 3)
+# plot cell_IDs
+for cell_ID in prinicpal_components.index.to_list():
+    axs_PCA2[0].text(x = prinicpal_components.at[cell_ID, 'PC1'],
+                      y = prinicpal_components.at[cell_ID, 'PC2'],
+                      s = cell_ID,
+                      color = "k",
+                      ha = "center",
+                      va = "center",
+                      fontsize = 3)
 
 # legend
 h, l = axs_PCA2[0].get_legend_handles_labels() 
