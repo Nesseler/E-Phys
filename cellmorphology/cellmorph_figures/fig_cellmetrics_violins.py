@@ -16,7 +16,7 @@ from functions.functions_import import get_MetaData
 MetaData = get_MetaData()
 
 # define regions
-regions = ['MeA', 'BAOT']
+regions = ['BAOT', 'MeA']
 
 # set neurite types
 neurite_types = ['dendrites', 'axons']
@@ -79,7 +79,7 @@ for m_idx, metric in enumerate(metrics):
     
     for n_idx, ntype in enumerate(['dendrites', 'axons']):
         
-        for (r_idx, region), v_direction in zip(enumerate(['MeA', 'BAOT']), [-1, 1]):
+        for (r_idx, region), v_direction in zip(enumerate(regions), [-1, 1]):
             
             # get region cell_Id
             region_cellIDs = cell_IDs_dict[region]
