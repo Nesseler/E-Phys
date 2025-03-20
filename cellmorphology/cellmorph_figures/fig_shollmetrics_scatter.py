@@ -70,15 +70,15 @@ fig, axs = plt.subplots(nrows=1,
 axs = axs.flatten()
 
 # create dict for axis titles 
-axs_titles = {'MeA' : {'neurites' : '$\mathregular{A_{i}}$: MeA neurites',
-                       'dendrites': '$\mathregular{B_{i}}$: MeA dendrites',
-                       'axons'    : '$\mathregular{C_{i}}$: MeA axons'}, 
-              'BAOT': {'neurites' : '$\mathregular{A_{ii}}$: BAOT neurites',
-                       'dendrites': '$\mathregular{B_{ii}}$: BAOT dendrites',
-                       'axons'    : '$\mathregular{C_{ii}}$: BAOT axons'}}
+axs_titles = {'MeA' : {'neurites' : '$\mathregular{G_{i}}$: MeA neurites',
+                       'dendrites': '$\mathregular{G_{ix}}$: MeA dendrites',
+                       'axons'    : '$\mathregular{G_{x}}$: MeA axons'}, 
+              'BAOT': {'neurites' : '$\mathregular{G_{ii}}$: BAOT neurites',
+                       'dendrites': '$\mathregular{G_{vii}}$: BAOT dendrites',
+                       'axons'    : '$\mathregular{G_{viii}}$: BAOT axons'}}
 
 # initialise color-coding of max intersections
-cmap_str = 'viridis'
+cmap_str = 'cool'
 
 # min max normalize time for color-code
 norm = mtl.colors.Normalize(vmin=0,
@@ -92,15 +92,16 @@ fig.colorbar(cmap, ax = axs[-1],
               orientation = 'vertical',
               label = 'Max. number\nof intersections [#]',
               # fraction = 0.5,
+              # ticks = [0, 10, 20, 30, 40], 
               aspect = 20)
 
 # create plotting dict for plotting order
-order_dict = {'MeA' : {'dendrites': 0, 'axons': 1},
-              'BAOT': {'dendrites': 2, 'axons': 3}}
+order_dict = {'BAOT' : {'dendrites': 0, 'axons': 1},
+              'MeA': {'dendrites': 2, 'axons': 3}}
 
 # create scatter plots splited by region and neurite_type
 # loop through region = columns
-for region in ['MeA', 'BAOT']:
+for region in regions:
     
     # get the other region
     other_region = [r for r in regions if r != region][0]
@@ -131,7 +132,7 @@ for region in ['MeA', 'BAOT']:
         ax.scatter(x = sholl_metrics.loc[cell_IDs_dict[region], f'enclosing_radius-{ntype}'],
                    y = sholl_metrics.loc[cell_IDs_dict[region], f'critical_radius-{ntype}'],
                    color = cmap.to_rgba(sholl_metrics.loc[cell_IDs_dict[region], f'max_intersections-{ntype}']),
-                   s = 15,
+                   s = 20,
                    zorder = 1)
         
         
@@ -160,61 +161,61 @@ for region in ['MeA', 'BAOT']:
         [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
         
         
-        ### add insets
+        # ### add insets
 
-        # ([left, bottom, width, height]), percentages
-        ax_inset = ax.inset_axes([0.1, 0.7, 0.25, 0.25])
+        # # ([left, bottom, width, height]), percentages
+        # ax_inset = ax.inset_axes([0.1, 0.7, 0.25, 0.25])
         
-        # plot in inset
-        ax_inset.plot([0, 400], [0, 400],
-                      color = colors_dict['primecolor'],
-                      linewidth = 0.5,
-                      linestyle = 'dashed',
-                      alpha = 0.5, 
-                      zorder = 0)
+        # # plot in inset
+        # ax_inset.plot([0, 400], [0, 400],
+        #               color = colors_dict['primecolor'],
+        #               linewidth = 0.5,
+        #               linestyle = 'dashed',
+        #               alpha = 0.5, 
+        #               zorder = 0)
         
         
-        # scatterplot in inset
-        scatter = sbn.scatterplot(data=sholl_metrics_plot_df.loc[cell_IDs_dict[region], :], 
-                                  x = f'enclosing_radius-{ntype}', 
-                                  y = f'critical_radius-{ntype}', 
-                                  hue = 'Region',
-                                  palette = region_colors,
-                                  ax=ax_inset,
-                                  s=6,
-                                  linewidth=0, 
-                                  zorder = 2)
+        # # scatterplot in inset
+        # scatter = sbn.scatterplot(data=sholl_metrics_plot_df.loc[cell_IDs_dict[region], :], 
+        #                           x = f'enclosing_radius-{ntype}', 
+        #                           y = f'critical_radius-{ntype}', 
+        #                           hue = 'Region',
+        #                           palette = region_colors,
+        #                           ax=ax_inset,
+        #                           s=6,
+        #                           linewidth=0, 
+        #                           zorder = 2)
     
-        scatter = sbn.scatterplot(data=sholl_metrics_plot_df.loc[cell_IDs_dict[other_region], :],
-                                  x = f'enclosing_radius-{ntype}',
-                                  y = f'critical_radius-{ntype}',
-                                  hue = 'Region',
-                                  palette = region_colors,
-                                  ax = ax_inset,
-                                  s = 6,
-                                  linewidth = 0, 
-                                  zorder = 1,
-                                  alpha = 0.5)
+        # scatter = sbn.scatterplot(data=sholl_metrics_plot_df.loc[cell_IDs_dict[other_region], :],
+        #                           x = f'enclosing_radius-{ntype}',
+        #                           y = f'critical_radius-{ntype}',
+        #                           hue = 'Region',
+        #                           palette = region_colors,
+        #                           ax = ax_inset,
+        #                           s = 6,
+        #                           linewidth = 0, 
+        #                           zorder = 1,
+        #                           alpha = 0.5)
         
-        # remove seaborn legend
-        ax_inset.legend().set_visible(False)
+        # # remove seaborn legend
+        # ax_inset.legend().set_visible(False)
         
-        # edit inset axis
-        # x        
-        ax_inset.set_xlim(xdict['ax_min'] - ((xdict['ax_max']-xdict['ax_min']) /100), xdict['ax_max'])
-        ax_inset.set_xticks(ticks=np.arange(xdict['ax_min'], xdict['ax_max'] + 1, xdict['step']), labels=[])
-        ax_inset.set_xlabel('')
+        # # edit inset axis
+        # # x        
+        # ax_inset.set_xlim(xdict['ax_min'] - ((xdict['ax_max']-xdict['ax_min']) /100), xdict['ax_max'])
+        # ax_inset.set_xticks(ticks=np.arange(xdict['ax_min'], xdict['ax_max'] + 1, xdict['step']), labels=[])
+        # ax_inset.set_xlabel('')
         
-        # y
-        ax_inset.set_ylim(ydict['ax_min'] - ((ydict['ax_max']-ydict['ax_min']) /100), ydict['ax_max'])
-        ax_inset.set_yticks(ticks=np.arange(ydict['ax_min'], ydict['ax_max'] + 1, ydict['step']), labels=[])
-        ax_inset.set_ylabel('')
+        # # y
+        # ax_inset.set_ylim(ydict['ax_min'] - ((ydict['ax_max']-ydict['ax_min']) /100), ydict['ax_max'])
+        # ax_inset.set_yticks(ticks=np.arange(ydict['ax_min'], ydict['ax_max'] + 1, ydict['step']), labels=[])
+        # ax_inset.set_ylabel('')
         
-        # tick parameters
-        ax_inset.tick_params('both', length=1.5, which='major')
+        # # tick parameters
+        # ax_inset.tick_params('both', length=1.5, which='major')
 
-        # remove top and right spines
-        [ax_inset.spines[spine].set_visible(False) for spine in ['top', 'right']]
+        # # remove top and right spines
+        # [ax_inset.spines[spine].set_visible(False) for spine in ['top', 'right']]
 
 # axis labels
 fig.supylabel('Critical radius [µm]',

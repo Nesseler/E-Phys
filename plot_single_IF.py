@@ -105,7 +105,7 @@ from functions.initialize_plotting import *
 # %% load
 
 # 223, 276, 300, 315
-cell_IDs = ['E-230']
+cell_IDs = ['E-317']
 
 for cell_ID in tqdm(cell_IDs):
 
@@ -154,9 +154,9 @@ for cell_ID in tqdm(cell_IDs):
 # %%
 cell_ID
 t = t_full
-v = v_full[::4]
-i = i_calc[::4]
-i_input = i_input[::4]
+v = v_full[::6]
+i = i_calc[::6]
+i_input = i_input[::6]
 gradient = True
 
 # %%

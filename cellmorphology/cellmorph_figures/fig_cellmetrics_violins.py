@@ -72,10 +72,21 @@ fig, axs = plt.subplots(nrows=1,
 # flatten axes array
 axs = axs.flatten()
 
+# create dict for axis titles 
+axs_titles = {'total_cable_length'  : '$\mathregular{F_{iii}}$', 
+              'n_primary'           : '$\mathregular{F_{iv}}$', 
+              'n_terminal'          : '$\mathregular{F_{v}}$', 
+              'bifurcation_ratio'   : '$\mathregular{F_{vi}}$'}
+    
+
+
 for m_idx, metric in enumerate(metrics):
     
     # set axis
     ax = axs[m_idx]
+    
+    # set axis title
+    ax.set_title(axs_titles[metric], fontsize=14, loc='left')
     
     for n_idx, ntype in enumerate(['dendrites', 'axons']):
         

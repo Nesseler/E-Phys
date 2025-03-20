@@ -48,13 +48,19 @@ fig, axs = plt.subplots(nrows=2,
 # flatten axes array
 axs = axs.flatten()
 
+# create dict for axis titles 
+axs_titles = {'total_cable_length'  : '$\mathregular{F_{iii}}$', 
+              'n_primary'           : '$\mathregular{F_{iv}}$', 
+              'n_terminal'          : '$\mathregular{F_{v}}$', 
+              'bifurcation_ratio'   : '$\mathregular{F_{vi}}$'}
+
 # set titles
-axis_titles = {0: 'BAOT',
-               2: 'MeA',
-               4: 'Dendrites',
-               5: 'Axons',
-               6: 'Dendrites',
-               7: 'Axons'}
+axis_titles = {0: '$\mathregular{H_{v}}$: BAOT',
+               2: '$\mathregular{H_{vi}}$: MeA',
+               4: '$\mathregular{H_{vii}}$: Dendrites',
+               5: '$\mathregular{H_{viii}}$: Axons',
+               6: '$\mathregular{H_{ix}}$: Dendrites',
+               7: '$\mathregular{H_{x}}$: Axons'}
 
 # stacked and normed to all
 for r_idx, region in enumerate(regions):
@@ -71,7 +77,8 @@ for r_idx, region in enumerate(regions):
     # subplot title
     ax.set_title(axis_titles[plot_idx], 
                  fontsize = 14, 
-                 loc='left')
+                 loc='left',
+                 x = -0.13)
     
     # define bottom for stack histogram
     bottom = [0]*n_bins
@@ -137,7 +144,8 @@ for r_idx, region in enumerate(regions):
         # subplot title
         ax.set_title(axis_titles[plot_idx], 
                      fontsize = 14, 
-                     loc='left')
+                     loc='left',
+                     x = -0.13)
         
         # get occurances
         hist_angles_occu = population_orientation.loc[f'{ntype}-{region}-norm_totype']

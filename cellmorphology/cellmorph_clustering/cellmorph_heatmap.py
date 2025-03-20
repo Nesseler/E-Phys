@@ -308,7 +308,10 @@ for ax_empty in [axs_clustering[2], axs_clustering[8]]:
     ax_empty.set_xticks([])
 
 # set title for subplots
-ax_titles = ['A', 'B', 'C', 'D']
+ax_titles = ['$\mathregular{J_{i}}$', 
+             '$\mathregular{J_{ii}}$', 
+             '$\mathregular{J_{iii}}$',
+             '$\mathregular{J_{iv}}$']
 
 for ax_idx, t_idx in zip([0, 1, 3, 9], [0, 1, 2, 3]):
     axs_clustering[ax_idx].set_title(ax_titles[t_idx],

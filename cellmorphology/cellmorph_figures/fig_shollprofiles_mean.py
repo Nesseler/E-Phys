@@ -73,11 +73,11 @@ axs_keys = {'BAOT': 'B', 'MeA': 'C'}
 line_dict = {'lw': 1, 'alpha': 1}
 
 # set labels for subplots
-axs_titles = {'MeA' : 'B: MeA',
-              'BAOT': 'A: BAOT',
-              'neurites' : '$\mathregular{C_{i}}$: Neurites',
-              'dendrites' : '$\mathregular{C_{i}}$: Dendrites',
-              'axons' : '$\mathregular{C_{ii}}$: Axons'}
+axs_titles = {'MeA' : '$\mathregular{G_{iv}}$: MeA',
+              'BAOT': '$\mathregular{G_{iii}}$: BAOT',
+              'neurites' : '$\mathregular{G_{i}}$: Neurites',
+              'dendrites' : '$\mathregular{G_{v}}$: Dendrites',
+              'axons' : '$\mathregular{G_{vi}}$: Axons'}
 
 # plot all profiles together
 for region in regions:
@@ -120,17 +120,19 @@ for region in regions:
               frameon = False,
               title = 'Neurite types',
               title_fontsize = 14)
-
+    
     # y
-    ymin = 0
-    ymax = 20
-    ystep = 5
-    ystepminor = 1
-    ax.set_ylim(ymin, ymax)
-    ax.set_yticks(ticks=np.arange(ymin, ymax + ystep, ystep))
-    ax.set_yticks(ticks=np.arange(
-        ymin, ymax + ystepminor, ystepminor), minor=True)
-
+    ydict = {'ax_min' : 0,
+             'ax_max' : 20,
+             'pad' : None,
+             'step' : 5,
+             'stepminor' : 1,
+             'label' : '',
+             'pad_factor' : 0.02}
+    
+    apply_axis_settings(ax, axis = 'y', **ydict)
+    
+    # remove spines
     [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
 
 
@@ -168,15 +170,17 @@ for neurite_type in ['dendrites']:
     ax = axs_sholl[axs_keys_neurites[neurite_type]]
 
     # y
-    ymin = 0
-    ymax = 15
-    ystep = 15
-    ystepminor = 5
-    ax.set_ylim(ymin, ymax)
-    ax.set_yticks(ticks=np.arange(ymin, ymax + ystep, ystep))
-    ax.set_yticks(ticks=np.arange(
-        ymin, ymax + ystepminor, ystepminor), minor=True)
-
+    ydict = {'ax_min' : 0,
+             'ax_max' : 15,
+             'pad' : None,
+             'step' : 15,
+             'stepminor' : 5,
+             'label' : '',
+             'pad_factor' : 0.02}
+    
+    apply_axis_settings(ax, axis = 'y', **ydict)
+    
+    # remove spines
     [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
 
 
@@ -186,16 +190,19 @@ for neurite_type in ['axons']:
     ax = axs_sholl[axs_keys_neurites[neurite_type]]
 
     # y
-    ymin = 0
-    ymax = 4
-    ystep = 4
-    ystepminor = 1
-    ax.set_ylim(ymin, ymax)
-    ax.set_yticks(ticks=np.arange(ymin, ymax + ystep, ystep))
-    ax.set_yticks(ticks=np.arange(
-        ymin, ymax + ystepminor, ystepminor), minor=True)
-
+    ydict = {'ax_min' : 0,
+             'ax_max' : 4,
+             'pad' : None,
+             'step' : 4,
+             'stepminor' : 1,
+             'label' : '',
+             'pad_factor' : 0.02}
+    
+    apply_axis_settings(ax, axis = 'y', **ydict)
+    
+    # remove spines
     [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
+    
 
 
 # set all x axis
@@ -203,16 +210,15 @@ for key in ['B', 'C', 'E', 'F']:
     # set axis
     ax = axs_sholl[key]
 
-    # x
-    xmin = 0
-    xmax = 400
-    xstep = 100
-    xstepminor = 25
-    ax.set_xlim(xmin-10, xmax-10)
-    ax.set_xticks(ticks=np.arange(xmin, xmax + 1, xstep))
-    ax.set_xticks(ticks=np.arange(
-        xmin, xmax + ystepminor, xstepminor), minor=True)
-    ax.spines['bottom'].set_bounds([xmin, xmax])
+    # x  
+    xdict = {'ax_min' : 0,
+             'ax_max' : 400,
+             'pad' : 4,
+             'step' : 100,
+             'stepminor' : 25,
+             'label' : ''}
+    
+    apply_axis_settings(ax, axis = 'x', **xdict)
 
 
 # axis labels

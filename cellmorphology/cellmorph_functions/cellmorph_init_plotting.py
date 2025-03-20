@@ -19,8 +19,8 @@ import seaborn as sbn
 from functions.functions_plotting import save_figures, get_figure_size, apply_axis_settings, plot_half_violin, remove_spines_n_ticks, change_projection, simple_beeswarm
 
 # set colors for regions
-region_colors = {'BAOT'     : '#B10318',
-                 'MeA'      : '#FB473E',
+region_colors = {'BAOT'     : '#7A66FC', # 7A66FC
+                 'MeA'      : '#FFAD0A', #  FB473E
                  'BAOT/MeA' : 'gray'}
 
 # colors for neurites, dendrites, axons 
