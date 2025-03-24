@@ -136,9 +136,10 @@ for m_idx, metric in enumerate(metrics):
                         fmt='_', 
                         markersize = 6,
                         markerfacecolor = 'none',
+                        markeredgewidth = 1.5,
                         capsize = 2,
                         color = neurite_color_dict[region][ntype],
-                        linewidth = 1,
+                        linewidth = 1.5,
                         label = '_nolegend_',
                         zorder = 3)
             
@@ -148,7 +149,7 @@ for m_idx, metric in enumerate(metrics):
                        marker='D', 
                        s = 5,
                        color = neurite_color_dict[region][ntype],
-                       linewidth = 1,
+                       linewidth = 1.5,
                        label = '_nolegend_',
                        zorder = 4)
             
