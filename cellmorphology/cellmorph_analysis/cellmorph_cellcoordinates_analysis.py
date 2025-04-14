@@ -54,7 +54,7 @@ if len(cellIDs_toAnalyze) == 0:
 # cellIDs_toAnalyze = ['E-217', 'E-218', 'E-219', 'E-222', 'E-238', 'E-239', 'E-240', 'E-242', 'E-243', 'E-244', 'E-245', 'E-236', 'E-277', 'E-280', 'E-284', 'E-290', 'E-292', 'E-296', 'E-297']
 # cellIDs_toAnalyze = ['E-089', 'E-096', 'E-111', 'E-137', 'E-147', 'E-162']
 
-cellIDs_toAnalyze = ['E-089', 'E-137'] # BAOT
+# cellIDs_toAnalyze = ['E-089', 'E-137'] # BAOT
 # cellIDs_toAnalyze = ['E-096', 'E-111', 'E-147', 'E-162'] # MeA
 # cellIDs_toAnalyze = cell_IDs
 
@@ -638,50 +638,50 @@ export_vars = {'height_width_depth' : height_width_depth,
 
 export_extension = '.xlsx'
 
-# # iterate through export variables
-# for export_name, export_var in export_vars.items():
+# iterate through export variables
+for export_name, export_var in export_vars.items():
     
-#     # get rows and cols
-#     rows = export_var.index.to_list()
-#     cols = export_var.columns.to_list()
+    # get rows and cols
+    rows = export_var.index.to_list()
+    cols = export_var.columns.to_list()
 
-#     # try loading and writing or create new file
-#     try:
-#         loaded_export_var = pd.read_excel(join(cellmorph_metrics_dir, export_name + export_extension),
-#                                           index_col = 'cell_ID')
+    # try loading and writing or create new file
+    try:
+        loaded_export_var = pd.read_excel(join(cellmorph_metrics_dir, export_name + export_extension),
+                                          index_col = 'cell_ID')
       
-#         try:
-#             # combine both dataframes
-#             loaded_export_var.loc[rows, cols] = export_var.loc[rows, cols].values
+        try:
+            # combine both dataframes
+            loaded_export_var.loc[rows, cols] = export_var.loc[rows, cols].values
     
-#         # if values not yet in file, append/concat new values
-#         except KeyError:
-#             loaded_export_var = pd.concat([loaded_export_var, export_var.loc[rows, cols]], axis = 0)
+        # if values not yet in file, append/concat new values
+        except KeyError:
+            loaded_export_var = pd.concat([loaded_export_var, export_var.loc[rows, cols]], axis = 0)
                 
-#         # sort by index
-#         loaded_export_var.sort_index(inplace = True)
+        # sort by index
+        loaded_export_var.sort_index(inplace = True)
         
-#         # save activity dataframe
-#         loaded_export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
-#                                     index_label = 'cell_ID')
+        # save activity dataframe
+        loaded_export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
+                                    index_label = 'cell_ID')
     
-#     except FileNotFoundError:
-#         # save activity dataframe
-#         export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
-#                             index_label = 'cell_ID')
+    except FileNotFoundError:
+        # save activity dataframe
+        export_var.to_excel(join(cellmorph_metrics_dir, export_name + export_extension), 
+                            index_label = 'cell_ID')
 
 # %% update analyzed cells
 
-# from functions.update_database import update_analyzed_sheet
+from functions.update_database import update_analyzed_sheet
     
-# update_analyzed_sheet(cellIDs_toAnalyze, PGF = 'cellmorpho_cellcoordinates')
+update_analyzed_sheet(cellIDs_toAnalyze, PGF = 'cellmorpho_cellcoordinates')
 
 
 # %% calc population orientation
 
 # re-load orientations dataframe to include all cells
 orientations = pd.read_excel(join(cellmorph_metrics_dir, 'orientations.xlsx'),
-                             index_col = 'cell_ID')
+                              index_col = 'cell_ID')
 
 # initialize dataframe for populations
 population_orientation = pd.DataFrame(columns = orientation_labels,
@@ -732,8 +732,8 @@ for region in ['BAOT', 'MeA']:
         population_orientation.loc[f'{ntype}-{region}-norm_toall', :] = occu_norm_toall.to_list()
         
 # save dataframe
-# population_orientation.to_excel(join(cellmorph_metrics_dir, 'population_orientation.xlsx'), 
-#                                 index_label = 'ntype-region-measure')
+population_orientation.to_excel(join(cellmorph_metrics_dir, 'population_orientation.xlsx'), 
+                                index_label = 'ntype-region-measure')
 
 
 # %% calc population circular stats

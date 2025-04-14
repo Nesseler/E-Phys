@@ -40,7 +40,7 @@ colors_dict = {True  : {'primecolor' : 'w',
                         'seccolor'   : 'w'}}
 
 # set colors
-darkmode_bool = True
+darkmode_bool = False
 
 # reset color dict based on darkmode bool
 colors_dict = colors_dict[darkmode_bool]
@@ -55,4 +55,4 @@ elif not darkmode_bool:
     primecolor = 'k'
     
 # set font size
-mtl.rcParams.update({'font.size': 14, 'font.family' : 'Arial'})
+mtl.rcParams.update({'font.size': 12, 'font.family' : 'Arial'})
