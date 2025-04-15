@@ -1,35 +1,27 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Thu Oct 26 14:02:40 2023
+Updated on Tue Apr 15 2025
 
 @author: moritznesseler
 """
 
-import warnings
-warnings.warn('Script not up-to-date!')
-# %%
-
-import pandas as pd
-import numpy as np
-import os.path
-import scipy as sc
-import warnings
-from tqdm import tqdm
+from functions.initialize_packages import *
 
 # custom directories & parameters
 from parameters.directories_win import cell_descrip_dir
 from parameters.parameters import min_peak_prominence, min_peak_distance
 
 # custom functions
-from functions.functions_useful import butter_filter, calc_time_series, calc_dvdt_padded
+from functions.functions_filter import butter_filter
+from functions.functions_useful import calc_time_series, calc_dvdt_padded
 from functions.functions_import import get_cc_data, get_traceIndex_n_file
 from functions.get_cell_IDs import get_cell_IDs_one_protocol
 
 
 # define protocol
 PGF = 'cc_rest'
-sheet_name = 'PGFs_Syn'
+sheet_name = 'PGFs'
 
 # get all cell_IDs for cc_rest
 cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = sheet_name)
@@ -37,15 +29,21 @@ cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = sheet_name)
 # get number of cells
 n_cells = len(cell_IDs)
 
-# init plotting
-from functions.initialize_plotting import * # analysis:ignore
-
 # define output
 activity_df = pd.DataFrame(index = cell_IDs, columns = ['v_rest', 'n_spikes', 't_spikes'])
 
+
+# %% initialize plotting and verificaiton plots
+
+# init plotting
+from functions.initialize_plotting import *
+
 # verification plots
 vplots = True
-
+if vplots:
+    # load plotting functions
+    from analysis.analysis_celldescrip_Syn.plot_analyze_cc_rest_syn import create_cc_rest_vplot
+    
 
 # %% data loading
 
@@ -84,6 +82,7 @@ for cell_idx, cell_ID in enumerate(tqdm(cell_IDs)):
     vf_df[cell_ID] = vf
     SR_df.at[cell_ID, 'SR'] = SR
     
+    
 # %%
 
 # check if all protocols have the same sampling rate
@@ -97,8 +96,6 @@ else:
 
 
 print('calc...')
-
-# cell_ID = 'E-247'
 
 for cell_ID in tqdm(cell_IDs):
 
@@ -146,16 +143,11 @@ for cell_ID in tqdm(cell_IDs):
             spike_idc, _, _, _ = extract_spike(t = t_ms, 
                                                v = vf_df[cell_ID].to_numpy(), 
                                                dvdt = dvdt, 
-                                               idx_peak = spike_idx,
-                                               dvdt_n_threshold=dvdt_n_threshold)
+                                               idx_peak = spike_idx)
         
             # replace spike values with nans
             vf_wo_spikes[spike_idc] = np.nan
-        
-        # if vplots:
-        #     plt.plot(vf, 'grey')
-        #     plt.plot(vf_wo_spikes, colors_dict['primecolor'])
-    
+
         # calc v_rest as mean over trace
         v_rest = np.nanmean(vf_wo_spikes)
         
@@ -163,9 +155,21 @@ for cell_ID in tqdm(cell_IDs):
         # calc v_rest as mean over trace
         v_rest = np.mean(vf)
         
+        # set vf_wo_spikes
+        vf_wo_spikes = np.full_like(vf, np.nan)
+        
     # write to dataframe
     activity_df.at[cell_ID, 'v_rest'] = v_rest
     
+            
+    # create verification plot
+    if vplots:
+        create_cc_rest_vplot(cell_ID, 
+                             t, 
+                             vf, 
+                             vf_wo_spikes, 
+                             t_spikes, 
+                             v_rest)
 
 
 # %% create dict with all, active and non-active cells
@@ -176,10 +180,21 @@ activity_df['activity'] = 'silent'
 # change activity value of spiking cells with n_spike > 0 to 'spiking'
 activity_df.loc[activity_df['n_spikes'] > 0, 'activity'] = 'spiking'
 
-# save activity dataframe to quant data folder
-activity_df.to_excel(os.path.join(cell_descrip_dir, 'cc_rest-Syn-activity.xlsx'), index_label='cell_ID')
+
+# %% saving
+
+# save activity dataframe
+activity_df.to_excel(join(cell_descrip_dir, 'cc_rest-activity.xlsx'), 
+                      index_label='cell_ID')
 
 
-print('Finished!')
+# %% update analyzed cells
 
+from functions.update_database import update_analyzed_sheet
+    
+update_analyzed_sheet(cell_IDs, PGF = PGF)
+
+
+
+    
 

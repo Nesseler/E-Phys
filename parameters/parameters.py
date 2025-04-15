@@ -28,6 +28,7 @@ AP_parameters = ['v_peaks',
                   't1_HM',
                   't2_HM']
 
+
 # %% cc_IF
 
 # spikes
@@ -63,6 +64,7 @@ v_expfit_thresh = -117
 
 # t_expo_fit = 150. #ms
 
+
 # %% cc_sag
 
 # holding voltage
@@ -73,6 +75,7 @@ min_potential_for_sag = -130 # mV
 
 # time period of step for steady-state (in percent of step)
 perc_step_steadystate = 0.1
+
 
 # %% cc_APs
 

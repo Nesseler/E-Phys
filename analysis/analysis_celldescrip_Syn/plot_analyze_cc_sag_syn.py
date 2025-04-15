@@ -184,14 +184,17 @@ def plot_passive_props_calc(cell_ID, t_full, v_full, t_stim, v_stim, passive_pro
              'stepminor' : 5,
              'label' : ''}
     
+    # set plot index
+    panel_idx = 0
+    
     # iterate through useable steps
-    for step in np.arange(1, 7, dtype = int):
+    for step in passive_props_calcs.index.to_list():
         
         # flatten axes array
         axs = axs.flatten()
         
         # set axis
-        ax = axs[step-1]
+        ax = axs[panel_idx]
         
         # set axis title
         ax.set_title(f'step {step}',
@@ -291,6 +294,9 @@ def plot_passive_props_calc(cell_ID, t_full, v_full, t_stim, v_stim, passive_pro
                     s = f'r_input: {round(passive_props_calcs.at[step, "r_input"], 2)} MOhm\ntau_mem: {round(passive_props_calcs.at[step, "tau_mem"], 2)} ms\nc_mem: {round(passive_props_calcs.at[step, "c_mem"], 2)} pF\n$r^2$: {round(passive_props_calcs.at[step, "r_squared"], 4)}\npopt0: {round(popt[0], 3)}\npopt1: {round(popt[1], 5)}\npopt2: {round(popt[2], 3)}',
                     ha = 'right', va = 'bottom',
                     fontsize = 3)
+            
+            # iterate subplot index
+            panel_idx += 1
         
     [apply_axis_settings(ax, axis = 'x', **xdict) for ax in axs]
     

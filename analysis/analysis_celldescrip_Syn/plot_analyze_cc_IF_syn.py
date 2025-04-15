@@ -227,7 +227,7 @@ def plot_rheobase(cell_ID, idx_rheo, t, v, dvdt, rheospike_t, rheospike_v, rheos
     fig, axs = plt.subplots(nrows = 1,
                             ncols = 2,
                             layout = 'constrained',
-                            figsize = get_figure_size(),
+                            figsize = get_figure_size(width = 180, height = 100),
                             dpi = 300)
     
     # set axis

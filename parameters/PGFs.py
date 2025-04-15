@@ -64,7 +64,10 @@ cc_IF_parameters = {'t_pre' : 250, #ms
                     't_post' : 250, #ms
                     'i_delta' : 5, #pA
                     'i_start' : -50, #pA
-                    'max_n_steps' : 71}
+                    'max_n_steps' : 71,
+                    't' : np.arange(0, 1500, 1 / (50000/1e3)),
+                    'SR' : 50000,
+                    'idc_stim' : np.arange(250 * (50000/1e3), (1000 + 250) * (50000/1e3), dtype = int)}
 
 cc_IF_syn_parameters = {'t_pre' : 250, #ms
                         't_stim' : 1000, #ms
@@ -78,7 +81,6 @@ cc_IF_syn_parameters = {'t_pre' : 250, #ms
 cc_sag_parameters = {'t_pre' : 250, #ms
                      't_stim' : 1000, #ms
                      't_post' : 250, #ms
-                     'i_delta' : 10, #pA
                      'i_start' : -100, #pA
                      'max_n_steps' : 21,
                      'v_hold_pre' : -85, #mV

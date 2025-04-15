@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jan 28 15:27:42 2025
+Created on Wed Feb 21 09:16:29 2024
+Updated on Tue Apr 15 2025
 
 @author: nesseler
 """
+
 # import standard packages
 from functions.initialize_packages import *
 
 # custom directories & parameters
-from parameters.directories_win import cell_descrip_syn_dir
+from parameters.directories_win import cell_descrip_dir
 
 # spike detection
 from parameters.parameters import min_peak_prominence, min_peak_distance, min_max_peak_width
@@ -16,30 +18,38 @@ from parameters.parameters import min_peak_prominence, min_peak_distance, min_ma
 # IF characteristation
 from parameters.parameters import t_init_inst_freq
 
+# sag characteristation
+from parameters.parameters import popt_guess, r_squared_thresh, v_expfit_thresh
+
 
 # custom functions
 from functions.get_cell_IDs import get_cell_IDs_one_protocol
 from functions.functions_import import get_cc_data, get_traceIndex_n_file
 from functions.functions_filter import merge_filter_split_steps
-from functions.functions_useful import calc_dvdt_padded
+from functions.functions_useful import calc_dvdt_padded, exp_func, calc_rsquared_from_exp_fit
 from functions.functions_extractspike import get_AP_parameters, extract_spike, get_spiketrain_n_ISI_parameter
 
 # PGF specific
-from parameters.PGFs import cc_IF_syn_parameters as PGF_parameters
+from parameters.PGFs import cc_IF_parameters as PGF_parameters
 t = PGF_parameters['t']
 SR = PGF_parameters['SR']
     
 
 # define protocol
 PGF = 'cc_IF'
-sheet_name = 'PGFs_Syn'
+sheet_name = 'PGFs'
 
 # get all cell_IDs for cc_rest
 cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = sheet_name)
 
-        
+
 # %% define output
 
+# passive properties
+passive_properties = pd.DataFrame(columns=['r_input', 'tau_mem', 'c_mem'], 
+                                  index = cell_IDs)
+
+# IF relationship
 IF           = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 1000, 1, int))
 IF_inst      = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 1000, 1, int))
 IF_inst_init = pd.DataFrame(columns=cell_IDs, index = np.arange(-100, 1000, 1, int))
@@ -60,27 +70,8 @@ IF_rheobase = pd.DataFrame(columns = ['rheobase_abs', 'rheobase_rel'],
 adaptation = pd.DataFrame(index = cell_IDs)
 
 # set index label
-for df in [IF_dict, IF_rheobase, adaptation]:
+for df in [IF_dict, IF_rheobase, adaptation, passive_properties]:
     df.index.name = 'cell_ID'
-
-
-# %% check for new cells to be analyzed
-
-# load anaylsis worksheet
-from parameters.directories_win import table_file
-analyzed = pd.read_excel(table_file,
-                         sheet_name = 'analyzed',
-                         index_col = 'cell_ID')
-
-# get list of cell_IDs already analyzed
-analyzed_cell_IDs = analyzed.loc[analyzed[PGF].notna()][PGF].index.to_list()
-
-# redefine cell_IDs list
-cell_IDs = [cell_ID for cell_ID in cell_IDs if cell_ID not in analyzed_cell_IDs]
-
-# raise error
-if len(cell_IDs) == 0:
-    raise ValueError('Nothing new to analyze!')
 
 
 # %% initialize plotting and verification plots
@@ -93,14 +84,16 @@ vplots = True
 if vplots:
     # load plotting functions
     from analysis.analysis_celldescrip_Syn.plot_analyze_cc_IF_syn import plot_full_IF, plot_IF_step_spike_detection, plot_rheobase, plot_adaptation
+    from analysis.analysis_celldescrip_Syn.plot_analyze_cc_sag_syn import plot_passive_props_calc, plot_sag_n_reboundspikes
 
-    
-# %% load
 
-# 223, 276, 300, 315
-# cell_IDs = ['E-280']
+# %% analysis
+
+# cell_IDs = ['E-117']
 
 for cell_ID in tqdm(cell_IDs):
+    
+    # %% load
 
     # load IF protocol
     # get the traceIndex and the file path string for data import functions
@@ -115,11 +108,6 @@ for cell_ID in tqdm(cell_IDs):
     # limit time and voltage to stimulation period
     idc_stim = PGF_parameters['idc_stim']
     
-    # add 100 ms after stimulation period to include APs at the end of the step
-    t_additional = 50 #ms
-    idc_additional = np.arange(idc_stim[-1] +1, idc_stim[-1] +1 + (t_additional * (SR/1e3)), dtype = int)
-    idc_stim = np.append(idc_stim, idc_additional)
-    
     v_full = np.copy(v)
     t_full = np.copy(t)
     v_stim = v_full[:, idc_stim]
@@ -133,7 +121,7 @@ for cell_ID in tqdm(cell_IDs):
                                         parameters = PGF_parameters)
     
     # get i_hold
-    i_hold = i_input[0]
+    i_hold = i_calc[0][0]
     
     if vplots:
         plot_full_IF(cell_ID, 
@@ -141,12 +129,140 @@ for cell_ID in tqdm(cell_IDs):
                      v = v_full, 
                      i = i_calc, 
                      i_input = i_input)
+
+
+    # %% passive properties
+
+    # find step closest to I_hold (0 rel input)
+    i_closest_2_hold = min(i_input, key=lambda x:abs(x-i_hold))
+    
+    # find index
+    stepidx_hold = list(i_input).index(i_closest_2_hold)
+
+    passive_props_calcs_steps = pd.DataFrame(columns = ['r_input', 'tau_mem', 'c_mem', 'v_min', 'idx_vmin', 't_vmin', 'popt', 'r_squared', 'useable'],
+                                             index = np.arange(stepidx_hold, 0, -1, dtype = int))
+    
+    for step in np.arange(stepidx_hold-1, 0, -1, dtype = int):
+    
+        # define idc for pre & post time period
+        idc_pre  = np.arange(50 * (SR/1e3), 200 * (SR/1e3), dtype = int)
+        idc_post = np.arange(300 * (SR/1e3), 1200 * (SR/1e3), dtype = int)
+    
+        # get v and i pre
+        v_pre = np.mean(v_full[step][idc_pre])
+        i_pre = np.mean(i[step][idc_pre])
+        
+        # get i post
+        i_post = np.mean(i[step][idc_post])
+        
+        # calc i_delta
+        delta_i = np.absolute(i_post - i_pre)
+           
+        # find minimum and its index in step
+        v_min = np.min(v_stim[step])
+        idx_vmin = np.argmin(v_stim[step])
+        t_vmin = (idx_vmin / (SR / 1e3)) + PGF_parameters['t_pre']
+        
+        # get delta v guess
+        delta_vguess = np.absolute(v_min - v_pre)
+        
+        # limit voltage trace until minimum
+        v_expfit = v_stim[step][:idx_vmin]
+        
+        # create x dimension for fit
+        x_expFit = np.arange(0, len(v_expfit))
+    
+        # # fit exponential curve
+        popt, pcov = sc.optimize.curve_fit(exp_func, x_expFit, v_expfit, p0 = [delta_vguess, *popt_guess[1:]], maxfev = 5000)
+    
+        # get r_squared as goodness of fit
+        r_squared = calc_rsquared_from_exp_fit(x_expFit, v_expfit, popt)
+        
+        # get delta v from fit of exponential curve
+        delta_v = popt[0]
+        
+        # calc voltage after hyperpolarisation from fit
+        v_post_expfit = exp_func(30000, *popt)
+
+
+        ### INPUT RESISTANCE    
+        # U = R * I -> R = ΔU / ΔI
+    
+        # calculate r input in MOhm
+        r_input = (delta_v / delta_i) * 1e3
         
         
-# %% spike detection
+        ### MEMBRANE TIME CONSTANT
+        # tau_mem
+        # time it takes the potential to reach 1 - (1/e) (~63%) of the max voltage
+    
+        # calc 1 - 1/e
+        tau_perc_value = 1-(1/np.exp(1))
+        
+        # calc max voltage delta
+        delta_v_63 = delta_v * tau_perc_value
+        
+        # calc 63 % of max voltage
+        v_tau = v_pre + delta_v_63
+        
+        # calc time (indices first) it takes to reach v_tau
+        idx_63 = - (np.log((v_tau - popt[2]) / (popt[0]))) / (popt[1])
+        tau_mem = - idx_63 / (SR / 1e3) 
+        
+        
+        ### MEMBRANE CAPACITANCE
+        # c_mem = tau_mem / r_input in pF
+        c_mem = (tau_mem / r_input) * 1e3
+        
+        
+        # set step as useable for passive properties or not
+        useable_step = 1
+        
+        if r_squared < r_squared_thresh:
+            useable_step = 0
+        elif v_post_expfit < v_expfit_thresh:
+            useable_step = 0
+        
+        # write measurements to dataframe
+        passive_props_calcs_steps.loc[step, :] = [r_input, tau_mem, c_mem, v_min, idx_vmin, t_vmin, popt, r_squared, useable_step]
+        
+    # get first 3 useful steps
+    passive_props_calcs = passive_props_calcs_steps.query('useable == 1').head(3)
+    
+    # raise warning if less than three steps are usable
+    if passive_props_calcs.shape[0] < 3:
+        warnings.warn(f'{cell_ID} used less than 3 hyperpolarising steps for passive properties!')
+
+    # get passive properties as means of first 3 useable steps
+    passive_properties.at[cell_ID, 'r_input'] = passive_props_calcs['r_input'].mean()
+    passive_properties.at[cell_ID, 'tau_mem'] = passive_props_calcs['tau_mem'].mean()
+    passive_properties.at[cell_ID, 'c_mem']   = passive_props_calcs['c_mem'].mean()
+    
+    if vplots:
+        plot_passive_props_calc(cell_ID,
+                                t_full,
+                                v_full,
+                                t_stim,
+                                v_stim,
+                                passive_props_calcs,
+                                SR)
+
+
+    # %% active properties
+    
+    # add 100 ms after stimulation period to include APs at the end of the step
+    t_additional = 50 #ms
+    idc_additional = np.arange(idc_stim[-1] +1, idc_stim[-1] +1 + (t_additional * (SR/1e3)), dtype = int)
+    idc_stim = np.append(idc_stim, idc_additional)
+    
+    # redefine traces in stimulation period
+    v_stim = v_full[:, idc_stim]
+    t_stim = t_full[idc_stim]
+    
+    
+    # %% spike detection
 
     # iterate through steps
-    
     for step in range(n_steps):
         
         # define voltage trace for step
@@ -210,7 +326,7 @@ for cell_ID in tqdm(cell_IDs):
         IF_inst.at[i_step_rel, cell_ID] = inst_freq
         IF_inst_init.at[i_step_rel, cell_ID] = init_inst_freq
         
-        if vplots:
+        if False:
             plot_IF_step_spike_detection(cell_ID,
                                          step, 
                                          t = t_stim,
@@ -218,8 +334,9 @@ for cell_ID in tqdm(cell_IDs):
                                          t_spikes = t_spikes,
                                          freq = freq,
                                          inst_freq = inst_freq,
-                                         init_inst_freq = init_inst_freq)
-    
+                                         init_inst_freq = init_inst_freq)    
+
+
     # %% rheobase
     
     # get rheobase step
@@ -436,22 +553,23 @@ for cell_ID in tqdm(cell_IDs):
 
 # %% saving
 
-# print('\nsaving...')
+export_vars = {'passive_properties' : passive_properties,
+               'IF' : IF, 
+               'IF_inst' : IF_inst, 
+               'IF_inst_init' : IF_inst_init,
+               'IF_dict' : IF_dict, 
+               'IF_rheobase' : IF_rheobase, 
+               'adaptation' : adaptation}
 
-# tobe saved
-export_vars = {'IF' : IF, 
-                'IF_inst' : IF_inst, 
-                'IF_inst_init' : IF_inst_init,
-                'IF_dict' : IF_dict, 
-                'IF_rheobase' : IF_rheobase, 
-                'adaptation' : adaptation}
-
-export_prefix = 'cc_IF-syn-'
-
-# get export function
-from functions.functions_export import write_exportvars_to_excel
-
-write_exportvars_to_excel(export_vars, export_prefix)
+# iterate through dataframes dict
+for export_name, export_var in export_vars.items():
+    
+    # get index label
+    index_label = export_var.index.name
+        
+    # export as excel file
+    export_var.to_excel(join(cell_descrip_dir, 'cc_IF-' + export_name + '.xlsx'), 
+                        index_label=index_label)
 
 
 # %% update analyzed cells
@@ -459,3 +577,7 @@ write_exportvars_to_excel(export_vars, export_prefix)
 from functions.update_database import update_analyzed_sheet
     
 update_analyzed_sheet(cell_IDs, PGF = PGF)
+
+
+
+

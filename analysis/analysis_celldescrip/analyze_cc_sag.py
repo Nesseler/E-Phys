@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Feb  3 11:38:16 2025
+Created on Mon Jun  3 09:42:29 2024
+Updated on Tue Apr 15 2025
 
 @author: nesseler
 """
@@ -9,7 +10,7 @@ Created on Mon Feb  3 11:38:16 2025
 from functions.initialize_packages import *
 
 # custom directories & parameters
-from parameters.directories_win import cell_descrip_syn_dir
+from parameters.directories_win import cell_descrip_dir
 
 # custom functions
 from functions.get_cell_IDs import get_cell_IDs_one_protocol
@@ -19,7 +20,7 @@ from functions.functions_useful import calc_dvdt_padded, exp_func, calc_rsquared
 from functions.functions_extractspike import extract_spike, get_AP_parameters
 
 # PGF specific
-from parameters.PGFs import cc_sag_syn_parameters as PGF_parameters
+from parameters.PGFs import cc_sag_parameters as PGF_parameters
 t = PGF_parameters['t']
 SR = PGF_parameters['SR']
 
@@ -28,18 +29,13 @@ from parameters.parameters import popt_guess, r_squared_thresh, v_expfit_thresh
 
 # define protocol
 PGF = 'cc_sag'
-sheet_name = 'PGFs_Syn'
+sheet_name = 'PGFs'
 
 # get all cell_IDs for cc_rest
 cell_IDs = get_cell_IDs_one_protocol(PGF = PGF, sheet_name = sheet_name)
 
-        
-# %% define output
 
-# passive properties
-passive_properties = pd.DataFrame(columns=['r_input', 'tau_mem', 'c_mem'], 
-                                  index = cell_IDs)
-passive_properties.index.name = 'cell_ID'
+# %% define output
 
 # sag properties
 sag_properties = pd.DataFrame(columns=['sagdelta', 
@@ -56,25 +52,6 @@ sag_properties = pd.DataFrame(columns=['sagdelta',
 sag_properties.index.name = 'cell_ID'
 
 
-# %% check for new cells to be analyzed
-
-# load anaylsis worksheet
-from parameters.directories_win import table_file
-analyzed = pd.read_excel(table_file,
-                          sheet_name = 'analyzed',
-                          index_col = 'cell_ID')
-
-# get list of cell_IDs already analyzed
-analyzed_cell_IDs = analyzed.loc[analyzed[PGF].notna()][PGF].index.to_list()
-
-# redefine cell_IDs list
-cell_IDs = [cell_ID for cell_ID in cell_IDs if cell_ID not in analyzed_cell_IDs]
-
-# raise error
-if len(cell_IDs) == 0:
-    raise ValueError('Nothing new to analyze!')
-
-
 # %% initialize plotting and verification plots
 
 # init plotting
@@ -86,15 +63,15 @@ if vplots:
     # load plotting functions
     from analysis.analysis_celldescrip_Syn.plot_analyze_cc_sag_syn import plot_full_sag, plot_passive_props_calc, plot_sag_n_reboundspikes
 
-  
-    
-# %% load
 
-# to check: E-231, 236, 248, 290, 213, 258
-# cell_IDs = ['E-214']
+# %% analysis
+
+# cell_IDs = ['E-183']
 
 for cell_ID in tqdm(cell_IDs):
-
+    
+    # %% load
+    
     # load IF protocol
     # get the traceIndex and the file path string for data import functions
     traceIndex, file_path = get_traceIndex_n_file(PGF, cell_ID, sheet_name = sheet_name)
@@ -126,122 +103,13 @@ for cell_ID in tqdm(cell_IDs):
                       v = v_full, 
                       i = i_calc, 
                       i_input = i_input)
-    
-    # %% passive properties
 
-    passive_props_calcs_steps = pd.DataFrame(columns = ['r_input', 'tau_mem', 'c_mem', 'v_min', 'idx_vmin', 't_vmin', 'popt', 'r_squared', 'useable'],
-                                             index = np.arange(1, n_steps, dtype = int))
-    
-    for step in np.arange(1, n_steps, dtype = int):
-    
-        # define idc for pre & post time period
-        idc_pre  = np.arange(50 * (SR/1e3), 200 * (SR/1e3), dtype = int)
-        idc_post = np.arange(300 * (SR/1e3), 1200 * (SR/1e3), dtype = int)
-    
-        # get v and i pre
-        v_pre = np.mean(v_full[step][idc_pre])
-        i_pre = np.mean(i[step][idc_pre])
-        
-        # get i post
-        i_post = np.mean(i[step][idc_post])
-        
-        # calc i_delta
-        delta_i = np.absolute(i_post - i_pre)
-           
-        # find minimum and its index in step
-        v_min = np.min(v_stim[step])
-        idx_vmin = np.argmin(v_stim[step])
-        t_vmin = (idx_vmin / (SR / 1e3)) + PGF_parameters['t_pre']
-        
-        # get delta v guess
-        delta_vguess = np.absolute(v_min - v_pre)
-        
-        # limit voltage trace until minimum
-        v_expfit = v_stim[step][:idx_vmin]
-        
-        # create x dimension for fit
-        x_expFit = np.arange(0, len(v_expfit))
-    
-        # # fit exponential curve
-        popt, pcov = sc.optimize.curve_fit(exp_func, x_expFit, v_expfit, p0 = [delta_vguess, *popt_guess[1:]], maxfev = 5000)
-    
-        # get r_squared as goodness of fit
-        r_squared = calc_rsquared_from_exp_fit(x_expFit, v_expfit, popt)
-        
-        # get delta v from fit of exponential curve
-        delta_v = popt[0]
-        
-        # calc voltage after hyperpolarisation from fit
-        v_post_expfit = exp_func(30000, *popt)
-    
-    
-        ### INPUT RESISTANCE    
-        # U = R * I -> R = ΔU / ΔI
-    
-        # calculate r input in MOhm
-        r_input = (delta_v / delta_i) * 1e3
-        
-        
-        ### MEMBRANE TIME CONSTANT
-        # tau_mem
-        # time it takes the potential to reach 1 - (1/e) (~63%) of the max voltage
-    
-        # calc 1 - 1/e
-        tau_perc_value = 1-(1/np.exp(1))
-        
-        # calc max voltage delta
-        delta_v_63 = delta_v * tau_perc_value
-        
-        # calc 63 % of max voltage
-        v_tau = v_pre + delta_v_63
-        
-        # calc time (indices first) it takes to reach v_tau
-        idx_63 = - (np.log((v_tau - popt[2]) / (popt[0]))) / (popt[1])
-        tau_mem = - idx_63 / (SR / 1e3) 
-        
-        
-        ### MEMBRANE CAPACITANCE
-        # c_mem = tau_mem / r_input in pF
-        c_mem = (tau_mem / r_input) * 1e3
-        
-        
-        # set step as useable for passive properties or not
-        useable_step = 1
-        
-        if r_squared < r_squared_thresh:
-            useable_step = 0
-        elif v_post_expfit < v_expfit_thresh:
-            useable_step = 0
-        
-        # write measurements to dataframe
-        passive_props_calcs_steps.loc[step, :] = [r_input, tau_mem, c_mem, v_min, idx_vmin, t_vmin, popt, r_squared, useable_step]
-        
-    # get first 3 useful steps
-    passive_props_calcs = passive_props_calcs_steps.query('useable == 1').head(3)
-    
-    # raise warning if less than three steps are usable
-    if passive_props_calcs.shape[0] < 3:
-        warnings.warn(f'{cell_ID} used less than 3 hyperpolarising steps for passive properties!')
 
-    # get passive properties as means of first 3 useable steps
-    passive_properties.at[cell_ID, 'r_input'] = passive_props_calcs['r_input'].mean()
-    passive_properties.at[cell_ID, 'tau_mem'] = passive_props_calcs['tau_mem'].mean()
-    passive_properties.at[cell_ID, 'c_mem']   = passive_props_calcs['c_mem'].mean()
-    
-    if vplots:
-        plot_passive_props_calc(cell_ID,
-                                t_full,
-                                v_full,
-                                t_stim,
-                                v_stim,
-                                passive_props_calcs,
-                                SR)
-        
     # %% sag potential 
 
     # sag deltas
     sagdeltas = pd.DataFrame(columns=['v_min', 't_vmin', 'sagdelta', 'v_steadystate'], 
-                             index = np.arange(1, n_steps, dtype = int))
+                             index = np.arange(0, n_steps, dtype = int))
     sagdeltas.index.name = 'step_idx'
 
     # steady state
@@ -251,11 +119,12 @@ for cell_ID in tqdm(cell_IDs):
     idc_steadystate = idc_stim[-(int(len(idc_stim)*perc_step_steadystate)):]
 
     # calculate sag delta for each step
-    for step in np.arange(1, n_steps, dtype = int):
+    for step in np.arange(0, n_steps, dtype = int):
         
-        # get vmin
-        v_min = passive_props_calcs_steps.at[step, 'v_min']
-        t_vmin = passive_props_calcs_steps.at[step, 't_vmin']
+        # find minimum and its index in step
+        v_min = np.min(v_stim[step])
+        idx_vmin = np.argmin(v_stim[step])
+        t_vmin = (idx_vmin / (SR / 1e3)) + PGF_parameters['t_pre']
         
         # get steady-state voltage
         v_steady = v_full[step][idc_steadystate]
@@ -280,7 +149,7 @@ for cell_ID in tqdm(cell_IDs):
     # delta_i_sag = (np.absolute(cc_sag_holding_potential - min_potential_for_sag) / r_input) *1e3 # pA
     
     # get first step where the local minimum of the step surpasses min_potential_for_sag
-    sag_step = sagdeltas[sagdeltas['v_min'] < min_potential_for_sag].index.values[0]
+    sag_step = sagdeltas[sagdeltas['v_min'] < min_potential_for_sag].index.values[-1]
 
     # get sagdelta
     sagdelta = sagdeltas.at[sag_step, 'sagdelta']
@@ -288,7 +157,7 @@ for cell_ID in tqdm(cell_IDs):
     # write to dataframe
     sag_properties.at[cell_ID, 'sagdelta'] = sagdelta
 
-    
+
     # %% reboundspike
 
     from parameters.parameters import min_peak_prominence, min_peak_distance, min_max_peak_width
@@ -357,26 +226,18 @@ for cell_ID in tqdm(cell_IDs):
                                  reboundspike_t, 
                                  reboundspike_v,
                                  reboundspike_dvdt)
-                                        
+        
     # save sagdeltas per cell
     from parameters.directories_win import quant_data_dir
     sagdeltas.to_excel(join(quant_data_dir, 'cc_sag-sagdeltas', f'{cell_ID}-sagdeltas.xlsx'),
                        index_label = 'step_idx')
-    
+
+
 # %% saving
 
-# print('\nsaving...')
-
-# tobe saved
-export_vars = {'sag_properties' : sag_properties,
-                'passive_properties' : passive_properties}
-
-export_prefix = 'cc_sag-syn-'
-
-# get export function
-from functions.functions_export import write_exportvars_to_excel
-
-write_exportvars_to_excel(export_vars, export_prefix)
+# save activity dataframe
+sag_properties.to_excel(join(cell_descrip_dir, 'cc_sag-sag_properties.xlsx'), 
+                        index_label='cell_ID')
 
 
 # %% update analyzed cells
@@ -384,3 +245,4 @@ write_exportvars_to_excel(export_vars, export_prefix)
 from functions.update_database import update_analyzed_sheet
     
 update_analyzed_sheet(cell_IDs, PGF = PGF)
+

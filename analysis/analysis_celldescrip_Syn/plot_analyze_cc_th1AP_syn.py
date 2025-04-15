@@ -157,7 +157,7 @@ def plot_rheospike(cell_ID, t, v, dvdt, spike_t, spike_v, spike_dvdt):
     fig, axs = plt.subplots(nrows = 1,
                             ncols = 2,
                             layout = 'constrained',
-                            figsize = get_figure_size(width = 160, height = 100),
+                            figsize = get_figure_size(width = 180, height = 100),
                             width_ratios = [1, 1.5],
                             dpi = 300)
     
