@@ -83,7 +83,7 @@ for cell_idx, cell_ID in enumerate(tqdm(cell_IDs)):
     SR_df.at[cell_ID, 'SR'] = SR
     
     
-# %%
+# %% v_rest
 
 # check if all protocols have the same sampling rate
 if len(SR_df['SR'].unique()) != 1:
