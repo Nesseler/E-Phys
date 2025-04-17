@@ -25,6 +25,14 @@ def bessel_filter(data, order = 1, cutoff = 4e3, sampling_rate = 20e3):
     return data_filtered
 
 
+def cheby_filter(data, order = 1, rp = 4, cutoff = 4e3, sampling_rate = 20e3):
+    b, a = sc.signal.cheby1(order, rp, cutoff, fs=sampling_rate)
+
+    data_filtered = sc.signal.lfilter(b, a, data)  
+
+    return data_filtered
+
+
 def merge_filter_split_steps(data, SR):
     '''
     This function gets data in steps, concatenates these steps, to then apply

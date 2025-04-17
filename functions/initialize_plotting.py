@@ -20,7 +20,7 @@ from functions.functions_plotting import save_figures, get_colors, get_figure_si
 from parameters.axis_settings import axis_dict
 
 # set colors
-darkmode_bool = True
+darkmode_bool = False
 colors_dict, region_colors = get_colors(darkmode_bool)
 blkr_colors = get_blkr_colors(darkmode_bool)
 

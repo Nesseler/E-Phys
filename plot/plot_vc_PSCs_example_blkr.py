@@ -11,7 +11,7 @@ from functions.initialize_packages import *
 from parameters.directories_win import figure_dir, table_file
 from parameters.PGFs import vc_Erest_parameters
 
-from functions.functions_import import get_traceIndex_n_file,  get_vc_data, get_PSCs_steps
+from functions.functions_import import get_traceIndex_n_file, get_vc_data, get_PSCs_steps
 from functions.functions_filter import butter_filter
 
 PGF = 'vc_Erest_3min'
