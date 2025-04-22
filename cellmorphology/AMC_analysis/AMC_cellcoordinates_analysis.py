@@ -17,6 +17,7 @@ MetaData = get_cells_list()
 
 # get cell_IDs to be analyzed
 cell_IDs = MetaData.query('coordinates == "Yes" & paths_checked == "Yes"').index.to_list()
+# cell_IDs = MetaData.query('paths_checked == "Yes"').index.to_list()
 # cell_IDs = ['Exp-161', 'Exp-162']
 
 # set neurite types
@@ -241,7 +242,7 @@ from cellmorphology.cellmorph_functions.cellmorph_functions import angle
 from cellmorphology.AMC_analysis.AMC_analysis_directories import AMCs_analysis_dir
 
 
-for cell_ID in cell_IDs:#[#'Exp-158',
+# for cell_ID in cell_IDs:#[#'Exp-158',
  # 'Exp-159',
  # 'Exp-160',
  # 'Exp-161',
@@ -249,6 +250,8 @@ for cell_ID in cell_IDs:#[#'Exp-158',
  # 'Exp-163',
  # 'Exp-168',
  # 'Exp-169']:
+     
+for cell_ID in ['Exp-160']:
 
     # get coordinates of cell
     cell_allcoordinates = coordinates_dict[cell_ID]['all_coor']
