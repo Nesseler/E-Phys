@@ -18,7 +18,7 @@ MetaData = get_cells_list()
 # get cell_IDs to be analyzed
 cell_IDs = MetaData.query('coordinates == "Yes" & paths_checked == "Yes"').index.to_list()
 # cell_IDs = MetaData.query('paths_checked == "Yes"').index.to_list()
-# cell_IDs = ['Exp-161', 'Exp-162']
+print(cell_IDs)
 
 # set neurite types
 neurite_types = ['neurites', 
@@ -29,7 +29,7 @@ neurite_types = ['neurites',
                  'LOTxing_dendrites', 
                  'axons']
 
-vplots = True
+vplots = False
 
 # %% load coordinates
 
@@ -242,155 +242,158 @@ from cellmorphology.cellmorph_functions.cellmorph_functions import angle
 from cellmorphology.AMC_analysis.AMC_analysis_directories import AMCs_analysis_dir
 
 
-# for cell_ID in cell_IDs:#[#'Exp-158',
- # 'Exp-159',
- # 'Exp-160',
- # 'Exp-161',
- # 'Exp-162',
- # 'Exp-163',
- # 'Exp-168',
- # 'Exp-169']:
-     
-for cell_ID in ['Exp-160']:
+for cell_ID in cell_IDs:
 
-    # get coordinates of cell
-    cell_allcoordinates = coordinates_dict[cell_ID]['all_coor']
-    cell_terminalcoordinates = coordinates_dict[cell_ID]['end_coor']
-    cell_somacoordinates = coordinates_dict[cell_ID]['soma_coor'].loc[0, :]
+# for cell_ID in ['Exp-160']:
+    print(f'{cell_ID}: \t')
     
-    # reset index
-    cell_terminalcoordinates = cell_terminalcoordinates.set_index('path_ID')
-
-    # get path IDs
-    path_IDs = cell_allcoordinates['path_ID'].drop_duplicates().astype(int).to_list()
-    terminal_pathIDs = cell_terminalcoordinates.index.astype(int).to_list()
+    # handle error where parent paths couldn't be found
+    try:
     
-    # define output
-    terminal_branches = pd.DataFrame(columns = ['x_end', 'y_end', 'z_end', 'path_label', 'pathIDs_2soma', 
-                                                'x_diff', 'y_diff', 'z_diff', 
-                                                'angle_deg', 'angle_rad', 
-                                                'length', 'euc_dist', 'contraction'],
-                                     index = terminal_pathIDs)
-    terminal_branches.index.name = 'terminal_pathIDs'
+        # get coordinates of cell
+        cell_allcoordinates = coordinates_dict[cell_ID]['all_coor']
+        cell_terminalcoordinates = coordinates_dict[cell_ID]['end_coor']
+        cell_somacoordinates = coordinates_dict[cell_ID]['soma_coor'].loc[0, :]
+        
+        # reset index
+        cell_terminalcoordinates = cell_terminalcoordinates.set_index('path_ID')
     
-    # raise warning if soma is included
-    if 1 in terminal_pathIDs:
-        warnings.warn('Soma coordinates in terminal points coordinates!')
+        # get path IDs
+        path_IDs = cell_allcoordinates['path_ID'].drop_duplicates().astype(int).to_list()
+        terminal_pathIDs = cell_terminalcoordinates.index.astype(int).to_list()
         
-    # set reference vector
-    reference_vector = pd.Series({'X' : 1., 'Y' : 0.})
+        # define output
+        terminal_branches = pd.DataFrame(columns = ['x_end', 'y_end', 'z_end', 'path_label', 'pathIDs_2soma', 
+                                                    'x_diff', 'y_diff', 'z_diff', 
+                                                    'angle_deg', 'angle_rad', 
+                                                    'length', 'euc_dist', 'contraction'],
+                                         index = terminal_pathIDs)
+        terminal_branches.index.name = 'terminal_pathIDs'
+        
+        # raise warning if soma is included
+        if 1 in terminal_pathIDs:
+            warnings.warn('Soma coordinates in terminal points coordinates!')
+            
+        # set reference vector
+        reference_vector = pd.Series({'X' : 1., 'Y' : 0.})
+        
+        # precompute dictionary for path access
+        allcoor_paths_dict = {pathID : group for pathID, group in cell_allcoordinates.groupby('path_ID')}
     
-    # precompute dictionary for path access
-    allcoor_paths_dict = {pathID : group for pathID, group in cell_allcoordinates.groupby('path_ID')}
-
-    # iterate through terminal paths
-    for terminal_pathID in tqdm(terminal_pathIDs):
+        # iterate through terminal paths
+        for terminal_pathID in tqdm(terminal_pathIDs):
+            
+            ### orientation of terminal points ###
+            
+            # get terminal point coordinates
+            terminal_point_coor = cell_terminalcoordinates.loc[terminal_pathID, :]
+            
+            # get vector from coordinates
+            terminal_xy_vector = terminal_point_coor.drop(index = ['Z', 'path_label'])
+            
+            # write to dataframe
+            terminal_point = {'x_end': terminal_point_coor['X'],
+                              'y_end': terminal_point_coor['Y'],
+                              'z_end': terminal_point_coor['Z'],
+                              'x_diff': terminal_point_coor['X'] - cell_somacoordinates['X'],
+                              'y_diff': terminal_point_coor['Y'] - cell_somacoordinates['Y'],
+                              'z_diff': terminal_point_coor['Z'] - cell_somacoordinates['Z'],
+                              'path_label': terminal_point_coor['path_label']}
+            
+            terminal_branches.loc[terminal_pathID, list(terminal_point.keys())] = list(terminal_point.values())
+            
+            # calc difference vector
+            xy_diff_vector = terminal_branches.loc[terminal_pathID, ['x_diff','y_diff']]
+            
+            # check quadrant of difference vector
+            if xy_diff_vector['y_diff'] > 0:
+                deg = 360 - math.degrees(angle(reference_vector, xy_diff_vector))
+            else:
+                deg = math.degrees(angle(reference_vector, xy_diff_vector))
         
-        ### orientation of terminal points ###
+            # write angles to dataframe
+            terminal_branches.at[terminal_pathID, 'angle_deg'] = deg
+            terminal_branches.at[terminal_pathID, 'angle_rad'] = math.radians(deg)
         
-        # get terminal point coordinates
-        terminal_point_coor = cell_terminalcoordinates.loc[terminal_pathID, :]
+            ### terminal branch reconstruction ###
+            
+            # coordinates of terminal branch to reconstruct until soma
+            terminal_path_coor = allcoor_paths_dict[terminal_pathID]
+            
+            # order of coordinates starts with terminal branch endpoint 
+            # to be reversed later when calculating the entire branch
+            branch_terminal2soma = pd.DataFrame()
+            
+            # reversed and reindex coordinates of terminal path
+            branch_terminal2soma = terminal_path_coor[::-1].reset_index(drop=True)
+                
+            # start while loop from terminal path
+            # while loop finishes when soma path id is reached
+            path_ID = terminal_pathID
+            parent_pathID = terminal_pathID
+            
+            # set list of path ID that describe terminal branch
+            terminal_branch_pathIDs_2soma = list()
+            
+            while parent_pathID != 1:
+                
+                # find parent of current path
+                parent_pathID, intersect_index = find_parent_path(path_ID, path_IDs, allcoor_paths_dict)
+                            
+                # get parent path coordinates
+                parent_path_coor = allcoor_paths_dict[parent_pathID]
+            
+                # get all indices of parent path until intersection index
+                parent_indices = [i for i in parent_path_coor.index.to_list() if i <= intersect_index]
+                
+                # get all coordinates until intersection point
+                parent_path_coor_until_intersect = cell_allcoordinates.loc[parent_indices]
+                
+                # reversed and reindex
+                rr_parent_path_coor_until_intersect = parent_path_coor_until_intersect[::-1].reset_index(drop=True)
+                
+                # concatenate to all coordinates from terminal to soma
+                branch_terminal2soma = pd.concat([branch_terminal2soma, rr_parent_path_coor_until_intersect])
+                
+                # reset index following concatenation
+                branch_terminal2soma.reset_index(drop=True, inplace = True)
+                
+                # write parent path to list
+                terminal_branch_pathIDs_2soma.append(path_ID)
+                
+                # set path_ID to parent for next step in while loop
+                path_ID = parent_pathID
+              
+            # write list of path IDs to dataframe
+            terminal_branches.at[terminal_pathID ,'pathIDs_2soma'] = terminal_branch_pathIDs_2soma
+            
+            # calculate length
+            terminal_branch_length = calc_length_of_branch(branch_terminal2soma.drop(columns = ['path_ID', 'path_label']))
+            
+            # calculate euclidean distance between origin and terminal of branch
+            line_coordinates = branch_terminal2soma.iloc[[0, -1]]
+            
+            # can be calculated with same function but just two coordinates
+            terminal_branch_euc = calc_length_of_branch(line_coordinates.drop(columns = ['path_ID', 'path_label']))
+            
+            # write to dataframe
+            terminal_branches.at[terminal_pathID ,'length'] = terminal_branch_length
+            terminal_branches.at[terminal_pathID ,'euc_dist'] = terminal_branch_euc
+            terminal_branches.at[terminal_pathID ,'contraction'] = terminal_branch_euc / terminal_branch_length        
+            
+        # write dataframe to dictionary
+        all_terminal_branches[cell_ID] = terminal_branches
         
-        # get vector from coordinates
-        terminal_xy_vector = terminal_point_coor.drop(index = ['Z', 'path_label'])
-        
-        # write to dataframe
-        terminal_point = {'x_end': terminal_point_coor['X'],
-                          'y_end': terminal_point_coor['Y'],
-                          'z_end': terminal_point_coor['Z'],
-                          'x_diff': terminal_point_coor['X'] - cell_somacoordinates['X'],
-                          'y_diff': terminal_point_coor['Y'] - cell_somacoordinates['Y'],
-                          'z_diff': terminal_point_coor['Z'] - cell_somacoordinates['Z'],
-                          'path_label': terminal_point_coor['path_label']}
-        
-        terminal_branches.loc[terminal_pathID, list(terminal_point.keys())] = list(terminal_point.values())
-        
-        # calc difference vector
-        xy_diff_vector = terminal_branches.loc[terminal_pathID, ['x_diff','y_diff']]
-        
-        # check quadrant of difference vector
-        if xy_diff_vector['y_diff'] > 0:
-            deg = 360 - math.degrees(angle(reference_vector, xy_diff_vector))
-        else:
-            deg = math.degrees(angle(reference_vector, xy_diff_vector))
+        # save dataframe
+        terminal_branches.to_excel(join(AMCs_analysis_dir, 'metrics-terminal_branches' , f'{cell_ID}-terminal_branches.xlsx'),
+                                    index_label = 'terminal_pathIDs')
     
-        # write angles to dataframe
-        terminal_branches.at[terminal_pathID, 'angle_deg'] = deg
-        terminal_branches.at[terminal_pathID, 'angle_rad'] = math.radians(deg)
-    
-        ### terminal branch reconstruction ###
+    except IndexError:
+        print(f'! WARNING ! {parent_pathID} couldnt find parent! (terminal path: {terminal_pathID})')
+        print(cell_ID)
+        # remove cell_ID that caused error
+        # cell_IDs.remove(cell_ID)
         
-        # coordinates of terminal branch to reconstruct until soma
-        terminal_path_coor = allcoor_paths_dict[terminal_pathID]
-        
-        # order of coordinates starts with terminal branch endpoint 
-        # to be reversed later when calculating the entire branch
-        branch_terminal2soma = pd.DataFrame()
-        
-        # reversed and reindex coordinates of terminal path
-        branch_terminal2soma = terminal_path_coor[::-1].reset_index(drop=True)
-            
-        # start while loop from terminal path
-        # while loop finishes when soma path id is reached
-        path_ID = terminal_pathID
-        parent_pathID = terminal_pathID
-        
-        # set list of path ID that describe terminal branch
-        terminal_branch_pathIDs_2soma = list()
-        
-        while parent_pathID != 1:
-            
-            # find parent of current path
-            parent_pathID, intersect_index = find_parent_path(path_ID, path_IDs, allcoor_paths_dict)
-                        
-            # get parent path coordinates
-            parent_path_coor = allcoor_paths_dict[parent_pathID]
-        
-            # get all indices of parent path until intersection index
-            parent_indices = [i for i in parent_path_coor.index.to_list() if i <= intersect_index]
-            
-            # get all coordinates until intersection point
-            parent_path_coor_until_intersect = cell_allcoordinates.loc[parent_indices]
-            
-            # reversed and reindex
-            rr_parent_path_coor_until_intersect = parent_path_coor_until_intersect[::-1].reset_index(drop=True)
-            
-            # concatenate to all coordinates from terminal to soma
-            branch_terminal2soma = pd.concat([branch_terminal2soma, rr_parent_path_coor_until_intersect])
-            
-            # reset index following concatenation
-            branch_terminal2soma.reset_index(drop=True, inplace = True)
-            
-            # write parent path to list
-            terminal_branch_pathIDs_2soma.append(path_ID)
-            
-            # set path_ID to parent for next step in while loop
-            path_ID = parent_pathID
-          
-        # write list of path IDs to dataframe
-        terminal_branches.at[terminal_pathID ,'pathIDs_2soma'] = terminal_branch_pathIDs_2soma
-        
-        # calculate length
-        terminal_branch_length = calc_length_of_branch(branch_terminal2soma.drop(columns = ['path_ID', 'path_label']))
-        
-        # calculate euclidean distance between origin and terminal of branch
-        line_coordinates = branch_terminal2soma.iloc[[0, -1]]
-        
-        # can be calculated with same function but just two coordinates
-        terminal_branch_euc = calc_length_of_branch(line_coordinates.drop(columns = ['path_ID', 'path_label']))
-        
-        # write to dataframe
-        terminal_branches.at[terminal_pathID ,'length'] = terminal_branch_length
-        terminal_branches.at[terminal_pathID ,'euc_dist'] = terminal_branch_euc
-        terminal_branches.at[terminal_pathID ,'contraction'] = terminal_branch_euc / terminal_branch_length        
-        
-    # write dataframe to dictionary
-    all_terminal_branches[cell_ID] = terminal_branches
-    
-    # save dataframe
-    terminal_branches.to_excel(join(AMCs_analysis_dir, 'metrics-terminal_branches' , f'{cell_ID}-terminal_branches.xlsx'),
-                                index_label = 'terminal_pathIDs')
-    
 
 # %% plot terminal branches
 

@@ -195,53 +195,53 @@ for cell_ID in tqdm(cell_IDs):
 
 # # %% create dict with all, active and non-active cells
 
-# # add activity column for categorical plots´with silent as default value
-# activity_df['activity'] = 'silent'
+# add activity column for categorical plots´with silent as default value
+activity_df['activity'] = 'silent'
 
-# # change activity value of spiking cells with n_spike > 0 to 'spiking'
-# activity_df.loc[activity_df['n_spikes'] > 0, 'activity'] = 'spiking'
+# change activity value of spiking cells with n_spike > 0 to 'spiking'
+activity_df.loc[activity_df['n_spikes'] > 0, 'activity'] = 'spiking'
 
 
-# # %% saving
+# %% saving
 
-# # print('\nsaving...')
+# print('\nsaving...')
 
-# # tobe saved
-# export_vars = {'activity' : activity_df}
+# tobe saved
+export_vars = {'activity' : activity_df}
 
-# export_prefix = 'cc_rest-syn-'
+export_prefix = 'cc_rest-syn-'
 
-# export_filename = export_prefix + 'activity.xlsx'
+export_filename = export_prefix + 'activity.xlsx'
 
-# try:
-#     loaded_activity_df = pd.read_excel(join(cell_descrip_syn_dir, export_filename),
-#                                         index_col = 'cell_ID')
+try:
+    loaded_activity_df = pd.read_excel(join(cell_descrip_syn_dir, export_filename),
+                                        index_col = 'cell_ID')
         
-#     try:
-#         # combine both dataframes
-#         loaded_activity_df.loc[cell_IDs] = activity_df.loc[cell_IDs].values
+    try:
+        # combine both dataframes
+        loaded_activity_df.loc[cell_IDs] = activity_df.loc[cell_IDs].values
 
     
-#     # if values not yet in file, append/concat new values
-#     except KeyError:
-#         loaded_activity_df = pd.concat([loaded_activity_df, activity_df.loc[cell_IDs]])
+    # if values not yet in file, append/concat new values
+    except KeyError:
+        loaded_activity_df = pd.concat([loaded_activity_df, activity_df.loc[cell_IDs]])
     
     
-#     # save activity dataframe
-#     loaded_activity_df.to_excel(join(cell_descrip_syn_dir, export_filename), 
-#                                 index_label='cell_ID')
+    # save activity dataframe
+    loaded_activity_df.to_excel(join(cell_descrip_syn_dir, export_filename), 
+                                index_label='cell_ID')
     
-# except FileNotFoundError:
-#     # save activity dataframe
-#     activity_df.to_excel(join(cell_descrip_syn_dir, export_filename), 
-#                           index_label='cell_ID')
+except FileNotFoundError:
+    # save activity dataframe
+    activity_df.to_excel(join(cell_descrip_syn_dir, export_filename), 
+                          index_label='cell_ID')
 
 
-# # %% update analyzed cells
+# %% update analyzed cells
 
-# from functions.update_database import update_analyzed_sheet
+from functions.update_database import update_analyzed_sheet
     
-# update_analyzed_sheet(cell_IDs, PGF = PGF)
+update_analyzed_sheet(cell_IDs, PGF = PGF)
 
 
 
