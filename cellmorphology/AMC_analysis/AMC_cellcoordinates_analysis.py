@@ -18,7 +18,8 @@ MetaData = get_cells_list()
 # get cell_IDs to be analyzed
 cell_IDs = MetaData.query('coordinates == "Yes" & paths_checked == "Yes"').index.to_list()
 # cell_IDs = MetaData.query('paths_checked == "Yes"').index.to_list()
-print(cell_IDs)
+
+# [cell_IDs.remove(cell_ID) for cell_ID in ['Exp-161', 'Exp-162', 'Exp-168', 'Exp-169']]
 
 # set neurite types
 neurite_types = ['neurites', 
@@ -29,7 +30,7 @@ neurite_types = ['neurites',
                  'LOTxing_dendrites', 
                  'axons']
 
-vplots = False
+vplots = True
 
 # %% load coordinates
 
@@ -241,12 +242,14 @@ from cellmorphology.cellmorph_functions.cellmorph_functions import find_parent_p
 from cellmorphology.cellmorph_functions.cellmorph_functions import angle
 from cellmorphology.AMC_analysis.AMC_analysis_directories import AMCs_analysis_dir
 
+# create empty list to remove cells where tree reconstruction didnt work
+cellIDs_toremove = []
 
 for cell_ID in cell_IDs:
-
 # for cell_ID in ['Exp-160']:
-    print(f'{cell_ID}: \t')
     
+    print(f'{cell_ID}: \t')
+
     # handle error where parent paths couldn't be found
     try:
     
@@ -390,10 +393,11 @@ for cell_ID in cell_IDs:
     
     except IndexError:
         print(f'! WARNING ! {parent_pathID} couldnt find parent! (terminal path: {terminal_pathID})')
-        print(cell_ID)
-        # remove cell_ID that caused error
-        # cell_IDs.remove(cell_ID)
-        
+        cellIDs_toremove.append(cell_ID)
+
+# remove cell_IDs
+[cell_IDs.remove(cell_ID) for cell_ID in cellIDs_toremove]
+
 
 # %% plot terminal branches
 

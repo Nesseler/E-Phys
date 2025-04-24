@@ -49,18 +49,18 @@ fig, axs = plt.subplots(nrows=2,
 axs = axs.flatten()
 
 # create dict for axis titles 
-axs_titles = {'total_cable_length'  : '$\mathregular{F_{iii}}$', 
-              'n_primary'           : '$\mathregular{F_{iv}}$', 
-              'n_terminal'          : '$\mathregular{F_{v}}$', 
-              'bifurcation_ratio'   : '$\mathregular{F_{vi}}$'}
+axs_titles = {'total_cable_length'  : r'$\mathregular{F_{iii}}$', 
+              'n_primary'           : r'$\mathregular{F_{iv}}$', 
+              'n_terminal'          : r'$\mathregular{F_{v}}$', 
+              'bifurcation_ratio'   : r'$\mathregular{F_{vi}}$'}
 
 # set titles
-axis_titles = {0: '$\mathregular{H_{v}}$: BAOT',
-               2: '$\mathregular{H_{vi}}$: MeA',
-               4: '$\mathregular{H_{vii}}$: Dendrites',
-               5: '$\mathregular{H_{viii}}$: Axons',
-               6: '$\mathregular{H_{ix}}$: Dendrites',
-               7: '$\mathregular{H_{x}}$: Axons'}
+axis_titles = {0: r'$\mathregular{H_{v}}$: BAOT',
+               2: r'$\mathregular{H_{vi}}$: MeA',
+               4: r'$\mathregular{H_{vii}}$: Dendrites',
+               5: r'$\mathregular{H_{viii}}$: Axons',
+               6: r'$\mathregular{H_{ix}}$: Dendrites',
+               7: r'$\mathregular{H_{x}}$: Axons'}
 
 # stacked and normed to all
 for r_idx, region in enumerate(regions):

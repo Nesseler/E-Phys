@@ -41,7 +41,7 @@ for filename in metrics:
     cellmetrics = pd.concat([cellmetrics, loaded_file], axis = 1)
     
 # get cell_IDs
-cell_IDs = cellmetrics.index.to_list()[:-20]
+cell_IDs = cellmetrics.index.to_list()#[:-20]
 
 # limit dataframe
 cellmetrics = cellmetrics.loc[cell_IDs, :]
@@ -73,10 +73,10 @@ fig, axs = plt.subplots(nrows=1,
 axs = axs.flatten()
 
 # create dict for axis titles 
-axs_titles = {'total_cable_length'  : '$\mathregular{F_{iii}}$', 
-              'n_primary'           : '$\mathregular{F_{iv}}$', 
-              'n_terminal'          : '$\mathregular{F_{v}}$', 
-              'bifurcation_ratio'   : '$\mathregular{F_{vi}}$'}
+axs_titles = {'total_cable_length'  : r'$\mathregular{F_{iii}}$', 
+              'n_primary'           : r'$\mathregular{F_{iv}}$', 
+              'n_terminal'          : r'$\mathregular{F_{v}}$', 
+              'bifurcation_ratio'   : r'$\mathregular{F_{vi}}$'}
     
 
 
