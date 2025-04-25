@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Apr 17 16:00:28 2025
+Created on Fri Apr 25 13:45:56 2025
 
 @author: nesseler
 """
-
 
 # import standard packages
 from functions.initialize_packages import *
 
 # import functions
 from functions.functions_import import get_traceIndex_n_file, get_vc_data, get_PSCs_steps
-from functions.functions_filter import butter_filter, bessel_filter, cheby_filter
+from functions.functions_filter import bessel_filter
 
 # import parameters
 from parameters.PGFs import vc_Erest_parameters
@@ -45,15 +44,15 @@ t = t[:3000000]
 
 # # filter
 # filter all data with 1kHz cutoff
-order = 5
-# cutoff = 1000 #Hz
+# order = 3
+cutoff = 1000 #Hz
 
 # set dict
-i_freqdict = dict.fromkeys([2000, 1000, 750, 500, 250])
+i_orderdict = dict.fromkeys([1, 2, 3, 4, 5])
 
 # filter
-for freq in i_freqdict.keys():
-    i_freqdict[freq] = bessel_filter(i, order=order, cutoff=freq, sampling_rate=SR)
+for order in i_orderdict.keys():
+    i_orderdict[order] = bessel_filter(i, order = order, cutoff = cutoff, sampling_rate = SR)
 
 
 # %% plotting
@@ -68,10 +67,10 @@ event_idc = np.arange(start*SR, (start+winsize)*SR, dtype = int)
 from functions.initialize_plotting import *
 
 # specify color map
-cmap_str = 'cividis_r'
+cmap_str = 'cividis'
 
 # min max normalize time for color-code
-norm = mtl.colors.Normalize(0, 2000)
+norm = mtl.colors.Normalize(1, 5.5)
 
 # create mappable colormap object for colorbar
 cmap = mtl.cm.ScalarMappable(norm=norm, cmap=cmap_str)
@@ -92,22 +91,16 @@ plt.text(start, y = 0, s = 'unfiltered',
          color = colors_dict['primecolor'], 
          va = 'top')
 
-# plot traces and labels for different filter frequencies
-for freq_i, freq in enumerate(i_freqdict.keys()):
-    plt.plot(t[event_idc], i_freqdict[freq][event_idc] + ((freq_i+1)*10), 
+for order_i, order in enumerate(i_orderdict.keys()):
+    plt.plot(t[event_idc], i_orderdict[order][event_idc] + ((order_i+1)*10), 
              lw = 0.75,
-             label = freq,
-             color = cmap.to_rgba(freq),
-             zorder = 2)
+             label = order,
+             color = cmap.to_rgba(order))
     
-    plt.text(start, y = ((freq_i+1)*10), s = f'{freq} Hz', color = cmap.to_rgba(freq), va = 'top')
+    plt.text(start, y = ((order_i+1)*10), s = f'Order: {order}', color = cmap.to_rgba(order), va = 'top')
     
-# plot indicator lines
-plt.vlines(x = [4.3696, 4.3705, 4.3751], ymin = -30, ymax = 50, 
-           lw = 0.5, 
-           color = 'k', 
-           alpha = 0.5,
-           zorder = 1)
+# plot vertical lines
+plt.vlines(x = [4.3696, 4.3705, 4.3751], ymin = -30, ymax = 50, lw = 0.5, color = 'k', alpha = 0.5)
 
 ydict = {'ax_min' : -10,
          'ax_max' : 0,
@@ -138,7 +131,7 @@ plt.show()
 # create saving path and save
 from parameters.directories_win import figure_dir
 path_fig = join(figure_dir, 'filter_choice')
-save_figures(fig, f'filter_frequency-single_event-freqs-order_{order}', 
+save_figures(fig, f'filter_order-single_event-freq_{cutoff}-orders', 
              path_fig, 
              darkmode_bool, 
              figure_format='both')
@@ -156,24 +149,32 @@ fig, axs = plt.subplot_mosaic(mosaic = 'aa;bc;de',
                               dpi = 600)
 
 # set title
-fig.suptitle(f'Filter frequency choice - Bessel low pass filter (order: {order})',
+fig.suptitle(f'Filter order choice - Bessel low pass filter {cutoff} Hz',
              fontsize = 12)
 
-
+# set axis
 ax = axs['a']
 
+# set title
 ax.set_title('A: Full trace', loc = 'left', fontsize = 9)
 
-ax.plot(t, i, lw = lw, label = 'unfiltered', color = colors_dict['primecolor'])
-ax.text(x = 0.1, y = 2, s = 'unfiltered', color = colors_dict['primecolor'], va = 'bottom')
+# plot unfiltered
+ax.plot(t, i, 
+        lw = lw, 
+        label = 'unfiltered', 
+        color = colors_dict['primecolor'])
 
-for freq_i, freq in enumerate(i_freqdict.keys()):
-    ax.plot(t, i_freqdict[freq] + ((freq_i+1)*30), 
+# plot label
+ax.text(x = 0.1, y = 2, s = 'unfiltered', 
+        color = colors_dict['primecolor'], va = 'bottom')
+
+for order_i, order in enumerate(i_orderdict.keys()):
+    ax.plot(t, i_orderdict[order] + ((order_i+1)*30), 
              lw = 0.75,
-             label = freq,
-             color = cmap.to_rgba(freq))
+             label = order,
+             color = cmap.to_rgba(order))
     
-    ax.text(x = 0.1, y = (5+(freq_i+1)*29.5), s = f'{freq} Hz', color = cmap.to_rgba(freq), va = 'top')
+    ax.text(x = 0.1, y = (5+(order_i+1)*29.5), s = f'Order {order}', color = cmap.to_rgba(order), va = 'top')
 
 # x
 ax.spines['bottom'].set_bounds([0, 5])
@@ -194,7 +195,6 @@ ax.yaxis.set_label_coords(-0.07, 0.105)
 
 
 # single events
-
 def create_single_event_plot(axs_l, start = 4.365, winsize = 0.020, title = ''):
     
     # single event index
@@ -226,13 +226,13 @@ def create_single_event_plot(axs_l, start = 4.365, winsize = 0.020, title = ''):
 
     ax.text(x = start, y = 1.5, s = 'unfiltered', color = colors_dict['primecolor'], va = 'top')
     
-    for freq_i, freq in enumerate(i_freqdict.keys()):
-        ax.plot(t[event_idc], i_freqdict[freq][event_idc] + ((freq_i+1)*10), 
+    for order_i, order in enumerate(i_orderdict.keys()):
+        ax.plot(t[event_idc], i_orderdict[order][event_idc] + ((order_i+1)*10), 
                  lw = 0.75,
-                 label = freq,
-                 color = cmap.to_rgba(freq))
+                 label = order,
+                 color = cmap.to_rgba(order))
         
-        ax.text(x = start, y = (1+(freq_i+1)*10), s = f'{freq} Hz', color = cmap.to_rgba(freq), va = 'top')
+        ax.text(x = start, y = (1+(order_i+1)*10), s = f'Order {order}', color = cmap.to_rgba(order), va = 'top')
         
     # x
     ax.spines['bottom'].set_bounds([start, start+winsize])
@@ -263,7 +263,7 @@ fig.align_labels()
 # create saving path and save
 from parameters.directories_win import figure_dir
 path_fig = join(figure_dir, 'filter_choice')
-save_figures(fig, f'filter_frequency-freqs-order{order}', 
+save_figures(fig, f'filter_frequency-freq_{cutoff}Hz-orders', 
              path_fig, 
              darkmode_bool, 
              figure_format='both')
