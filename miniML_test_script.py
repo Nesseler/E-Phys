@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Apr 28 18:40:21 2025
-
-@author: nesseler
-"""
-
-# -*- coding: utf-8 -*-
-"""
 Created on Wed Apr 16 16:00:56 2025
 
 @author: nesseler
@@ -23,7 +16,12 @@ import sys
 from miniML import MiniTrace, EventDetection
 from miniML_plot_functions import miniML_plots
 
+
 %matplotlib inline
+
+import matplotlib as mtl
+# set font size
+mtl.rcParams.update({'font.size': 9, 'font.family' : 'Arial'})
 
 
 filename = 'C:/Users/nesseler/miniML/example_data/gc_mini_trace.h5'
@@ -52,7 +50,7 @@ trace = MiniTrace.from_heka_file(filename=filename,
                                  unit=unit)
 
 
-b, a = sc.signal.bessel(3, 1000, fs=100e3)
+b, a = sc.signal.bessel(3, 750, fs=100e3)
 
 ori_trace = trace.data
 
@@ -60,28 +58,29 @@ data_filtered = sc.signal.lfilter(b, a, ori_trace)
 
 
 # %%
-trace.plot_trace()
+# trace.plot_trace()
 
 trace = MiniTrace(data=data_filtered,
                   sampling_interval=1/100e3,
                   y_unit='pA',
                   filename='None')
 
-trace.plot_trace()
+# trace.plot_trace()
 
 
 
 # %%
-factor = 19
 
+factor = 19
+th = 0.25
 win_size = 600 * factor
 direction = 'negative'
 
 detection = EventDetection(data=trace,
                            model_path='C:/Users/nesseler/miniML/models/GC_lstm_model.h5',
                            window_size=win_size,
-                           model_threshold=0.5,
-                           batch_size=512,
+                           model_threshold = th,
+                           batch_size = int(512),
                            event_direction=direction,
                            compile_model=True,
                            verbose=2)
@@ -89,58 +88,20 @@ detection = EventDetection(data=trace,
 event_detection_peakw = 5
 
 detection.detect_events(eval=True,
-                        stride=win_size / 100,
-                        peak_w=event_detection_peakw,
-                        rel_prom_cutoff=0.25,
-                        convolve_win=20 * factor,
+                        stride = 30,
+                        peak_w = event_detection_peakw,
+                        rel_prom_cutoff = 0.25,
+                        convolve_win= 20 * factor,
                         # gradient_convolve_win = 40 * factor,
-                        resample_to_600=True)
+                        resample_to_600 = True)
 
 MiniPlots = miniML_plots(data=detection)
-
-
-
-# %%
-
-# factors = [5, 10, 15, 20, 25, 50, 100]
-# n_events = []
-
-# for factor in factors:
-    
-#     win_size = 600 * factor
-#     direction = 'negative'
-
-#     detection = EventDetection(data=trace,
-#                                model_path='C:/Users/nesseler/miniML/models/GC_lstm_model.h5',
-#                                window_size=win_size,
-#                                model_threshold=0.5,
-#                                batch_size=512,
-#                                event_direction=direction,
-#                                compile_model=True,
-#                                verbose=2)
-
-#     event_detection_peakw = 5
-
-#     detection.detect_events(eval=True,
-#                             stride=win_size / 100,
-#                             peak_w=event_detection_peakw,
-#                             rel_prom_cutoff=0.25,
-#                             convolve_win=20 * factor,
-#                             # gradient_convolve_win = 40 * factor,
-#                             resample_to_600=True)
-
-#     MiniPlots = miniML_plots(data=detection)
-    
-#     n_events.append(detection.event_stats.event_count)
-    
-
-# %%
 
 MiniPlots.plot_prediction(include_data=True, plot_filtered_prediction=True,
                           plot_filtered_trace=True, plot_event_params=True)
 MiniPlots.plot_event_overlay()
 MiniPlots.plot_event_histogram(plot='amplitude', cumulative=False)
-MiniPlots.plot_gradient_search()
+# MiniPlots.plot_gradient_search()
 
 
 detection.save_to_csv(filename='E-298-test.csv')
@@ -191,18 +152,18 @@ detection.save_to_csv(filename='E-298-test.csv')
 # print(detection.bsl_starts)
 # print(detection.event_start_times)
 # print(detection.min_positions_rise)
-print(detection.half_decay)
-print(detection.decaytimes)
+# print(detection.half_decay)
+# print(detection.decaytimes)
 
 
-# onset!
-print(detection.event_start)
+# # onset!
+# print(detection.event_start)
 
 # %%
 
-for event_i in range(21):
-    plt.plot(detection.events[event_i])
-    plt.show()
+# for event_i in range(21):
+#     plt.plot(detection.events[event_i])
+#     plt.show()
 
 
 # %%
@@ -247,8 +208,8 @@ filtered_prediction = maximum_filter1d(
 def create_single_event_fig(parent_fig, event_i: int = 0):
 
     t_winsize = win_size / (SR/1e3)
-    t_preevent = t_winsize  # ms
-    t_postevent = t_winsize * 1.5  # ms
+    t_preevent = t_winsize * 0.35 # ms
+    t_postevent = t_winsize * 0.75  # ms
     peak_idx = detection.event_peak_locations[event_i]
     start_idx = int(peak_idx - (t_preevent * SR / 1e3))
     stop_idx = int(peak_idx + (t_postevent * SR / 1e3))
@@ -266,7 +227,7 @@ def create_single_event_fig(parent_fig, event_i: int = 0):
     decay_time = detection.decaytimes[event_i] * 1e3
 
     # fit exponential function for tau estimation
-    points_after = int(win_size + (win_size/3))
+    points_after = int(win_size/2) # + (win_size/3))
 
     decay_idc = np.arange(peak_idx, peak_idx+points_after, 1, dtype=int)
 
@@ -314,7 +275,7 @@ def create_single_event_fig(parent_fig, event_i: int = 0):
     axs[1].plot(x_event, data_filtered[event_idc],
                 lw=0.75,
                 color='k',
-                label='data')
+                label='data (filt.)')
 
     # plot baseline
     axs[1].hlines(xmin=(detection.bsl_starts[event_i] - peak_idx) / (SR/1e3),
@@ -371,9 +332,8 @@ def create_single_event_fig(parent_fig, event_i: int = 0):
                 label='fitted decay')
 
     # plot window size indicator
-    axs[1].hlines(xmin=(detection.bsl_starts[event_i] - peak_idx) / (SR/1e3),
-                  xmax=(
-                      detection.bsl_starts[event_i] - peak_idx) / (SR/1e3) + (win_size / (SR/1e3)),
+    axs[1].hlines(xmin = (detection.bsl_starts[event_i] - peak_idx) / (SR/1e3),
+                  xmax = (detection.bsl_starts[event_i] - peak_idx) / (SR/1e3) + (win_size / (SR/1e3)),
                   y=np.max(data_filtered[event_idc]),
                   color='gray',
                   alpha=0.5,
@@ -383,7 +343,8 @@ def create_single_event_fig(parent_fig, event_i: int = 0):
     # legend
     axs[1].legend(loc='lower right',
                   fontsize=7,
-                  frameon=False,
+                  frameon=True,
+                  facecolor = 'w',
                   ncols=1)
 
     # axis
@@ -405,7 +366,7 @@ def create_single_event_fig(parent_fig, event_i: int = 0):
     ymin_r = round_down_to_base(np.min(data_filtered[event_idc]), 1)
     ymax_r = round_up_to_base(np.max(data_filtered[event_idc]), 1)
     yrange = ymax_r - ymin_r
-    axs[1].set_ylim([ymin_r-(yrange*0.01), ymax_r+(yrange*0.01)])
+    axs[1].set_ylim([ymin_r-(yrange*0.05), ymax_r+(yrange*0.05)])
     axs[1].spines['left'].set_bounds([ymin_r, ymax_r])
 
     # add text label of measurements
@@ -427,8 +388,7 @@ def create_single_event_fig(parent_fig, event_i: int = 0):
                 ha='left')
 
     # remove spines
-    [ax.spines[spine].set_visible(False)
-     for ax in axs for spine in ['top', 'right']]
+    [ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
 
     # align labels
     parent_fig.align_labels()
@@ -464,26 +424,41 @@ plt.show()
 
 # %%
 
+
+for i in range(30):
+    
+    try: 
+        fig = plt.figure(layout='constrained',
+                         dpi=600)
+        
+        create_single_event_fig(parent_fig=fig, event_i=i)
+        
+        
+        plt.show()
+    except ValueError:
+        print(i)
+        
+# %%
+
 fig = plt.figure(layout='constrained',
                  dpi=600)
 
-create_single_event_fig(parent_fig=fig, event_i=10)
+create_single_event_fig(parent_fig=fig, event_i=34)
 
 
 plt.show()
 
 # %%
 
-%matplotlib qt
-
 parent_fig = plt.figure(layout='constrained',
                         figsize = (6, 3),
                         dpi=300)
 
-parent_fig.suptitle('Full trace')
+# parent_fig.suptitle('Full trace')
 
 
 x_full = np.arange(0, data_filtered.shape[0] / SR, step=1/SR)
+x_predic = np.arange(0, filtered_prediction.shape[0] / SR, step=1/SR)
 
 axs = parent_fig.subplots(nrows=2,
                           ncols=1,
@@ -491,11 +466,24 @@ axs = parent_fig.subplots(nrows=2,
                           height_ratios=[1, 3])
 
 # plot prediction
-axs[0].plot(x_full[:-12000], filtered_prediction,
+axs[0].plot(x_predic, filtered_prediction,
             color='k',
             alpha=0.5,
             lw=0.5,
             label='filtered')
+
+axs[0].hlines(xmin = 0, xmax = x_predic[-1],
+              y = th, 
+              color = 'r',
+              lw = 0.5,
+              ls = 'dashed')
+
+# plot data
+axs[1].plot(x_full, ori_trace,
+            color='k',
+            alpha = 0.5,
+            lw=0.5,
+            label='data')
 
 # plot data
 axs[1].plot(x_full, data_filtered,
@@ -503,18 +491,41 @@ axs[1].plot(x_full, data_filtered,
             lw=0.5,
             label='data')
 
+
+# plot event peak indicators
+axs[1].scatter(x = x_full[detection.event_peak_locations],
+               y = data_filtered[detection.event_peak_locations],
+               marker = 'o',
+               color = 'r',
+               s = 5,
+               lw = 1)
+
 # plot eventplot
 axs[1].eventplot(positions = detection.event_peak_locations / SR,
                  orientation = 'horizontal',
-                 lineoffsets = np.min(data_filtered) - 5,
-                 linelengths = 2,
-                 linewidths = 0.5,
-                 color = 'k',
+                 lineoffsets = 9.25,
+                 linelengths = 1.5,
+                 linewidths = 1,
+                 color = 'r',
                  label = 'events')
 
+
+
+# remove spines
+[ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
+
+# axis 
+axs[0].set_ylim([-0.05, 1.05])
+axs[0].set_ylabel('Probability')
+
+axs[1].set_xlim([1, 2])
+axs[1].set_xlabel('Time [s]')
+
+axs[1].set_ylim([-20, 10])
+axs[1].set_ylabel('Current [pA]')
+
+parent_fig.align_labels()
 
 plt.show()
 
 
-# %%
-%matplotlib inline
