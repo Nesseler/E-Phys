@@ -44,11 +44,9 @@ SR = 100_000
 trace = MiniTrace.from_heka_file(filename=filename,
                                  rectype=rectype,
                                  group=1,
-                                 exclude_series=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                                                 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26],
+                                 exclude_series = np.delete(np.arange(0, 26), 13),
                                  scaling=scaling,
                                  unit=unit)
-
 
 b, a = sc.signal.bessel(3, 750, fs=100e3)
 
@@ -71,66 +69,66 @@ trace.plot_trace()
 
 # factors = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30, 35, 40, 45, 50]
 
-factors = [5, 19, 30]
-thresholds = [0.25, 0.5]
+# # factors = [5, 19, 30]
+# thresholds = [0.25, 0.5]
 
-detection_stats = pd.DataFrame(columns = ['n_events', 'u_score'],
-                               index = [str(f) + '_' + str(t) for t in thresholds for f in factors])
+# detection_stats = pd.DataFrame(columns = ['n_events', 'u_score'],
+#                                index = [str(f) + '_' + str(t) for t in thresholds for f in factors])
 
-predictions = pd.DataFrame(columns = [str(f) + '_' + str(t) for t in thresholds for f in factors],
-                           index = np.arange(0, data_filtered.shape[0]))
+# predictions = pd.DataFrame(columns = [str(f) + '_' + str(t) for t in thresholds for f in factors],
+#                            index = np.arange(0, data_filtered.shape[0]))
 
-event_peakidc = []
+# event_peakidc = []
 
-for factor in factors:
+# for factor in factors:
 
-    for th in thresholds:    
+#     for th in thresholds:    
         
-        # win_size = 600 * factor
-        direction = 'negative'
+#         # win_size = 600 * factor
+#         direction = 'negative'
         
-        eventdetection_settings = {'window_size' : 600 * factor,
-                                   'model_threshold' : th,
-                                   'batch_size' : 512,
-                                   'event_detection_peakw' : 5,
-                                   'stride' : 30,
-                                   'rel_prom_cutoff' : 0.25,
-                                   'convolve_win' : 20 * factor}
+#         eventdetection_settings = {'window_size' : 600 * factor,
+#                                    'model_threshold' : th,
+#                                    'batch_size' : 512,
+#                                    'event_detection_peakw' : 5,
+#                                    'stride' : 30,
+#                                    'rel_prom_cutoff' : 0.25,
+#                                    'convolve_win' : 20 * factor}
     
-        detection = EventDetection(data=trace,
-                                   model_path='C:/Users/nesseler/miniML/models/GC_lstm_model.h5',
-                                   window_size = eventdetection_settings['window_size'],
-                                   model_threshold = eventdetection_settings['model_threshold'],
-                                   batch_size = eventdetection_settings['batch_size'],
-                                   event_direction=direction,
-                                   compile_model=True,
-                                   verbose=2)
+#         detection = EventDetection(data=trace,
+#                                    model_path='C:/Users/nesseler/miniML/models/GC_lstm_model.h5',
+#                                    window_size = eventdetection_settings['window_size'],
+#                                    model_threshold = eventdetection_settings['model_threshold'],
+#                                    batch_size = eventdetection_settings['batch_size'],
+#                                    event_direction=direction,
+#                                    compile_model=True,
+#                                    verbose=2)
     
         
     
-        detection.detect_events(eval=True,
-                                stride = eventdetection_settings['stride'],
-                                peak_w = eventdetection_settings['event_detection_peakw'],
-                                rel_prom_cutoff = eventdetection_settings['rel_prom_cutoff'],
-                                convolve_win = eventdetection_settings['convolve_win'],
-                                # gradient_convolve_win = 40 * factor,
-                                resample_to_600 = True)
+#         detection.detect_events(eval=True,
+#                                 stride = eventdetection_settings['stride'],
+#                                 peak_w = eventdetection_settings['event_detection_peakw'],
+#                                 rel_prom_cutoff = eventdetection_settings['rel_prom_cutoff'],
+#                                 convolve_win = eventdetection_settings['convolve_win'],
+#                                 # gradient_convolve_win = 40 * factor,
+#                                 resample_to_600 = True)
         
-        # write detection object to dict
-        detection_stats.at[str(factor) + '_' + str(th), 'n_events'] = detection.event_stats.event_count
-        detection_stats.at[str(factor) + '_' + str(th), 'u_score'] = np.mean(detection.event_scores)
+#         # write detection object to dict
+#         detection_stats.at[str(factor) + '_' + str(th), 'n_events'] = detection.event_stats.event_count
+#         detection_stats.at[str(factor) + '_' + str(th), 'u_score'] = np.mean(detection.event_scores)
         
-        # prediction
-        filtered_prediction = maximum_filter1d(detection.prediction, size=int(5*detection.interpol_factor), origin=-2)
-        predictions[str(factor) + '_' + str(th)] = np.append(filtered_prediction, [np.nan]*(data_filtered.shape[0]-filtered_prediction.shape[0]))
+#         # prediction
+#         filtered_prediction = maximum_filter1d(detection.prediction, size=int(5*detection.interpol_factor), origin=-2)
+#         predictions[str(factor) + '_' + str(th)] = np.append(filtered_prediction, [np.nan]*(data_filtered.shape[0]-filtered_prediction.shape[0]))
         
-        # events (peak locations)
-        event_peakidc.append(detection.event_peak_locations)
+#         # events (peak locations)
+#         event_peakidc.append(detection.event_peak_locations)
     
-        # miniML plots
-        MiniPlots = miniML_plots(data=detection)
-        MiniPlots.plot_event_overlay()
-        MiniPlots.plot_event_histogram(plot='amplitude', cumulative=False)
+#         # miniML plots
+#         MiniPlots = miniML_plots(data=detection)
+#         MiniPlots.plot_event_overlay()
+#         MiniPlots.plot_event_histogram(plot='amplitude', cumulative=False)
     
     
     
@@ -170,12 +168,15 @@ axs[1].legend(frameon = False,
 
 axs[1].set_ylim([0.70, 1])
 axs[1].set_ylabel('Average\nevent score')
-axs[1].set_xlim([0, 50])
+axs[1].set_xlim([0, 51])
 axs[1].set_xlabel('Sliding window size [ms]')
 axs[1].set_xticks(ticks = np.arange(0, 50+0.1, 10), 
                   labels = np.arange(0, (600/(SR/1e3))*(50+0.1), (600/(SR/1e3))*10, dtype = int))
-axs[1].set_xticks(ticks = np.arange(0, 50+0.1, 1),
+axs[1].set_xticks(ticks = np.arange(0, 51+0.1, 1),
                   minor = True)
+
+# remove spines
+[ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
 
 fig.align_labels()
 
@@ -185,9 +186,9 @@ plt.show()
 # %%
 
 factor = 19
-factor_i = 1
+factor_i = factors.index(factor)
 th = 0.25
-th_i = 0
+th_i = thresholds.index(th)
 event_i = (factor_i*2)+th_i
 
 parent_fig = plt.figure(layout='constrained',
@@ -213,7 +214,7 @@ axs[0].plot(x_full, predictions.loc[:, str(factor) + '_' + str(th)],
             lw=0.5,
             label='filtered')
 
-axs[0].hlines(xmin = 0, xmax = x_predic[-1],
+axs[0].hlines(xmin = 0, xmax = x_full[-1],
               y = th, 
               color = 'r',
               lw = 0.75,
@@ -268,7 +269,7 @@ plt.show()
 
 
 # %%
-
+factors_old = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30, 35, 40, 45, 50]
 factors = [5, 19, 30]
 thresholds = [0.25, 0.5]
 
@@ -318,8 +319,11 @@ for fi, factor in enumerate(factors):
                       color = 'r',
                       lw = 0.25,
                       ls = 'dashed')
+        
+        factor_i = factors_old.index(factor)
+        th_i = thresholds.index(th)
 
-        axs[2].eventplot(positions = event_peakidc[(fi*2)+ti] / SR,
+        axs[2].eventplot(positions = event_peakidc[(factor_i*2)+th_i] / SR,
                          orientation = 'horizontal',
                          lineoffsets = -(fi*2)+ti,
                          linelengths = 0.8,

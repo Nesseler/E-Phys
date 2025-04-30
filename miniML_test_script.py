@@ -24,31 +24,63 @@ import matplotlib as mtl
 mtl.rcParams.update({'font.size': 9, 'font.family' : 'Arial'})
 
 
-filename = 'C:/Users/nesseler/miniML/example_data/gc_mini_trace.h5'
-scaling = 1e12
-unit = 'pA'
 
-# # load from h5 file
-# trace = MiniTrace.from_h5_file(filename=filename,
-#                                tracename='mini_data',
-#                                scaling=scaling,
-#                                sampling=2e-5,
-#                                unit=unit)
-
-filename = 'Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-021-blkr.dat'
 rectype = 'vc-Erest-3min'
 scaling = 1e12
 unit = 'pA'
 SR = 100_000
 
-trace = MiniTrace.from_heka_file(filename=filename,
+
+
+# trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-021-blkr.dat',
+#                                  rectype=rectype,
+#                                  group=4,
+#                                  exclude_series = np.delete(np.arange(0, 24), 9),
+#                                  scaling=scaling,
+#                                  unit=unit)
+
+# trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-021-blkr.dat',
+#                                  rectype=rectype,
+#                                  group=1,
+#                                  exclude_series = np.delete(np.arange(0, 26), 13),
+#                                  scaling=scaling,
+#                                  unit=unit)
+
+
+# trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-022-blkr.dat',
+#                                  rectype=rectype,
+#                                  group=1,
+#                                  exclude_series = np.delete(np.arange(0, 11), 8),
+#                                  scaling=scaling,
+#                                  unit=unit)
+
+# trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-022-blkr.dat',
+#                                  rectype=rectype,
+#                                  group=2,
+#                                  exclude_series = np.delete(np.arange(0, 24), 10),
+#                                  scaling=scaling,
+#                                  unit=unit)
+
+# trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-023-adaEk.dat',
+#                                  rectype=rectype,
+#                                  group=4,
+#                                  exclude_series = np.delete(np.arange(0, 48), 9),
+#                                  scaling=scaling,
+#                                  unit=unit)
+
+# trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-023-adaEk.dat',
+#                                  rectype=rectype,
+#                                  group=5,
+#                                  exclude_series = np.delete(np.arange(0, 49), 12),
+#                                  scaling=scaling,
+#                                  unit=unit)
+
+trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-025-adaEk_TTX.dat',
                                  rectype=rectype,
                                  group=1,
-                                 exclude_series=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                                                 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26],
+                                 exclude_series = np.delete(np.arange(0, 27), 13),
                                  scaling=scaling,
                                  unit=unit)
-
 
 b, a = sc.signal.bessel(3, 750, fs=100e3)
 
@@ -57,22 +89,21 @@ ori_trace = trace.data
 data_filtered = sc.signal.lfilter(b, a, ori_trace)
 
 
-# %%
-# trace.plot_trace()
+trace.plot_trace()
 
 trace = MiniTrace(data=data_filtered,
                   sampling_interval=1/100e3,
                   y_unit='pA',
                   filename='None')
 
-# trace.plot_trace()
+trace.plot_trace()
 
 
 
 # %%
 
 factor = 19
-th = 0.25
+th = 0.5
 win_size = 600 * factor
 direction = 'negative'
 
@@ -104,7 +135,7 @@ MiniPlots.plot_event_histogram(plot='amplitude', cumulative=False)
 # MiniPlots.plot_gradient_search()
 
 
-detection.save_to_csv(filename='E-298-test.csv')
+# detection.save_to_csv(filename='E-298-test.csv')
 
 
 # %% create dataframe
@@ -413,10 +444,10 @@ titles = ['A', 'B', 'C', 'D']
 for subfig_i, subfig in enumerate(subfigs):
     subfig.suptitle(titles[subfig_i], x=0.1, ha='left')
 
-create_single_event_fig(parent_fig=subfigs[0], event_i=10)
-create_single_event_fig(parent_fig=subfigs[1], event_i=5)
-create_single_event_fig(parent_fig=subfigs[2], event_i=130)
-create_single_event_fig(parent_fig=subfigs[3], event_i=131)
+create_single_event_fig(parent_fig=subfigs[0], event_i=9)
+create_single_event_fig(parent_fig=subfigs[1], event_i=6)
+create_single_event_fig(parent_fig=subfigs[2], event_i=60)
+create_single_event_fig(parent_fig=subfigs[3], event_i=94)
 
 
 plt.show()
@@ -425,25 +456,25 @@ plt.show()
 # %%
 
 
-for i in range(30):
+# for i in range(30):
     
-    try: 
-        fig = plt.figure(layout='constrained',
-                         dpi=600)
+#     try: 
+#         fig = plt.figure(layout='constrained',
+#                          dpi=600)
         
-        create_single_event_fig(parent_fig=fig, event_i=i)
+#         create_single_event_fig(parent_fig=fig, event_i=i)
         
         
-        plt.show()
-    except ValueError:
-        print(i)
+#         plt.show()
+#     except ValueError:
+#         print(i)
         
 # %%
 
 fig = plt.figure(layout='constrained',
                  dpi=600)
 
-create_single_event_fig(parent_fig=fig, event_i=34)
+create_single_event_fig(parent_fig=fig, event_i=20)
 
 
 plt.show()
@@ -518,11 +549,101 @@ axs[1].eventplot(positions = detection.event_peak_locations / SR,
 axs[0].set_ylim([-0.05, 1.05])
 axs[0].set_ylabel('Probability')
 
-axs[1].set_xlim([1, 2])
+t = 2
+axs[1].set_xlim([0+t, 2+t])
 axs[1].set_xlabel('Time [s]')
 
 axs[1].set_ylim([-20, 10])
 axs[1].set_ylabel('Current [pA]')
+
+parent_fig.align_labels()
+
+plt.show()
+
+
+# %%
+
+
+# for t in np.arange(0, 180, 1):
+    
+t = 0
+trange = 180
+
+ext_prediction = np.append(filtered_prediction, [np.nan]*(data_filtered.shape[0]-filtered_prediction.shape[0]))
+
+
+parent_fig = plt.figure(layout='constrained',
+                        figsize = (6, 3),
+                        dpi=300)
+
+parent_fig.suptitle(f'Prediction - Trace - Events',
+                    fontsize = 9)
+
+
+x_full = np.arange(0, data_filtered.shape[0] / SR, step=1/SR)
+
+plt_idc = np.arange((0+t) * SR, (trange+t) * SR, step = 1, dtype = int)
+plt_peak_idc = [idx for idx in detection.event_peak_locations if (idx > plt_idc[0] and idx < plt_idc[-1])]
+
+axs = parent_fig.subplots(nrows=3,
+                          ncols=1,
+                          sharex=True,
+                          height_ratios=[1, 0.3, 2])
+
+# plot prediction
+axs[0].plot(x_full[plt_idc], ext_prediction[plt_idc],
+            color='k',
+            alpha=0.5,
+            lw=0.5,
+            label='filtered')
+
+axs[0].hlines(xmin = x_full[plt_idc][0], xmax = x_full[plt_idc][-1],
+              y = th, 
+              color = 'r',
+              lw = 0.5,
+              ls = 'dashed')
+
+# plot eventplot
+axs[1].eventplot(positions = x_full[plt_peak_idc],
+                 orientation = 'horizontal',
+                 lineoffsets = 0,
+                 linelengths = 1,
+                 linewidths = 1,
+                 color = 'r',
+                 label = 'events')
+
+# plot data
+axs[2].plot(x_full[plt_idc], data_filtered[plt_idc],
+            color='k',
+            lw=0.5,
+            label='data (filt)')
+
+# plot event peak indicators
+axs[2].scatter(x = x_full[plt_peak_idc],
+               y = data_filtered[plt_peak_idc],
+               marker = 'o',
+               color = 'r',
+               s = 5,
+               lw = 1)
+
+
+# remove spines
+[ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
+
+# axis 
+axs[0].set_ylim([-0.05, 1.05])
+axs[0].set_ylabel('Probability')
+
+axs[1].set_ylim([-1, 1])
+axs[1].set_ylabel('Events')
+axs[1].set_yticks(ticks = [0], labels = [])
+
+axs[2].set_xlim([0+t-(trange*0.01), trange+t+(trange*0.01)])
+[ax.spines['bottom'].set_bounds([0+t, trange+t]) for ax in axs]
+axs[2].set_xlabel('Time [s]')
+
+# axs[1].set_ylim([-20, 10])
+axs[2].set_ylabel('Current [pA]')
 
 parent_fig.align_labels()
 

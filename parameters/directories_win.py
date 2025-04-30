@@ -40,4 +40,5 @@ vplot_dir = ePhys_parent + '/vplots'
 # directory for clustering
 clustering_dir = ePhys_parent + '/clustering'
 
-
+# directory for synaptic event measurements
+synaptic_dir = ePhys_parent + '/synaptic_currents'
