@@ -60,32 +60,39 @@ for df in [n_events, avg_score]:
     df.index.name = 'winsize'
 
  
-# %% get data
+# # %% get data
 
-th = ths[0]
+# th = ths[0]
 
-for cell_ID in tqdm(cell_IDs):
+# for cell_ID in tqdm(cell_IDs):
     
-    for winsize in winsizes:
+#     for winsize in winsizes:
         
-        # set filename
-        filename = f'miniMLdetect_{cell_ID}_Erest_ctrl_{str(winsize)}_{str(th).replace(".", "p")}' 
+#         # set filename
+#         filename = f'miniMLdetect_{cell_ID}_Erest_ctrl_{str(winsize)}_{str(th).replace(".", "p")}' 
         
-        # open a file, where you stored the pickled data
-        file = open((miniML_path + '/' +filename + '.pickle'), 'rb')
+#         # open a file, where you stored the pickled data
+#         file = open((miniML_path + '/' +filename + '.pickle'), 'rb')
         
-        # dump information to that file
-        detection = pickle.load(file)
+#         # dump information to that file
+#         detection = pickle.load(file)
         
-        # close and remove (from memory) the file
-        file.close()
-        del(file)
-        gc.collect()
+#         # close and remove (from memory) the file
+#         file.close()
+#         del(file)
+#         gc.collect()
 
-        # get data
-        n_events.at[winsize, cell_ID] = detection['event_location_parameters']['event_peak_locations'].shape[0]
-        avg_score.at[winsize, cell_ID] = np.mean(detection['event_location_parameters']['event_scores'])
+#         # get data
+#         n_events.at[winsize, cell_ID] = detection['event_location_parameters']['event_peak_locations'].shape[0]
+#         avg_score.at[winsize, cell_ID] = np.mean(detection['event_location_parameters']['event_scores'])
 
+# n_events.to_excel(synaptic_dir + '/n_events.xlsx', index_label = 'winsize')
+# avg_score.to_excel(synaptic_dir + '/avg_score.xlsx', index_label = 'winsize')
+
+# %% read xlsx
+
+n_events = pd.read_excel(synaptic_dir + '/n_events.xlsx', index_col = 'winsize')
+avg_score = pd.read_excel(synaptic_dir + '/avg_score.xlsx', index_col = 'winsize')
 
 # %% figure
 

@@ -65,7 +65,6 @@ model_th = 0.5
 plot = True
 save = True
 
-
 # paths
 ePhys_parent = 'Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA'
 rawData_path = 'Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/'
@@ -80,9 +79,9 @@ lookup = pd.read_excel(ePhys_parent + '/ePhys-database.xlsx',
 cell_IDs = lookup.index.to_list()
 
 # define multiple factors
-factors = [20]
+factors = np.arange(2, 50+.1, 2, dtype = int)
 
-
+# factors = [19]
 
 for cell_ID in cell_IDs:
     
