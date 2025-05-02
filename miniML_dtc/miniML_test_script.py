@@ -17,7 +17,7 @@ from miniML import MiniTrace, EventDetection
 from miniML_plot_functions import miniML_plots
 
 
-%matplotlib inline
+# %matplotlib inline
 
 import matplotlib as mtl
 # set font size
@@ -25,12 +25,48 @@ mtl.rcParams.update({'font.size': 9, 'font.family' : 'Arial'})
 
 
 
-rectype = 'vc-Erest-3min'
+
 scaling = 1e12
 unit = 'pA'
 SR = 100_000
 
 
+# rectype = 'vc-Ek-3min'
+
+# E-238
+# trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-007-TTX.dat',
+#                                   rectype=rectype,
+#                                   group=2,
+#                                   exclude_series = np.delete(np.arange(0, 100), 12-1),
+#                                   scaling=scaling,
+#                                   unit=unit)
+
+# E-300
+# trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-021-blkr.dat',
+#                                   rectype=rectype,
+#                                   group=3,
+#                                   exclude_series = np.delete(np.arange(0, 100), 15-1),
+#                                   scaling=scaling,
+#                                   unit=unit)
+
+
+rectype = 'vc-Erest-3min'
+
+# E-297
+trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-020-TTX_Cd.dat',
+                                  rectype=rectype,
+                                  group=3,
+                                  exclude_series = np.delete(np.arange(0, 100), 22-1),
+                                  scaling=scaling,
+                                  unit=unit)
+
+# E-277
+# trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-016-blkr.dat',
+#                                   rectype=rectype,
+#                                   group=2,
+#                                   exclude_series = np.delete(np.arange(0, 100), 17-1),
+#                                   scaling=scaling,
+#                                   unit=unit)
 
 # trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-021-blkr.dat',
 #                                  rectype=rectype,
@@ -45,6 +81,17 @@ SR = 100_000
 #                                  exclude_series = np.delete(np.arange(0, 26), 13),
 #                                  scaling=scaling,
 #                                  unit=unit)
+
+
+# E-300
+# trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-021-blkr.dat',
+#                                   rectype=rectype,
+#                                   group=3,
+#                                   exclude_series = np.delete(np.arange(0, 100), 13-1),
+#                                   scaling=scaling,
+#                                   unit=unit)
+
+
 
 
 # trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-022-blkr.dat',
@@ -75,12 +122,20 @@ SR = 100_000
 #                                  scaling=scaling,
 #                                  unit=unit)
 
-trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-025-adaEk_TTX.dat',
-                                 rectype=rectype,
-                                 group=1,
-                                 exclude_series = np.delete(np.arange(0, 27), 13),
-                                 scaling=scaling,
-                                 unit=unit)
+# trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-025-adaEk_TTX.dat',
+#                                   rectype=rectype,
+#                                   group=1,
+#                                   exclude_series = np.delete(np.arange(0, 27), 13),
+#                                   scaling=scaling,
+#                                   unit=unit)
+
+# trace = MiniTrace.from_heka_file(filename='Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/Syn-AMY-019-TTX_Cd.dat',
+#                                  rectype=rectype,
+#                                  group=1,
+#                                  exclude_series = np.delete(np.arange(0, 13), 10),
+#                                  scaling=scaling,
+#                                  unit=unit)
+
 
 b, a = sc.signal.bessel(3, 750, fs=100e3)
 
@@ -89,7 +144,15 @@ ori_trace = trace.data
 data_filtered = sc.signal.lfilter(b, a, ori_trace)
 
 
-trace.plot_trace()
+# %% remove initial or end steps
+
+
+
+
+# %%
+
+
+# trace.plot_trace()
 
 trace = MiniTrace(data=data_filtered,
                   sampling_interval=1/100e3,
@@ -98,32 +161,38 @@ trace = MiniTrace(data=data_filtered,
 
 trace.plot_trace()
 
-
-
 # %%
 
 factor = 19
-th = 0.5
+model_th = 0.5
 win_size = 600 * factor
 direction = 'negative'
 
+# set settings for event detection
+eventdetection_settings = {'window_size' : 600 * factor,
+                           'model_threshold' : model_th,
+                           'batch_size' : 512,
+                           'event_detection_peakw' : 5,
+                           'stride' : 30,
+                           'rel_prom_cutoff' : 0.25,
+                           'convolve_win' : 20 * factor}
+
+# run prediction
 detection = EventDetection(data=trace,
                            model_path='C:/Users/nesseler/miniML/models/GC_lstm_model.h5',
-                           window_size=win_size,
-                           model_threshold = th,
-                           batch_size = int(512),
+                           window_size = eventdetection_settings['window_size'],
+                           model_threshold = eventdetection_settings['model_threshold'],
+                           batch_size = eventdetection_settings['batch_size'],
                            event_direction=direction,
                            compile_model=True,
                            verbose=2)
 
-event_detection_peakw = 5
-
+# detect events
 detection.detect_events(eval=True,
-                        stride = 30,
-                        peak_w = event_detection_peakw,
-                        rel_prom_cutoff = 0.25,
-                        convolve_win= 20 * factor,
-                        # gradient_convolve_win = 40 * factor,
+                        stride = eventdetection_settings['stride'],
+                        peak_w = eventdetection_settings['event_detection_peakw'],
+                        rel_prom_cutoff = eventdetection_settings['rel_prom_cutoff'],
+                        convolve_win = eventdetection_settings['convolve_win'],
                         resample_to_600 = True)
 
 MiniPlots = miniML_plots(data=detection)
@@ -134,8 +203,13 @@ MiniPlots.plot_event_overlay()
 MiniPlots.plot_event_histogram(plot='amplitude', cumulative=False)
 # MiniPlots.plot_gradient_search()
 
+# %%
 
-# detection.save_to_csv(filename='E-298-test.csv')
+
+# MiniPlots.plot_event_overlay()
+
+
+# plt.gcf().savefig('C:/Users/nesseler/Desktop/test.png', format = 'png')
 
 
 # %% create dataframe
@@ -427,30 +501,30 @@ def create_single_event_fig(parent_fig, event_i: int = 0):
 
 # %%
 
-fig = plt.figure(layout='constrained',
-                 figsize=(9, 8),
-                 dpi=600)
+# fig = plt.figure(layout='constrained',
+#                  figsize=(9, 8),
+#                  dpi=600)
 
-fig.suptitle('Detected events')
+# fig.suptitle('Detected events')
 
-subfigs = fig.subfigures(2, 2, wspace=0.07)
+# subfigs = fig.subfigures(2, 2, wspace=0.07)
 
-# flatten subfigs array
-subfigs = subfigs.flatten()
+# # flatten subfigs array
+# subfigs = subfigs.flatten()
 
-# set titles
-titles = ['A', 'B', 'C', 'D']
+# # set titles
+# titles = ['A', 'B', 'C', 'D']
 
-for subfig_i, subfig in enumerate(subfigs):
-    subfig.suptitle(titles[subfig_i], x=0.1, ha='left')
+# for subfig_i, subfig in enumerate(subfigs):
+#     subfig.suptitle(titles[subfig_i], x=0.1, ha='left')
 
-create_single_event_fig(parent_fig=subfigs[0], event_i=9)
-create_single_event_fig(parent_fig=subfigs[1], event_i=6)
-create_single_event_fig(parent_fig=subfigs[2], event_i=60)
-create_single_event_fig(parent_fig=subfigs[3], event_i=94)
+# create_single_event_fig(parent_fig=subfigs[0], event_i=9)
+# create_single_event_fig(parent_fig=subfigs[1], event_i=6)
+# create_single_event_fig(parent_fig=subfigs[2], event_i=60)
+# create_single_event_fig(parent_fig=subfigs[3], event_i=94)
 
 
-plt.show()
+# plt.show()
 
 
 # %%
@@ -460,7 +534,7 @@ plt.show()
     
 #     try: 
 #         fig = plt.figure(layout='constrained',
-#                          dpi=600)
+#                           dpi=600)
         
 #         create_single_event_fig(parent_fig=fig, event_i=i)
         
@@ -471,94 +545,94 @@ plt.show()
         
 # %%
 
-fig = plt.figure(layout='constrained',
-                 dpi=600)
+# fig = plt.figure(layout='constrained',
+#                  dpi=600)
 
-create_single_event_fig(parent_fig=fig, event_i=20)
+# create_single_event_fig(parent_fig=fig, event_i=1)
 
 
-plt.show()
+# plt.show()
 
 # %%
 
-parent_fig = plt.figure(layout='constrained',
-                        figsize = (6, 3),
-                        dpi=300)
+# parent_fig = plt.figure(layout='constrained',
+#                         figsize = (6, 3),
+#                         dpi=300)
 
-# parent_fig.suptitle('Full trace')
-
-
-x_full = np.arange(0, data_filtered.shape[0] / SR, step=1/SR)
-x_predic = np.arange(0, filtered_prediction.shape[0] / SR, step=1/SR)
-
-axs = parent_fig.subplots(nrows=2,
-                          ncols=1,
-                          sharex=True,
-                          height_ratios=[1, 3])
-
-# plot prediction
-axs[0].plot(x_predic, filtered_prediction,
-            color='k',
-            alpha=0.5,
-            lw=0.5,
-            label='filtered')
-
-axs[0].hlines(xmin = 0, xmax = x_predic[-1],
-              y = th, 
-              color = 'r',
-              lw = 0.5,
-              ls = 'dashed')
-
-# plot data
-axs[1].plot(x_full, ori_trace,
-            color='k',
-            alpha = 0.5,
-            lw=0.5,
-            label='data')
-
-# plot data
-axs[1].plot(x_full, data_filtered,
-            color='k',
-            lw=0.5,
-            label='data')
+# # parent_fig.suptitle('Full trace')
 
 
-# plot event peak indicators
-axs[1].scatter(x = x_full[detection.event_peak_locations],
-               y = data_filtered[detection.event_peak_locations],
-               marker = 'o',
-               color = 'r',
-               s = 5,
-               lw = 1)
+# x_full = np.arange(0, data_filtered.shape[0] / SR, step=1/SR)
+# x_predic = np.arange(0, filtered_prediction.shape[0] / SR, step=1/SR)
 
-# plot eventplot
-axs[1].eventplot(positions = detection.event_peak_locations / SR,
-                 orientation = 'horizontal',
-                 lineoffsets = 9.25,
-                 linelengths = 1.5,
-                 linewidths = 1,
-                 color = 'r',
-                 label = 'events')
+# axs = parent_fig.subplots(nrows=2,
+#                           ncols=1,
+#                           sharex=True,
+#                           height_ratios=[1, 3])
+
+# # plot prediction
+# axs[0].plot(x_predic, filtered_prediction,
+#             color='k',
+#             alpha=0.5,
+#             lw=0.5,
+#             label='filtered')
+
+# axs[0].hlines(xmin = 0, xmax = x_predic[-1],
+#               y = model_th, 
+#               color = 'r',
+#               lw = 0.5,
+#               ls = 'dashed')
+
+# # plot data
+# # axs[1].plot(x_full, ori_trace,
+# #             color='k',
+# #             alpha = 0.5,
+# #             lw=0.5,
+# #             label='data')
+
+# # plot data
+# axs[1].plot(x_full, data_filtered,
+#             color='k',
+#             lw=0.5,
+#             label='data')
+
+
+# # plot event peak indicators
+# axs[1].scatter(x = x_full[detection.event_peak_locations],
+#                y = data_filtered[detection.event_peak_locations],
+#                marker = 'o',
+#                color = 'r',
+#                s = 5,
+#                lw = 1)
+
+# # plot eventplot
+# axs[1].eventplot(positions = detection.event_peak_locations / SR,
+#                  orientation = 'horizontal',
+#                  lineoffsets = 9.25,
+#                  linelengths = 1.5,
+#                  linewidths = 1,
+#                  color = 'r',
+#                  label = 'events')
 
 
 
-# remove spines
-[ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
+# # remove spines
+# [ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
 
-# axis 
-axs[0].set_ylim([-0.05, 1.05])
-axs[0].set_ylabel('Probability')
+# # axis 
+# axs[0].set_ylim([-0.05, 1.05])
+# axs[0].set_ylabel('Probability')
 
-t = 2
-axs[1].set_xlim([0+t, 2+t])
-axs[1].set_xlabel('Time [s]')
+# t = 2
+# axs[1].set_xlim([0+t, 2+t])
+# axs[1].set_xlabel('Time [s]')
 
-axs[1].set_ylim([-20, 10])
-axs[1].set_ylabel('Current [pA]')
+# axs[1].set_ylim([-20, 10])
+# axs[1].set_ylabel('Current [pA]')
 
-parent_fig.align_labels()
+# parent_fig.align_labels()
 
-plt.show()
+# plt.show()
 
 
 # %%
@@ -566,8 +640,8 @@ plt.show()
 
 # for t in np.arange(0, 180, 1):
     
-t = 0
-trange = 180
+t = 1
+trange = 179
 
 ext_prediction = np.append(filtered_prediction, [np.nan]*(data_filtered.shape[0]-filtered_prediction.shape[0]))
 
@@ -598,7 +672,7 @@ axs[0].plot(x_full[plt_idc], ext_prediction[plt_idc],
             label='filtered')
 
 axs[0].hlines(xmin = x_full[plt_idc][0], xmax = x_full[plt_idc][-1],
-              y = th, 
+              y = model_th, 
               color = 'r',
               lw = 0.5,
               ls = 'dashed')

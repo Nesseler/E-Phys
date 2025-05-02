@@ -6,24 +6,35 @@ Created on Wed Apr 30 14:00:29 2025
 
 !! must be run in virtual environment containing all necessary packages !!
 
+0
+install virutal environment package
+> use 'pip install virtualenv'
+
 1
 creation of virtual environment
 > create folder to host virtual environment
 > use anaconda prompt to navigate to folder
 > use 'python<version> -m venv <virtual-environment-name>' to create virtual env
-    > 'python3.10 -m venv miniML_venv'
+    > 'python3.10 -m venv miniML_venv' OR 'conda create -n miniML_venv python=3.10'
 
 2
-activate virtual environment
-- to activate run 'activate miniML_venv' in anaconda prompt
-- to deactivate run 'conda deactivate'
+de-/activate virtual environment
+> To activate this environment, use
+    - conda activate miniML_venv
+> To deactivate an active environment, use
+    - conda deactivate
 
 3
-install dependencies
-- use anaconda prompt to navigate to miniML folder
-- run 'pip install -r requirements.txt' to install packages
+install kernel for spyder in virtual environment
+> conda install spyder-kernels=2.5
 
 4 
+install dependencies
+- use anaconda prompt to navigate to miniML folder
+- activate virtual environment
+- run 'pip install -r requirements.txt' to install packages
+
+5
 install additional packages (using pip install in venv)
 > tqdm
 > openpyxl
@@ -68,7 +79,7 @@ save = True
 # paths
 ePhys_parent = 'Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA'
 rawData_path = 'Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/RAW_data/'
-data_path = 'Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/synaptic_currents/miniML_validation/'
+data_path = 'Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/synaptic_currents/miniML_dtc-validation/'
 
 # load xlsx sheet
 lookup = pd.read_excel(ePhys_parent + '/ePhys-database.xlsx', 
@@ -79,9 +90,9 @@ lookup = pd.read_excel(ePhys_parent + '/ePhys-database.xlsx',
 cell_IDs = lookup.index.to_list()
 
 # define multiple factors
-factors = np.arange(2, 50+.1, 2, dtype = int)
+# factors = np.arange(2, 50+.1, 2, dtype = int)
 
-# factors = [19]
+factors = [19]
 
 for cell_ID in cell_IDs:
     

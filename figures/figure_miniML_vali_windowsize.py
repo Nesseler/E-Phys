@@ -12,7 +12,7 @@ import gc
 
 # import directories 
 from parameters.directories_win import synaptic_dir
-miniML_path = synaptic_dir + '/miniML_validation'
+miniML_path = synaptic_dir + '/miniML_dtc-validation'
 
 # import functions
 from functions.functions_import import get_onlyfiles_list
@@ -60,7 +60,7 @@ for df in [n_events, avg_score]:
     df.index.name = 'winsize'
 
  
-# # %% get data
+# %% get data
 
 # th = ths[0]
 
@@ -86,13 +86,13 @@ for df in [n_events, avg_score]:
 #         n_events.at[winsize, cell_ID] = detection['event_location_parameters']['event_peak_locations'].shape[0]
 #         avg_score.at[winsize, cell_ID] = np.mean(detection['event_location_parameters']['event_scores'])
 
-# n_events.to_excel(synaptic_dir + '/n_events.xlsx', index_label = 'winsize')
-# avg_score.to_excel(synaptic_dir + '/avg_score.xlsx', index_label = 'winsize')
+# n_events.to_excel(synaptic_dir + '/miniML_validation' + '/n_events.xlsx', index_label = 'winsize')
+# avg_score.to_excel(synaptic_dir + '/miniML_validation' + '/avg_score.xlsx', index_label = 'winsize')
 
 # %% read xlsx
 
-n_events = pd.read_excel(synaptic_dir + '/n_events.xlsx', index_col = 'winsize')
-avg_score = pd.read_excel(synaptic_dir + '/avg_score.xlsx', index_col = 'winsize')
+n_events = pd.read_excel(synaptic_dir + '/miniML_validation' + '/n_events.xlsx', index_col = 'winsize')
+avg_score = pd.read_excel(synaptic_dir + '/miniML_validation' + '/avg_score.xlsx', index_col = 'winsize')
 
 # %% figure
 
@@ -188,7 +188,7 @@ plt.show()
 
 # %% figure 2 - normed n_events
 
-n_events_norm = n_events / n_events.max()
+n_events_norm = (n_events-n_events.min()) / (n_events.max()-n_events.min())
 
 # init figure
 fig, axs = plt.subplots(nrows = 2, ncols = 1,
@@ -206,12 +206,14 @@ axs[0].errorbar(x = winsizes,
                 y = n_events_norm.mean(axis = 1),
                 lw = 1,
                 color = 'k',
-                ls = 'dashed',
+                ls = 'solid',
                 elinewidth = 0.75,
                 capsize = 1,
                 capthick = 0.75,
                 label = 'mean',
-                zorder = 2)
+                zorder = 2,
+                marker = '.',
+                ms = 2)
 
 axs[0].fill_between(x = winsizes,
                     y1 = (n_events_norm.mean(axis = 1) - n_events_norm.std(axis = 1)).to_list(),
@@ -231,11 +233,13 @@ axs[1].errorbar(x = winsizes,
                 y = avg_score.mean(axis = 1),
                 lw = 1,
                 color = 'k',
-                ls = 'dashed',
+                ls = 'solid',
                 elinewidth = 0.75,
                 capsize = 1,
                 capthick = 0.75,
-                label = 'mean')
+                label = 'mean',
+                marker = '.',
+                ms = 2)
 
 axs[1].fill_between(x = winsizes,
                     y1 = (avg_score.mean(axis = 1) - avg_score.std(axis = 1)).to_list(),
@@ -271,3 +275,88 @@ axs[1].set_xticks(ticks = np.arange(0, 300+0.1, 6), minor = True)
 fig.align_labels()
 
 plt.show()
+
+
+# %%
+
+
+plt.figure(dpi = 300)
+
+ax = plt.gca()
+
+winsize = 114
+
+# for i, winsize in enumerate(ex_winsize):
+
+# get data
+data = n_events.loc[winsize, :]
+
+# calc mean, etc.
+data_mean = np.mean(data)
+data_median = np.median(data)
+data_std = np.std(data)
+
+# set swarm x
+swarm_x = 0
+v_direction = 1
+
+# plot swarmplot
+sbn.swarmplot(x = [swarm_x] * len(data),
+              y = data,
+              color = colors_dict['primecolor'],
+              ax = ax,
+              size = 2,
+              zorder = 1)
+
+# calc violin position
+x = swarm_x - (v_direction*0.3)
+
+# plot half violin
+plot_half_violin(data = data, 
+                  ax = ax,
+                  v_position = x,
+                  v_direction = v_direction,
+                  v_offset = 0,
+                  v_lw = 1.5,
+                  v_color = 'k',
+                  v_zorder = 2,
+                  v_width = 0.8,
+                  v_abs_cutoff = [0, np.nan])
+
+# errorbar
+ax.errorbar(x = x,
+            y = data_mean,
+            yerr = data_std,
+            fmt='_', 
+            markersize = 6,
+            markerfacecolor = 'none',
+            markeredgewidth = 1.5,
+            capsize = 2,
+            color = 'k',
+            linewidth = 1.5,
+            label = '_nolegend_',
+            zorder = 3)
+
+# plot median
+ax.scatter(x = x,
+           y = data_median,
+           marker='D', 
+           s = 5,
+           color = 'k',
+           linewidth = 1.5,
+           label = '_nolegend_',
+           zorder = 4)
+    
+
+# plt.xticks(ticks = np.arange(len(ex_winsize)),
+#            labels = ex_winsize)
+    
+plt.show()
+    
+    
+
+
+
+
+
+
