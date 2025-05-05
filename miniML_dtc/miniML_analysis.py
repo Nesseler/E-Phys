@@ -265,8 +265,8 @@ vplots_path = 'Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/vplots'
 # %% setup parameters
 
 # load
-eholds = ['Erest']#, 'Ek'] #'Ezero', 'Ep30', 'ECl'
-treatments = ['ctrl', 'AP5_NBQX', 'AP5_NBQX_washin', 'GBZ', 'GBZ_washin', 'AP5_NBQX_GBZ', 'AP5_NBQX_GBZ_washin'] #, 'adaEk']
+eholds = ['Erest', 'Ek'] #'Ezero', 'Ep30', 'ECl'
+treatments = ['ctrl'] #, 'AP5_NBQX', 'AP5_NBQX_washin', 'GBZ', 'GBZ_washin', 'AP5_NBQX_GBZ', 'AP5_NBQX_GBZ_washin'] #, 'adaEk']
 times = ['3min']
 
 # PGF 
@@ -313,6 +313,9 @@ analyzed = pd.read_excel(ePhys_parent + '/ePhys-database.xlsx',
 # %% load data
 
 time = times[0]
+
+# setup string
+newly_analyzed_cellIDs = str()
 
 for treat in treatments:
     for ehold in eholds:
@@ -452,11 +455,46 @@ for treat in treatments:
                 # add to list of analyzed cell_IDs
                 analyzed_cell_IDs.append(cell_ID)
                 
+                # newly analyzed cell_IDs + condition
+                newly_analyzed_cellIDs = newly_analyzed_cellIDs + '\n' + f' {cell_ID} {ehold} {treat} {time}'
+
                 
         # %% write to analyzed xlsx sheet
         
         update_analyzed_sheet(analyzed_cell_IDs, PGF = recording)
+
+
+# %% write txt file
+
+from datetime import datetime
+
+# get date and time
+datetime_str = datetime.now().strftime('%Y%m%d_%H%M')
+
+# set path and filename
+settingsoutput_path = data_path + 'miniML_dtc-analysis_settings/'
+txt_filename = 'miniML_dtc-' + datetime_str
+
+with open(settingsoutput_path + txt_filename + '.txt', 'w+') as txt:
+    
+    # filter
+    txt.write(f'Filter\n Filter type: bessel\n Filter freq: {filter_freq}\n Filter order: {filter_order}')
+
+    # PGF
+    txt.write(f'\n\nPGF\n Scaling: {scaling}\n Unit: {unit}\n SR [Hz]: {SR}\n Total duration [s]: {total_dur}\n Sweep duration [s]: {sweep_dur}')
+
+    # analysis
+    txt.write(f'\n\nAnalysis:\n Model threshold: {model_th}\n Window size [ms]: {winsize_ms}\n Factor (of original winsize): {factor}')
+    
+    # analysis dict
+    analy_s = '\n\n'
+    for k, v in eventdtc.items():
+        analy_s = analy_s + ' ' + k.capitalize() + ': ' + str(v) + '\n'
+    txt.write(analy_s)
         
+    # analyzed cells
+    txt.write('\nAnalyzed:' + newly_analyzed_cellIDs)
+    
         
 # %% end
 

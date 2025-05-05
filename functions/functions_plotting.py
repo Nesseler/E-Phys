@@ -81,6 +81,17 @@ def get_blkr_colors(darkmode_bool=False):
 
 
 def get_figure_size(width = 318.67, height = 160.5):
+    """
+    Function returns width and height in inch for matplotlib figures.
+        Powerpoint width = 318.67, height = 160.5 
+        A4 width = 159.2, height = 159.2
+    Parameters:
+        width : float, default is 318.67 mm
+        heigth : float, default is 160.5 mm
+    Returns:
+        figsize : tuple, width and height in mm
+    """
+    
     mm = 1/25.4
     figsize=(width*mm, height*mm)
     return figsize

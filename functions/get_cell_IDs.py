@@ -61,7 +61,7 @@ def get_cell_IDs_one_protocol(PGF = 'cc_IF', sheet_name = 'PGFs'):
     table = pd.read_excel(table_file, sheet_name=sheet_name, index_col='cell_ID')
 
     # limit 
-    lookup_table = table.query(f'{PGF}.notnull()')
+    lookup_table = table[PGF].dropna()
 
     # cell IDs 
     cell_IDs = list(lookup_table.index)

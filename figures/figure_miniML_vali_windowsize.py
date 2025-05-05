@@ -99,111 +99,122 @@ avg_score = pd.read_excel(synaptic_dir + '/miniML_validation' + '/avg_score.xlsx
 # init plotting
 from functions.initialize_plotting import *
 
-# init figure
-fig, axs = plt.subplots(nrows = 2, ncols = 1,
-                        sharex = True,
-                        dpi = 300)
+# # init figure
+# fig, axs = plt.subplots(nrows = 2, ncols = 1,
+#                         sharex = True,
+#                         dpi = 300)
 
-axs[0].plot(winsizes, n_events,
-            lw = 0.75,
-            color = 'gray',
-            alpha = 0.7,
-            marker = '.',
-            ms = 2,
-            label = 'recordings',
-            zorder = 0)
+# axs[0].plot(winsizes, n_events,
+#             lw = 0.75,
+#             color = 'gray',
+#             alpha = 0.7,
+#             marker = '.',
+#             ms = 2,
+#             label = 'recordings',
+#             zorder = 0)
 
-axs[0].errorbar(x = winsizes, 
-                y = n_events.mean(axis = 1),
-                lw = 1,
-                color = 'k',
-                ls = 'dashed',
-                elinewidth = 0.75,
-                capsize = 1,
-                capthick = 0.75,
-                label = 'mean',
-                zorder = 2)
+# axs[0].errorbar(x = winsizes, 
+#                 y = n_events.mean(axis = 1),
+#                 lw = 1,
+#                 color = 'k',
+#                 ls = 'dashed',
+#                 elinewidth = 0.75,
+#                 capsize = 1,
+#                 capthick = 0.75,
+#                 label = 'mean',
+#                 zorder = 2)
 
-axs[0].fill_between(x = winsizes,
-                    y1 = (n_events.mean(axis = 1) - n_events.std(axis = 1)).to_list(),
-                    y2 = (n_events.mean(axis = 1) + n_events.std(axis = 1)).to_list(),
-                    facecolor = 'k',
-                    alpha = 0.1,
-                    zorder = 1)
+# axs[0].fill_between(x = winsizes,
+#                     y1 = (n_events.mean(axis = 1) - n_events.std(axis = 1)).to_list(),
+#                     y2 = (n_events.mean(axis = 1) + n_events.std(axis = 1)).to_list(),
+#                     facecolor = 'k',
+#                     alpha = 0.1,
+#                     zorder = 1)
     
 
-axs[1].plot(winsizes, avg_score,
-            lw = 0.75,
-            color = 'gray',
-            alpha = 0.7,
-            marker = '.',
-            ms = 2,
-            label = 'recordings')
+# axs[1].plot(winsizes, avg_score,
+#             lw = 0.75,
+#             color = 'gray',
+#             alpha = 0.7,
+#             marker = '.',
+#             ms = 2,
+#             label = 'recordings')
 
-axs[1].errorbar(x = winsizes, 
-                y = avg_score.mean(axis = 1),
-                lw = 1,
-                color = 'k',
-                ls = 'dashed',
-                elinewidth = 0.75,
-                capsize = 1,
-                capthick = 0.75,
-                label = 'mean')
+# axs[1].errorbar(x = winsizes, 
+#                 y = avg_score.mean(axis = 1),
+#                 lw = 1,
+#                 color = 'k',
+#                 ls = 'dashed',
+#                 elinewidth = 0.75,
+#                 capsize = 1,
+#                 capthick = 0.75,
+#                 label = 'mean')
 
-axs[1].fill_between(x = winsizes,
-                    y1 = (avg_score.mean(axis = 1) - avg_score.std(axis = 1)).to_list(),
-                    y2 = (avg_score.mean(axis = 1) + avg_score.std(axis = 1)).to_list(),
-                    facecolor = 'k',
-                    alpha = 0.1,
-                    zorder = 1)
+# axs[1].fill_between(x = winsizes,
+#                     y1 = (avg_score.mean(axis = 1) - avg_score.std(axis = 1)).to_list(),
+#                     y2 = (avg_score.mean(axis = 1) + avg_score.std(axis = 1)).to_list(),
+#                     facecolor = 'k',
+#                     alpha = 0.1,
+#                     zorder = 1)
 
-# axs[0].legend(frameon = False,
-#               fontsize = 7,
-#               loc = 'upper right')
+# # axs[0].legend(frameon = False,
+# #               fontsize = 7,
+# #               loc = 'upper right')
 
-axs[0].set_ylim([0-12, 600+12])
-axs[0].spines['left'].set_bounds([0, 600])
-axs[0].set_ylabel('Number of\ndetected events [#]')
+# axs[0].set_ylim([0-12, 600+12])
+# axs[0].spines['left'].set_bounds([0, 600])
+# axs[0].set_ylabel('Number of\ndetected events [#]')
     
-# axs[1].legend(frameon = False,
-#               fontsize = 7,
-#               loc = 'lower right')
+# # axs[1].legend(frameon = False,
+# #               fontsize = 7,
+# #               loc = 'lower right')
 
-axs[1].set_ylim([0.70, 1])
-axs[1].set_ylabel('Average\nevent score')
+# axs[1].set_ylim([0.70, 1])
+# axs[1].set_ylabel('Average\nevent score')
 
-# x
-axs[1].set_xlabel('Sliding window size [ms]')
-axs[1].set_xlim([0, 300])
-axs[1].set_xticks(ticks = np.arange(0, 300+0.1, 60))
-axs[1].set_xticks(ticks = np.arange(0, 300+0.1, 6), minor = True)
+# # x
+# axs[1].set_xlabel('Sliding window size [ms]')
+# axs[1].set_xlim([0, 300])
+# axs[1].set_xticks(ticks = np.arange(0, 300+0.1, 60))
+# axs[1].set_xticks(ticks = np.arange(0, 300+0.1, 6), minor = True)
 
-# remove spines
-[ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
+# # remove spines
+# [ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
 
-fig.align_labels()
+# fig.align_labels()
 
-plt.show()
+# plt.show()
 
 
 # %% figure 2 - normed n_events
 
-n_events_norm = (n_events-n_events.min()) / (n_events.max()-n_events.min())
+# n_events_norm = (n_events-n_events.min()) / (n_events.max()-n_events.min())
+n_events_norm = (n_events-0) / (n_events.max()-0)
+avg_score_norm = (avg_score-0) / (avg_score.max()-0)
 
 # init figure
-fig, axs = plt.subplots(nrows = 2, ncols = 1,
-                        sharex = True,
-                        dpi = 300)
+fig, axs = plt.subplot_mosaic(mosaic = 'AB;AC;DE;DF',
+                              dpi = 300,
+                              width_ratios = [3, 1],
+                              figsize = get_figure_size(width = 159.2, height = 159.2), # powerpoint width = 318.67, height = 160.5 # A4 width = 159.2, height = 159.2
+                              layout = 'constrained')
 
-axs[0].plot(winsizes, n_events_norm,
-            lw = 0.75,
-            color = 'gray',
-            alpha = 0.7,
-            label = 'recordings',
+fig.suptitle('miniML validation - window size')
+
+for ax_key, data in zip(['A', 'B', 'C', 'D', 'E', 'F'], [n_events_norm, n_events_norm, n_events, avg_score_norm, avg_score_norm, avg_score_norm]):
+    # set axis
+    ax = axs[ax_key]
+    
+    # plot
+    ax.plot(winsizes, data,
+            lw = 0.75, 
+            color = 'gray', 
+            alpha = 0.5,
+            label = 'recordings', 
             zorder = 0)
-
-axs[0].errorbar(x = winsizes, 
-                y = n_events_norm.mean(axis = 1),
+    
+    ax.errorbar(x = winsizes, 
+                y = data.mean(axis = 1),
                 lw = 1,
                 color = 'k',
                 ls = 'solid',
@@ -214,149 +225,114 @@ axs[0].errorbar(x = winsizes,
                 zorder = 2,
                 marker = '.',
                 ms = 2)
-
-axs[0].fill_between(x = winsizes,
-                    y1 = (n_events_norm.mean(axis = 1) - n_events_norm.std(axis = 1)).to_list(),
-                    y2 = (n_events_norm.mean(axis = 1) + n_events_norm.std(axis = 1)).to_list(),
+    
+    ax.fill_between(x = winsizes,
+                    y1 = (data.mean(axis = 1) - data.std(axis = 1)).to_list(),
+                    y2 = (data.mean(axis = 1) + data.std(axis = 1)).to_list(),
                     facecolor = 'k',
                     alpha = 0.1,
                     zorder = 1)
     
-
-axs[1].plot(winsizes, avg_score,
-            lw = 0.75,
-            color = 'gray',
-            alpha = 0.7,
-            label = 'recordings')
-
-axs[1].errorbar(x = winsizes, 
-                y = avg_score.mean(axis = 1),
-                lw = 1,
-                color = 'k',
-                ls = 'solid',
-                elinewidth = 0.75,
-                capsize = 1,
-                capthick = 0.75,
-                label = 'mean',
-                marker = '.',
-                ms = 2)
-
-axs[1].fill_between(x = winsizes,
-                    y1 = (avg_score.mean(axis = 1) - avg_score.std(axis = 1)).to_list(),
-                    y2 = (avg_score.mean(axis = 1) + avg_score.std(axis = 1)).to_list(),
-                    facecolor = 'k',
-                    alpha = 0.1,
-                    zorder = 1)
-
-# axs[0].legend(frameon = False,
-#               fontsize = 7,
-#               loc = 'upper right')
-
-axs[0].set_ylim([-0.05, 1.1])
-axs[0].spines['left'].set_bounds([0, 1])
-axs[0].set_ylabel('Normalized number of\ndetected events')
+    # remove spines
+    [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
     
-# axs[1].legend(frameon = False,
-#               fontsize = 7,
-#               loc = 'lower right')
 
-axs[1].set_ylim([0.70, 1])
-axs[1].set_ylabel('Average\nevent score')
+for ax_key, y, h, s in zip(['A', 'D'], [0.8, 0.94], [0.2, 0.14], ['B', 'E']):
+    axs[ax_key].set_title(ax_key, loc='left')
+    
+    # x axis
+    axs[ax_key].spines['bottom'].set_bounds([0, 300])
+    axs[ax_key].set_xlim([0-3, 300+3])
+    axs[ax_key].set_xticks(ticks = np.arange(0, 300+0.1, 60), labels = [])
+    axs[ax_key].set_xticks(ticks = np.arange(0, 300+0.1, 6), minor = True)
+    
+    # add zoom in marker
+    axs[ax_key].add_patch(Rectangle(xy = (84, y), 
+                            width = 48, 
+                            height = h,
+                            fill = False,
+                            color = colors_dict['primecolor'],
+                            linestyle = '--',
+                            lw = 0.5,
+                            alpha = 0.5))
+    
+    # add text
+    axs[ax_key].text(x = 132-1, y = y, s = s, fontsize = 7, ha = 'right', va = 'bottom')
 
-# x
-axs[1].set_xlabel('Sliding window size [ms]')
-axs[1].set_xlim([0, 300])
-axs[1].set_xticks(ticks = np.arange(0, 300+0.1, 60))
-axs[1].set_xticks(ticks = np.arange(0, 300+0.1, 6), minor = True)
+for ax_key in ['B', 'E']:
+    axs[ax_key].set_title(ax_key, loc='left')
+    # x axis
+    axs[ax_key].spines['bottom'].set_bounds([84, 132])
+    axs[ax_key].set_xlim([84-2, 132+2])
+    axs[ax_key].set_xticks(ticks = np.arange(84, 132+0.1, 12))
+    axs[ax_key].set_xticks(ticks = np.arange(84, 132+0.1, 6), minor = True)  
+    axs[ax_key].set_xlabel('Window size [ms]')
 
-# remove spines
-[ax.spines[spine].set_visible(False) for ax in axs for spine in ['top', 'right']]
+for ax_key in ['C', 'F']:
+    axs[ax_key].set_title(ax_key, loc='left')
+    # x axis
+    axs[ax_key].spines['bottom'].set_bounds([0, 300])
+    axs[ax_key].set_xlim([0-3, 300+3])
+    axs[ax_key].set_xticks(ticks = np.arange(0, 300+0.1, 60), labels = np.arange(0, 300+0.1, 60, dtype = int))
+    axs[ax_key].set_xlabel('Window size [ms]')
 
+    
+# A: number of events  
+axs['A'].set_ylim([-0.01, 1.01])
+axs['A'].spines['left'].set_bounds([0, 1])
+axs['A'].set_ylabel('Normalized\nnumber of detected events')
+axs['A'].set_yticks(ticks = np.arange(0, 1.+0.001, 0.2))
+axs['A'].set_yticks(ticks = np.arange(0, 1.+0.001, 0.05), minor = True)
+
+# B: zoom in
+axs['B'].set_ylim([0.8-0.01, 1.01])
+axs['B'].spines['left'].set_bounds([0.8, 1])
+axs['B'].set_ylabel('Normalized number\nof detected events')
+axs['B'].set_yticks(ticks = np.arange(0.8, 1.+0.001, 0.1))
+axs['B'].set_yticks(ticks = np.arange(0.8, 1.+0.001, 0.05), minor = True)
+
+# C: abs number 
+axs['C'].set_ylim([0-5, 600+5])
+axs['C'].spines['left'].set_bounds([0, 600])
+axs['C'].set_ylabel('Number of\ndetected events [#]')
+axs['C'].set_yticks(ticks = np.arange(0, 600.+1, 200))
+axs['C'].set_yticks(ticks = np.arange(0, 600.+1, 50), minor = True)
+
+# D: average event score
+axs['D'].set_xticks(ticks = np.arange(0, 300+0.1, 60), labels = np.arange(0, 300+0.1, 60, dtype = int))
+axs['D'].set_xlabel('Window size [ms]')
+
+axs['D'].set_ylim([0.0-0.003, 1+0.003])
+axs['D'].spines['left'].set_bounds([0.0, 1])
+axs['D'].set_ylabel('Normalized\naverage event score')
+axs['D'].set_yticks(ticks = np.arange(0.0, 1.+0.001, 0.2))
+axs['D'].set_yticks(ticks = np.arange(0.0, 1.+0.001, 0.05), minor = True)
+
+# E: zoom in
+axs['E'].set_ylim([0.94-0.003, 1+0.003])
+axs['E'].spines['left'].set_bounds([0.94, 1])
+axs['E'].set_ylabel('Normalized\naverage event score')
+axs['E'].set_yticks(ticks = np.arange(0.94, 1.+0.001, 0.06))
+axs['E'].set_yticks(ticks = np.arange(0.94, 1.+0.001, 0.02), minor = True)
+
+# F: abs average event score swarm
+axs['F'].set_ylim([0.7-0.003, 1+0.003])
+axs['F'].spines['left'].set_bounds([0.7, 1])
+axs['F'].set_ylabel('Average\nevent score')
+axs['F'].set_yticks(ticks = np.arange(0.80, 1.+0.001, 0.2))
+axs['F'].set_yticks(ticks = np.arange(0.70, 1.+0.001, 0.05), minor = True)
+
+# labels
 fig.align_labels()
 
+# display figure
 plt.show()
 
-
-# %%
-
-
-plt.figure(dpi = 300)
-
-ax = plt.gca()
-
-winsize = 114
-
-# for i, winsize in enumerate(ex_winsize):
-
-# get data
-data = n_events.loc[winsize, :]
-
-# calc mean, etc.
-data_mean = np.mean(data)
-data_median = np.median(data)
-data_std = np.std(data)
-
-# set swarm x
-swarm_x = 0
-v_direction = 1
-
-# plot swarmplot
-sbn.swarmplot(x = [swarm_x] * len(data),
-              y = data,
-              color = colors_dict['primecolor'],
-              ax = ax,
-              size = 2,
-              zorder = 1)
-
-# calc violin position
-x = swarm_x - (v_direction*0.3)
-
-# plot half violin
-plot_half_violin(data = data, 
-                  ax = ax,
-                  v_position = x,
-                  v_direction = v_direction,
-                  v_offset = 0,
-                  v_lw = 1.5,
-                  v_color = 'k',
-                  v_zorder = 2,
-                  v_width = 0.8,
-                  v_abs_cutoff = [0, np.nan])
-
-# errorbar
-ax.errorbar(x = x,
-            y = data_mean,
-            yerr = data_std,
-            fmt='_', 
-            markersize = 6,
-            markerfacecolor = 'none',
-            markeredgewidth = 1.5,
-            capsize = 2,
-            color = 'k',
-            linewidth = 1.5,
-            label = '_nolegend_',
-            zorder = 3)
-
-# plot median
-ax.scatter(x = x,
-           y = data_median,
-           marker='D', 
-           s = 5,
-           color = 'k',
-           linewidth = 1.5,
-           label = '_nolegend_',
-           zorder = 4)
-    
-
-# plt.xticks(ticks = np.arange(len(ex_winsize)),
-#            labels = ex_winsize)
-    
-plt.show()
-    
-    
-
-
-
-
-
+# import directories 
+from parameters.directories_win import figure_dir
+figure_path = figure_dir + '/miniML_validation'
+save_figures(fig, 
+             figure_name = 'miniML_validation-window_size', 
+             save_dir = figure_path,
+             figure_format = 'both')
 

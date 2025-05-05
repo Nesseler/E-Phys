@@ -16,18 +16,19 @@ def get_traceIndex_n_file(PGF = 'ccth1AP', cell_ID = 'E-092', sheet_name = 'PGFs
     '''
     
     # excel sheet with PGF indices as lookup table
-    lookup_table = pd.read_excel(table_file,
-                                 sheet_name = sheet_name,
-                                 index_col = 'cell_ID')
+    lookup = pd.read_excel(table_file,
+                           sheet_name = sheet_name,
+                           index_col = 'cell_ID')
     
     # limit lookup table to specific PGF
-    lookup_table = lookup_table.query(PGF + '.notnull()')
+    lookup_idx = lookup[PGF].dropna().index
+    lookup = lookup.loc[lookup_idx, :]
     
     # get indices of current cell with the dataframe containing all indices    
-    group_idx = int(lookup_table.at[cell_ID, 'group'])-1
+    group_idx = int(lookup.at[cell_ID, 'group'])-1
     
     # get series index
-    series_idx = lookup_table.at[cell_ID, f'{PGF}']
+    series_idx = lookup.at[cell_ID, f'{PGF}']
     
     # check for multiple protocols
     if type(series_idx) is int:
@@ -53,7 +54,7 @@ def get_traceIndex_n_file(PGF = 'ccth1AP', cell_ID = 'E-092', sheet_name = 'PGFs
     traceIndex = [group_idx, series_idx, 0, 0]
 
     # call on data file with indices from dataframe above
-    current_file = lookup_table.at[cell_ID, 'file']
+    current_file = lookup.at[cell_ID, 'file']
 
     data_file_path = os.path.join(raw_data_dir, current_file + '.dat')
 
