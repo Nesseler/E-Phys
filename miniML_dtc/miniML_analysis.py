@@ -265,8 +265,8 @@ vplots_path = 'Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/vplots'
 # %% setup parameters
 
 # load
-eholds = ['Erest'] # ['Erest', 'Ek'] #'Ezero', 'Ep30', 'ECl'
-treatments = ['ctrl'] #['ctrl', 'AP5_NBQX', 'AP5_NBQX_washin', 'GBZ', 'GBZ_washin', 'AP5_NBQX_GBZ', 'AP5_NBQX_GBZ_washin', 'adaEk']
+eholds = ['Erest']#, 'Ek'] #'Ezero', 'Ep30', 'ECl'
+treatments = ['ctrl', 'AP5_NBQX', 'AP5_NBQX_washin', 'GBZ', 'GBZ_washin', 'AP5_NBQX_GBZ', 'AP5_NBQX_GBZ_washin'] #, 'adaEk']
 times = ['3min']
 
 # PGF 
@@ -324,7 +324,7 @@ for treat in treatments:
         recording = f'vc-{ehold}-{time}-{treat}'
         
         # get cell_IDs
-        cell_IDs = lookup.loc[:, recording].dropna().index.shape
+        cell_IDs = lookup.loc[:, recording].dropna().index.to_list()
         
         # init analyzed cell_IDs
         analyzed_cell_IDs = list()
@@ -333,14 +333,21 @@ for treat in treatments:
         for cell_ID in cell_IDs:
             
             # check if already analyzed
-            if not np.isnan(analyzed.at[cell_ID, recording]):
+            if not np.isnan(analyzed.at[cell_ID, recording]).any():
                 analyzed_cell_IDs.append(cell_ID)
             
             else:   
+                # get cell row
+                cell_lookup = lookup.loc[cell_ID, ['file', 'group', recording, (recording + '-steps')]]
+                
+                # special case for cells in two files
+                if len(cell_lookup.shape) > 1:
+                    cell_lookup = cell_lookup.dropna().iloc[0]
+                
                 # get group + series index & filename
-                group_idx = lookup.at[cell_ID, 'group']
-                series_idx = lookup.at[cell_ID, recording] -1
-                rawData_filename = lookup.at[cell_ID, 'file'] + '.dat'
+                group_idx = cell_lookup['group']
+                series_idx = cell_lookup[recording] -1
+                rawData_filename = cell_lookup['file'] + '.dat'
                 
                 # load trace to MiniTrace
                 trace = MiniTrace.from_heka_file(filename = (rawData_path + rawData_filename),
@@ -355,7 +362,7 @@ for treat in treatments:
                 data_filtered = sc.signal.lfilter(b, a, trace.data)
             
                 # get sweep to be included
-                sweep_idc = [int(s) for s in lookup.at[cell_ID, recording + '-steps'].split(',')]
+                sweep_idc = [int(s) for s in cell_lookup[recording + '-steps'].split(',')]
                 
                 # set first and last index
                 first_idx = 0
