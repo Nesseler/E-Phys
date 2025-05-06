@@ -26,7 +26,7 @@ de-/activate virtual environment
 
 3
 install kernel for spyder in virtual environment
-> conda install spyder-kernels=2.5
+> conda install spyder-kernels=2.5 (or 3.0)
 
 4 
 install dependencies
