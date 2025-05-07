@@ -99,7 +99,12 @@ def trace_events_prediction(t, trange):
     x_full = np.arange(0, data_filtered.shape[0] / SR, step=1/SR)
     
     plt_idc = np.arange((0+t) * SR, (trange+t) * SR, step = 1, dtype = int)
-    plt_peak_idc = [idx for idx in detection.event_peak_locations if (idx > plt_idc[0] and idx < plt_idc[-1])]
+    
+    if hasattr(detection, 'event_peak_location'):
+        plt_peak_idc = [idx for idx in detection.event_peak_locations if (idx > plt_idc[0] and idx < plt_idc[-1])]
+    else:
+        plt_peak_idc = []
+    
     
     axs = parent_fig.subplots(nrows=3,
                               ncols=1,
@@ -160,17 +165,25 @@ def trace_events_prediction(t, trange):
     [ax.spines['bottom'].set_bounds([0+t, trange+t]) for ax in axs]
     axs[2].set_xlabel('Time [s]')
     
-    axs[2].hlines(xmin = 0, xmax = data_filtered.shape[0], y = 0, zorder = 0, lw = 0.5, color = 'k', ls = 'dashed', alpha = 0.5)
-    
+     
     trace_mean = np.mean(data_filtered)
     ax_min = int(round_down_to_base(trace_mean-40, 10))
     ax_max = int(round_up_to_base(trace_mean+10, 10))
     ax_range = ax_max - ax_min
     stepminor = 5
+    
+    if (ax_min < 0) and (0 < ax_max):
+        axs[2].hlines(xmin = 0, xmax = data_filtered.shape[0] / SR, y = 0, zorder = 0, lw = 0.5, color = 'k', ls = 'dashed', alpha = 0.5)
+        ticks = [ax_min, 0, ax_max]
+        labels = [ax_min, '', ax_max]
+        
+    else:
+        ticks = [ax_min, ax_max]
+        labels = [ax_min, ax_max]
 
     axs[2].set_ylim([ax_min-(ax_range*0.01), ax_max+(ax_range*0.01)])
     axs[2].spines['left'].set_bounds([ax_min, ax_max])
-    axs[2].set_yticks(ticks = [ax_min, 0, ax_max], labels = [ax_min, '', ax_max])
+    axs[2].set_yticks(ticks = ticks, labels = labels)
     axs[2].set_yticks(ticks = np.arange(ax_min, ax_max+(stepminor/10), stepminor), minor = True)
     axs[2].set_ylabel('Current [pA]')
     
@@ -185,7 +198,10 @@ def trace_events_prediction(t, trange):
 
 def amplitude_histogram():
     # set data and bins
-    data = detection.event_stats.amplitudes
+    if hasattr(detection, 'event_stats'):
+        data = detection.event_stats.amplitudes
+    else:
+        data = []
     bins = np.arange(-50, 0+1, 1)
     
     # init figure
@@ -223,45 +239,48 @@ def amplitude_histogram():
 
 
 def average_event():
-    # set data
-    events = detection.events[detection.singular_event_indices]
-    event_x = np.arange(0, events.shape[1]) * 1/(SR/1e3)
-    event_average = np.mean(events, axis=0)
-    
+   
     # init figure
     fig, ax = plt.subplots(1, 1, dpi = 300, layout = 'constrained')
     
     # set title
     fig.suptitle(f'{cell_ID} {recording} average event')
+
+    # set data
+    if hasattr(detection, 'singular_event_indices'):
+        sing_event_idc = detection.singular_event_indices    
+        events = detection.events[sing_event_idc]
+        event_x = np.arange(0, events.shape[1]) * 1/(SR/1e3)
+        event_average = np.mean(events, axis=0)
         
-    # plot
-    ax.plot(event_x, events.T,
-            c = 'k',
-            alpha = 0.3,
-            lw = 1,
-            label = '_nolegend_')
-    
-    ax.plot(event_x, event_average,
-            c = 'r', 
-            lw = 1.5,
-            label = 'average event')
-    
-    plt.legend(frameon = False,
-               fontsize = 7,
-               loc = 'lower right')
-    
+        # plot
+        ax.plot(event_x, events.T,
+                c = 'k',
+                alpha = 0.3,
+                lw = 1,
+                label = '_nolegend_')
+        
+        ax.plot(event_x, event_average,
+                c = 'r', 
+                lw = 1.5,
+                label = 'average event')
+        
+        plt.legend(frameon = False,
+                   fontsize = 7,
+                   loc = 'lower right')
+        
     # edit axis
+        ax.set_xticks(ticks = np.arange(0, round(event_x[-1])+1, 20))
+        ax.set_xticks(ticks = np.arange(0, round(event_x[-1])+1, 5), minor = True)
+        ax.set_xlim([-5, round(event_x[-1])+5])
+        ax.spines['bottom'].set_bounds([0, round(event_x[-1])])
+    ax.set_xlabel('Time [ms]')
+    
     ax.set_ylabel('Current [pA]')
     ax.set_ylim([-51, 10])
     ax.set_yticks(ticks = np.arange(-50, 10+1, 10))
     ax.set_yticks(ticks = np.arange(-50, 10+1, 2), minor = True)
     ax.spines['left'].set_bounds([-50, 10])
-    
-    ax.set_xlabel('Time [ms]')
-    ax.set_xticks(ticks = np.arange(0, round(event_x[-1])+1, 20))
-    ax.set_xticks(ticks = np.arange(0, round(event_x[-1])+1, 5), minor = True)
-    ax.set_xlim([-5, round(event_x[-1])+5])
-    ax.spines['bottom'].set_bounds([0, round(event_x[-1])])
     
     # remove spines
     [ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
@@ -275,9 +294,14 @@ def average_event():
     
     
 def event_frequency():
+    if hasattr(detection, 'event_peak_locations'):
+        event_locations = detection.event_peak_locations
+    else:
+        event_locations = np.empty(0, dtype = int)
+    
     # for figure
     trace = data_filtered
-    event_locations = detection.event_peak_locations
+
     x = np.arange(0, data_filtered.shape[0] / SR, 1/SR)
     bins = np.arange(0, 30+0.05, 0.05)
     
@@ -330,16 +354,23 @@ def event_frequency():
               borderpad = 0.1,
               borderaxespad = 0.1)
     
-    ax.hlines(xmin = 0, xmax = x_max, y = 0, zorder = 0, lw = 0.5, color = 'k', ls = 'dashed', alpha = 0.5)
-    
     ax_min = int(round_down_to_base(trace_mean-40, 10))
     ax_max = int(round_up_to_base(trace_mean+10, 10))
     ax_range = ax_max - ax_min
     stepminor = 5
+    
+    if (ax_min < 0) and (0 < ax_max):
+        ax.hlines(xmin = 0, xmax = x_max, y = 0, zorder = 0, lw = 0.5, color = 'k', ls = 'dashed', alpha = 0.5)
+        ticks = [ax_min, 0, ax_max]
+        labels = [ax_min, '', ax_max]
+        
+    else:
+        ticks = [ax_min, ax_max]
+        labels = [ax_min, ax_max]
 
     ax.set_ylim([ax_min-(ax_range*0.01), ax_max+(ax_range*0.01)])
     ax.spines['left'].set_bounds([ax_min, ax_max])
-    ax.set_yticks(ticks = [ax_min, 0, ax_max], labels = [ax_min, '', ax_max])
+    ax.set_yticks(ticks = ticks, labels = labels)
     ax.set_yticks(ticks = np.arange(ax_min, ax_max+(stepminor/10), stepminor), minor = True)
     ax.set_ylabel('Current [pA]')
     
@@ -525,7 +556,7 @@ vplots_path = 'Z:/n2021_MOS_AOS_Integration/ePhys-BAOT_MeA/vplots'
 
 # load
 eholds = ['Erest', 'Ek'] #'Ezero', 'Ep30', 'ECl'
-treatments = ['ctrl', 'AP5_NBQX', 'AP5_NBQX_washin', 'GBZ', 'GBZ_washin', 'AP5_NBQX_GBZ', 'AP5_NBQX_GBZ_washin', 'adaEk']
+treatments = ['ctrl', 'adaEk', 'AP5_NBQX', 'AP5_NBQX_washin', 'GBZ', 'GBZ_washin', 'AP5_NBQX_GBZ', 'AP5_NBQX_GBZ_washin']
 times = ['3min']
 
 # PGF 

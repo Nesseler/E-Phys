@@ -125,7 +125,63 @@ def linear_func(x, a, b):
     return a * x + b
 
 
+def calc_PDF_fromTimepoints(data: np.array, bins: np.array):
 
+    # calc inter-event interval (IEI)
+    IEI = np.diff(data, prepend = 0)    
 
+    # calc mean rate
+    mean_rate = 1 / np.mean(IEI)
     
+    # calculate the probability density function with bins given
+    pdf = mean_rate * np.exp(- mean_rate * bins)
+
+    return pdf
+
+
+def calc_CDF_fromTimepoints(data: np.array, bins: np.array):
+    
+    pdf = calc_PDF_fromTimepoints(data, bins)
+
+    cdf = [np.max(pdf) - p for p in pdf]
+
+    return cdf
+
+
+def minmax_norm(data: np.array, minzero: bool = False):
+    
+    
+    # calc min max normalized version of array 
+    if minzero:
+        normed = (data - 0) / (np.max(data) - 0)
+    else:
+        normed = (data - np.min(data)) / (np.max(data)- np.min(data))
+    
+    return normed
+
+
+def create_uniform_events(n_events: int = 100, t: float = 180) -> np.array:
+    """
+    
+    Parameters
+    ----------
+    n_events : int, optional
+        DESCRIPTION. The default is 100.
+    t : float, optional
+        DESCRIPTION. The default is 180.
+
+    Returns
+    -------
+    uni_events : TYPE
+        DESCRIPTION.
+
+    """
+    # uniformly distribute the same number of events as measured
+    # by randomly draw from uniform distribution between t0 and t_end
+    uni_events = sc.stats.uniform.rvs(loc = 0, scale = t, size = n_events)
+    
+    # sort values to perserve time series aspect
+    uni_events = np.sort(uni_events)
+        
+    return uni_events    
     
