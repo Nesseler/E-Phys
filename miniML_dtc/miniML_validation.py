@@ -70,7 +70,7 @@ filter_freq = 750
 filter_order = 3
 direction = 'negative'
 factor = 19
-# model_th = 0.5
+model_th = 0.5
 
 # output
 plot = True
@@ -92,10 +92,10 @@ cell_IDs = lookup.index.to_list()
 # define multiple factors
 # factors = np.arange(2, 50+.1, 2, dtype = int)
 
-# factors = [19]
-ths = [0.25, 0.5, 0.75, 0.9]
+factors = [16, 19, 276, 6]
+# ths = [0.25, 0.5, 0.75, 0.9]
 
-for cell_ID in cell_IDs:
+for cell_ID in ['E-303']: #cell_IDs:
     
     # get info from ePhys xlsx sheet    
     rawData_filename = lookup.at[cell_ID, 'file'] + '.dat'
@@ -125,8 +125,8 @@ for cell_ID in cell_IDs:
         trace.plot_trace()
         
         
-    # for factor in factors:
-    for model_th in ths:
+    for factor in factors:
+    # for model_th in ths:
 
         # set settings for event detection
         eventdetection_settings = {'window_size' : 600 * factor,
