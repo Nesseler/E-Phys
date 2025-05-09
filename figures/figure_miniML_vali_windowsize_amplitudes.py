@@ -18,9 +18,9 @@ from parameters.directories_win import synaptic_dir, figure_dir
 
 
 # set cell_ID
-cell_IDs = ['E-298', 'E-301', 'E-302', 'E-303', 'E-309', 'E-310', 'E-319']
+cell_IDs = ['E-298', 'E-301', 'E-302', 'E-303', 'E-309', 'E-310', 'E-314']
 
-cell_IDs = ['E-303']
+# cell_IDs = ['E-303']
 cell_ID = cell_IDs[0]
 
 # set parameters
@@ -36,45 +36,47 @@ amplitudes_hist = pd.DataFrame(columns = keys,
 
 events = dict.fromkeys(keys)
 event_peak_locations = dict.fromkeys(keys)
-
+traces = dict.fromkeys(cell_IDs)
 
 # %% load
 
-# set winsize
-for winsize in winsizes:
+for cell_ID in tqdm(cell_IDs):
+    for winsize in winsizes:
+        
+        # set filename
+        filename = f'miniMLdetect_{cell_ID}_Erest_ctrl_{winsize}_0p5' 
+        
+        # open a file, where you stored the pickled data
+        file = open((synaptic_dir + f'/miniML_dtc-validation/' + filename + '.pickle'), 'rb')
+        
+        # dump information to that file
+        detection = pickle.load(file)
+        
+        # close and remove (from memory) the file
+        file.close()
+        del file 
+        gc.collect()
+        
+        # set column
+        key = f'{cell_ID}_{str(winsize)}'
+        
+        ## trace
+        traces[cell_ID] = detection['mini_trace']
+        events[key] = detection['events']
+        event_peak_locations[key] = detection['event_location_parameters']['event_peak_locations']
+        
+        # amplitude histogram
+        amplitudes_hist.loc[:amplitudes_hist.index[-2], key], _ = np.histogram(a = detection['individual_values']['amplitudes'], bins = amplitudes_hist.index.to_list())
     
-    # set filename
-    filename = f'miniMLdetect_{cell_ID}_Erest_ctrl_{winsize}_0p5' 
-    
-    # open a file, where you stored the pickled data
-    file = open((synaptic_dir + f'/miniML_dtc-validation/' + filename + '.pickle'), 'rb')
-    
-    # dump information to that file
-    detection = pickle.load(file)
-    
-    # close and remove (from memory) the file
-    file.close()
-    del file 
-    gc.collect()
-    
-    # set column
-    key = f'{cell_ID}_{str(winsize)}'
-    
-    ## trace
-    trace = detection['mini_trace']
-    events[key] = detection['events']
-    event_peak_locations[key] = detection['event_location_parameters']['event_peak_locations']
-    
-    # amplitude histogram
-    amplitudes_hist.loc[:amplitudes_hist.index[-2], key], _ = np.histogram(a = detection['individual_values']['amplitudes'], bins = amplitudes_hist.index.to_list())
 
 
-# %%
+
+# %% figure one cell
 
 
-def plot_trace(ax = ax,
-               trace = trace,
-               all_peak_idc = event_peak_locations,
+def plot_trace(ax,
+               trace,
+               all_peak_idc,
                t = 0,
                trange = 60,
                ymin = -30,
@@ -144,16 +146,16 @@ def plot_trace(ax = ax,
         ax.set_xticks(ticks = np.arange(t, (t+trange)+0.0001, xstepminor), minor = True)
 
     # add indicator to full trace
-    axs[0].arrow(x = t+(trange/2), y = 7,
+    axs[0].arrow(x = t+(trange/2), y = 10,
                  dx = 0, dy = -1,
                  head_length = 1,
                  head_width = 0.5,
                  length_includes_head = True,
                  facecolor = colors_dict['primecolor'])
     
-    axs[0].text(x = t+(trange/2), y = 11,
+    axs[0].text(x = t+(trange/2), y = 10.2,
                 s = label,
-                va = 'top', ha = 'center',
+                va = 'bottom', ha = 'center',
                 fontsize = 6)
     
     # legend
@@ -163,7 +165,7 @@ def plot_trace(ax = ax,
               markerfirst = False)
 
 
-# %% figure one cell
+# figure one cell
 
 
 # init plotting
@@ -175,10 +177,14 @@ winsize_colors = {36: '#003f5c', 96 : '#7a5195', 114 : '#ef5675', 276 : '#ffa600
 # winsize_colors = {36: '#656565', 96 : '#808782', 114 : '#a6d3a0', 276 : '#d1ffd7'}
 
 cell_ID = 'E-303'
+trace = traces[cell_ID]
 
 
-
-fig, axs = plt.subplot_mosaic(mosaic = [[0,0,0,0],[1,1,2,3],[1,1,4,5],[6,7,8,9],[10,11,12,13]],
+fig, axs = plt.subplot_mosaic(mosaic = [[0,0,0,0],
+                                        [1,1,2,3],
+                                        [1,1,4,5],
+                                        [6,7,8,9],
+                                        [10,11,12,13]],
                               figsize = get_figure_size(width = 159.2, height = 180),
                               dpi = 300,
                               layout = 'constrained')
@@ -228,7 +234,7 @@ for wi, winsize in enumerate(winsizes):
                label = str(winsize) + ' ms')
 
 ax.set_ylabel('Current [pA]')
-ax.set_ylim([-30 - 0.4, 8 + 0.4])
+ax.set_ylim([-30 - 0.4, 8 + 2.5])
 ax.spines['left'].set_bounds([-30, 8])
 ax.set_yticks(ticks = np.arange(-30, 8, 10))
 ax.set_yticks(ticks = np.arange(-30, 8+0.1, 2), minor = True)
@@ -255,7 +261,6 @@ for winsize in winsizes:
     
     ax.stairs(values, edges,
               lw = 1.5,
-              alpha = 0.7,
               color = winsize_colors[winsize],
               label = str(winsize) + ' ms')
     
@@ -318,23 +323,31 @@ for wi, winsize in enumerate(winsizes):
     ax.set_xticks(ticks = np.arange(0, xmax+1, xstep))
     ax.set_xticks(ticks = np.arange(0, xmax+1, xstepminor), minor = True)
     
-#     if wi in [2, 3]:
-#         ax.set_xlabel('Time [ms]')
+    if wi in [2, 3]:
+        ax.set_xlabel('Time [ms]')
     
 axs[2].set_title('C: Average events', loc = 'left')
 
 
-plot_trace(ax = axs[6], trace=trace, all_peak_idc=event_peak_idc, t=1.19, trange=0.1, ymin=-10, ymax=5, xstep=0.05, xstepminor=0.025, xscale='ms', label='D')
-plot_trace(ax = axs[7], trace=trace, all_peak_idc=event_peak_idc, t=8.725, trange=0.05, ymin=-20, ymax=5, xstep=0.05, xstepminor=0.025, xscale='ms', label='E')
-plot_trace(ax = axs[8], trace=trace, all_peak_idc=event_peak_idc, t=29.65, trange=0.100, ymin=-10, ymax=5, xstep=0.05, xstepminor=0.025, xscale='ms', label='F')
+axs[6].set_title('D: Large events', loc = 'left')
+plot_trace(ax = axs[6], trace=trace, all_peak_idc=event_peak_idc, t=8.732, trange=0.075, ymin=-20, ymax=5, xstep=0.05, xstepminor=0.025, xscale='ms', label='D')
+axs[10].set_title('E:', loc = 'left')
+plot_trace(ax = axs[10], trace=trace, all_peak_idc=event_peak_idc, t=26.591, trange=0.075, ymin=-20, ymax=5, xstep=0.05, xstepminor=0.025, xscale='ms', label='E')
 
-# plot_trace(ax = axs[9], trace=trace, all_peak_idc=event_peak_idc, t=1, trange=0.5, ymin=-20, ymax=5, xstep=0.25, xstepminor=0.05, xscale='ms', label='D')
-# plot_trace(ax = axs[10], trace=trace, all_peak_idc=event_peak_idc, t=1, trange=0.5, ymin=-20, ymax=5, xstep=0.25, xstepminor=0.05, xscale='ms', label='D')
-# plot_trace(ax = axs[11], trace=trace, all_peak_idc=event_peak_idc, t=1, trange=0.5, ymin=-20, ymax=5, xstep=0.25, xstepminor=0.05, xscale='ms', label='D')
-# plot_trace(ax = axs[12], trace=trace, all_peak_idc=event_peak_idc, t=1, trange=0.5, ymin=-20, ymax=5, xstep=0.25, xstepminor=0.05, xscale='ms', label='D')
-# plot_trace(ax = axs[13], trace=trace, all_peak_idc=event_peak_idc, t=1, trange=0.5, ymin=-20, ymax=5, xstep=0.25, xstepminor=0.05, xscale='ms', label='D')
+axs[7].set_title('F: Medium events', loc = 'left')
+plot_trace(ax = axs[7], trace=trace, all_peak_idc=event_peak_idc, t=35.518, trange=0.075, ymin=-15, ymax=5, xstep=0.05, xstepminor=0.025, xscale='ms', label='F')
+axs[11].set_title('G:', loc = 'left')
+plot_trace(ax = axs[11], trace=trace, all_peak_idc=event_peak_idc, t=58.40, trange=0.075, ymin=-15, ymax=5, xstep=0.05, xstepminor=0.025, xscale='ms', label='G')
 
+axs[8].set_title('H: Small events', loc = 'left')
+plot_trace(ax = axs[8], trace=trace, all_peak_idc=event_peak_idc, t=1.205, trange=0.075, ymin=-10, ymax=10, xstep=0.05, xstepminor=0.025, xscale='ms', label='H')
+axs[12].set_title('I:', loc = 'left')
+plot_trace(ax = axs[12], trace=trace, all_peak_idc=event_peak_idc, t=68.005, trange=0.075, ymin=-10, ymax=10, xstep=0.05, xstepminor=0.025, xscale='ms', label='I')
 
+axs[9].set_title('J: Small events', loc = 'left')
+plot_trace(ax = axs[9], trace=trace, all_peak_idc=event_peak_idc, t=105, trange=0.075, ymin=-10, ymax=10, xstep=0.05, xstepminor=0.025, xscale='ms', label='J')
+axs[13].set_title('K:', loc = 'left')
+plot_trace(ax = axs[13], trace=trace, all_peak_idc=event_peak_idc, t=140.85, trange=0.075, ymin=-10, ymax=10, xstep=0.05, xstepminor=0.025, xscale='ms', label='K')
 
 
 
@@ -349,8 +362,6 @@ fig.align_labels()
 plt.show()
 
 
-
-
 # import directories 
 from parameters.directories_win import figure_dir
 figure_path = figure_dir + '/miniML_validation'
@@ -358,3 +369,74 @@ save_figures(fig,
              figure_name = f'miniML_validation-window_size_amplitudes-{cell_ID}', 
              save_dir = figure_path,
              figure_format = 'both')
+
+
+# %% collect histogram data
+
+ampl_hist_pop = pd.DataFrame(columns = winsizes, index = amplitudes_hist.index)
+
+for winsize in winsizes:
+    keys = list()
+    for cell_ID in cell_IDs:
+        keys.append(f'{cell_ID}_{str(winsize)}')
+        
+    ampl_hist_pop[winsize] = amplitudes_hist.loc[:, keys].mean(axis = 1)
+
+# %%
+# # plot histogram
+
+fig, ax = plt.subplots(nrows = 1, ncols = 1,
+                       figsize = get_figure_size(width = 100, height = 80),
+                       dpi = 300,
+                       layout = 'constrained')
+
+
+for winsize in winsizes:
+
+    # get data
+    keys = list()
+    for cell_ID in cell_IDs:
+        keys.append(f'{cell_ID}_{str(winsize)}')
+        
+    means = amplitudes_hist.loc[:, keys].mean(axis = 1).dropna().to_list()
+    stds = amplitudes_hist.loc[:, keys].std(axis = 1).dropna().to_list()
+    edges = amplitudes_hist.index.to_list() 
+    
+    ax.stairs(means, edges,
+              lw = 1.,
+              color = winsize_colors[winsize],
+              label = str(winsize) + ' ms')
+    
+    ax.stairs(values = [m+s for m, s in zip(means,stds)], 
+              edges = edges,
+              baseline = [m-s for m, s in zip(means,stds)],
+              fill = True,
+              color = winsize_colors[winsize],
+              alpha = 0.25,
+              label = '_nolegend_')
+    
+ax.legend(loc = 'upper left', frameon = False, fontsize = 7,
+          title = 'winsize', title_fontsize = 7)
+    
+# edit axis
+ax.set_ylabel('Event count [#]')
+ax.set_ylim([0-2.6, 130+2.6])
+ax.set_yticks(ticks = np.arange(0, 130+1, 20))
+ax.set_yticks(ticks = np.arange(0, 130+1, 5), minor = True)
+ax.spines['left'].set_bounds([0, 130])
+
+ax.set_xlabel('Amplitude [pA]')
+ax.set_xticks(ticks = np.arange(-50, 0+1, 10),
+              labels = np.arange(-50, 0+1, 10))
+ax.set_xticks(ticks = np.arange(-50, 0, 1), minor = True)
+ax.set_xlim([-50-.3, 0+.3])
+ax.spines['bottom'].set_bounds([-50, 0])
+
+# align labels
+fig.align_labels()
+
+# remove spiness
+[ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
+
+# display figure
+plt.show()

@@ -63,7 +63,15 @@ x = np.arange(0, trace.shape[0] / SR, 1/SR)
 from functions.initialize_plotting import *
 
 
-fig, axs = plt.subplot_mosaic(mosaic = [[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 6, 9], [4, 7, 10], [5, 8, 11], [12, 15, 18], [13, 16, 19], [14, 17, 20]],
+fig, axs = plt.subplot_mosaic(mosaic = [[0, 0, 0], 
+                                        [1, 1, 1], 
+                                        [2, 2, 2], 
+                                        [3, 6, 9], 
+                                        [4, 7, 10], 
+                                        [5, 8, 11], 
+                                        [12, 15, 18], 
+                                        [13, 16, 19], 
+                                        [14, 17, 20]],
                               layout = 'constrained',
                               figsize = get_figure_size(width = 159.2, height = 140),
                               dpi = 300,
