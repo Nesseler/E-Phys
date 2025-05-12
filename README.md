@@ -4,5 +4,6 @@ Repository for all scripts involving analysis of electrophysiological data, firs
 
 > additional packages
 > seaborn
+> shapely [conda] (sholl analysis)
 
 > pyqtgraph [conda] (for HEKAbrowser)
