@@ -14,7 +14,7 @@ from matplotlib.colors import LinearSegmentedColormap
 
 import seaborn as sbn
 
-from functions.functions_plotting import save_figures, get_colors, get_figure_size, apply_axis_settings, plot_half_violin, get_blkr_colors, remove_spines_n_ticks, change_projection
+from functions.functions_plotting import save_figures, get_colors, get_figure_size, apply_axis_settings, plot_half_violin, get_blkr_colors, remove_spines_n_ticks, remove_spines_ticks_labels, change_projection
 
 # load axis settings
 from parameters.axis_settings import axis_dict

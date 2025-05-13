@@ -8,14 +8,9 @@ Created on Thu May  8 13:24:49 2025
 
 # import packages
 from functions.initialize_packages import *
-import pickle
-import gc
 
 # import directories 
 from parameters.directories_win import synaptic_dir, figure_dir
-
-# import functions
-
 
 # set cell_ID
 cell_IDs = ['E-298', 'E-301', 'E-302', 'E-303', 'E-309', 'E-310', 'E-314']

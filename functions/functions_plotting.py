@@ -324,6 +324,7 @@ def plot_half_violin(data, ax,
                       v_bandwidth = np.nan,
                       v_position = 0,
                       v_direction = -1,
+                      v_orientation = 'vertical',
                       v_offset = -0.05,
                       v_width = 0.25,
                       v_color = 'w',
@@ -356,6 +357,7 @@ def plot_half_violin(data, ax,
         v_position : Float, default is 0. Position of violin on x axis.
         v_direction : -1 or 1, default is -1. Direction factor of violin on x
                       axis.
+        v_orientation : str, default is vertical. Used to flip violin orientation.
         v_offset : Float, default is -0.05. Offset of violin from v_position.
         v_width : Float, default is 0.25. Width of violin on x axis
         v_color : Str, default is 'w'. Color of violin.
@@ -480,6 +482,15 @@ def plot_half_violin(data, ax,
         vs = vs_baseline[0:halflen_baseline][::-1] + vs_clipped + vs_baseline[halflen_baseline+1:-1][::-1]
         ks = ks_baseline[0:halflen_baseline][::-1] + kde_withOffset + ks_baseline[halflen_baseline+1:-1][::-1]
         
+    if v_orientation == 'vertical':
+        ks = ks # x
+        vs = vs # y
+    elif v_orientation == 'horizontal':
+        temp = ks
+        ks = vs
+        vs = temp
+    else: 
+        raise KeyError('Orientation must be vertical or horizontal!')
     
     # plot half violin
     half_violin_list = ax.plot(ks, vs,
@@ -621,7 +632,30 @@ def remove_spines_n_ticks(axs, axis = 'y'):
             ax.spines['bottom'].set_visible(False)
             ax.tick_params(axis = 'x', size = 0)
             ax.tick_params(axis = 'x', which = 'minor', size = 0)
-        
+            
+            
+def remove_spines_ticks_labels(axs, axis = 'y'):
+    '''
+    This function removes the spines, mayor and minor ticks of the given axis.
+    Parameters:
+        axs: list of axes objects
+        axis: str, default is y, defines the axis
+    '''
+    
+    if axis == 'y':
+        for ax in axs:
+            ax.spines['left'].set_visible(False)
+            ax.tick_params(axis = 'y', size = 0)
+            ax.tick_params(axis = 'y', which = 'minor', size = 0)
+            ax.set_yticks(ticks = [])
+    
+    elif axis == 'x':
+        for ax in axs:
+            ax.spines['bottom'].set_visible(False)
+            ax.tick_params(axis = 'x', size = 0)
+            ax.tick_params(axis = 'x', which = 'minor', size = 0)
+            ax.set_xticks(ticks = [])
+
  
 # gradient bar functions
         

@@ -8,6 +8,8 @@ Parameters files
     contains hard coded variables for analysis
 """
 
+from numpy import arange
+
 # %% list of spike parameters
 
 AP_parameters = ['v_peaks',
@@ -91,4 +93,12 @@ min_spike_in_burst = 4
 
 bin_size_ISI_poisson = 25e-3
 
+
+# %% vc_PSCs
+
+PSC_bins = {'amplitudes' : arange(-70, 0+1, 1),
+            'risetimes' : arange(0, 20+0.2, 0.2),
+            'halfdecay_times': arange(0, 20+0.5, 0.5),
+            'IEIs' : arange(0, 30+0.05, 0.05),
+            'scores' : arange(0.0, 1+0.001, 0.02)}
 
