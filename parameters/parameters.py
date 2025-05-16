@@ -100,5 +100,5 @@ PSC_bins = {'amplitudes' : arange(-70, 0+1, 1),
             'risetimes' : arange(0, 20+0.2, 0.2),
             'halfdecay_times': arange(0, 20+0.5, 0.5),
             'IEIs' : arange(0, 30+0.05, 0.05),
-            'scores' : arange(0.0, 1+0.001, 0.02)}
+            'scores' : arange(0.0, 1+0.001, 0.01)}
 

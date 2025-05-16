@@ -27,7 +27,13 @@ blkr_colors = get_blkr_colors(darkmode_bool)
 # set font size
 mtl.rcParams.update({'font.size': 9, 
                      'font.family' : 'Arial', 
-                     'axes.titlesize' : 9})
+                     'axes.titlesize' : 9,
+                     'axes.titlelocation': 'left',
+                     'axes.spines.bottom': True,
+                     'axes.spines.left': True,
+                     'axes.spines.right': False,
+                     'axes.spines.top': False,
+                     'legend.frameon': False})
 
 
 

@@ -342,18 +342,22 @@ plot_half_violin(event_measures['amplitudes'],
                  v_direction = 1,
                  v_offset = 0,
                  v_color = colors_dict['primecolor'],
-                 v_width = 1)
+                 v_width = 1,
+                 v_kde_cutoff = np.nan,
+                 v_abs_cutoff = [-50, 0])
 
 # half violin 2
 plot_half_violin(event_measures['half_decaytimes'], ax = axs[3],
                  v_direction = 1,
                  v_offset = 0,
                  v_color = colors_dict['primecolor'],
-                 v_width = 1)
+                 v_width = 1,
+                 v_kde_cutoff = np.nan,
+                 v_abs_cutoff = [0, 20])
 
 # x
-apply_axis_settings(axs[0], axis = 'x', ax_min=-70, ax_max=0, pad=None, step=10, stepminor=2, label='')
-apply_axis_settings(axs[2], axis = 'x', ax_min=-70, ax_max=0, pad=None, step=10, stepminor=2, label='Amplitude [mV]')
+apply_axis_settings(axs[0], axis = 'x', ax_min=-50, ax_max=0, pad=None, step=10, stepminor=2, label='')
+apply_axis_settings(axs[2], axis = 'x', ax_min=-50, ax_max=0, pad=None, step=10, stepminor=2, label='Amplitude [mV]')
 
 # y
 apply_axis_settings(axs[2], axis = 'y', ax_min=0, ax_max=20, pad=None, step=5, stepminor=1, label='Half decay time [ms]')
@@ -422,14 +426,18 @@ plot_half_violin(event_measures['amplitudes'],
                  v_direction = 1,
                  v_offset = 0,
                  v_color = colors_dict['primecolor'],
-                 v_width = 1)
+                 v_width = 1,
+                 v_kde_cutoff = np.nan,
+                 v_abs_cutoff = [-50, 0])
 
 # half violin 2
 plot_half_violin(event_measures['half_decaytimes'], ax = axs[3],
                  v_direction = 1,
                  v_offset = 0,
                  v_color = colors_dict['primecolor'],
-                 v_width = 1)
+                 v_width = 1,
+                 v_kde_cutoff = np.nan,
+                 v_abs_cutoff = [0, 20])
 
 # x
 apply_axis_settings(axs[0], axis = 'x', ax_min=-50, ax_max=0, pad=None, step=10, stepminor=2, label='')

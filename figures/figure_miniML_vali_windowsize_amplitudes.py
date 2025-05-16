@@ -16,7 +16,7 @@ from parameters.directories_win import synaptic_dir, figure_dir
 cell_IDs = ['E-298', 'E-301', 'E-302', 'E-303', 'E-309', 'E-310', 'E-314']
 
 # cell_IDs = ['E-303']
-cell_ID = cell_IDs[0]
+# cell_ID = cell_IDs[0]
 
 # set parameters
 winsizes = [36, 96, 114, 276]
@@ -386,7 +386,7 @@ fig, ax = plt.subplots(nrows = 1, ncols = 1,
                        layout = 'constrained')
 
 
-for winsize in winsizes:
+for winsize in [96, 114]:
 
     # get data
     keys = list()
@@ -421,11 +421,12 @@ ax.set_yticks(ticks = np.arange(0, 130+1, 5), minor = True)
 ax.spines['left'].set_bounds([0, 130])
 
 ax.set_xlabel('Amplitude [pA]')
-ax.set_xticks(ticks = np.arange(-50, 0+1, 10),
-              labels = np.arange(-50, 0+1, 10))
-ax.set_xticks(ticks = np.arange(-50, 0, 1), minor = True)
-ax.set_xlim([-50-.3, 0+.3])
-ax.spines['bottom'].set_bounds([-50, 0])
+xmin = -50
+ax.set_xticks(ticks = np.arange(xmin, 0+1, 10),
+              labels = np.arange(xmin, 0+1, 10))
+ax.set_xticks(ticks = np.arange(xmin, 0, 1), minor = True)
+ax.set_xlim([xmin-.3, 0+.3])
+ax.spines['bottom'].set_bounds([xmin, 0])
 
 # align labels
 fig.align_labels()
