@@ -7,7 +7,7 @@ Created on Fri May 16 13:38:22 2025
 
 from pandas import DataFrame, concat
 
-def map_detection_to_df(detection, df, cell_ID):
+def map_detection_to_df(detection, df, cell_ID, include_events = True):
     """
     This function maps the relevant values from the detection dict to a dataframe.
 
@@ -30,11 +30,10 @@ def map_detection_to_df(detection, df, cell_ID):
     
     temp_df = DataFrame.from_dict({'cell_ID' : [cell_ID] * n_events,
                                    'amplitude' : detection['individual_values']['amplitudes'],
-                                   'risetime' : detection['individual_values']['risetimes'],
-                                   'halfdecaytime' : detection['individual_values']['half_decaytimes'],
+                                   'risetime' : detection['individual_values']['risetimes']*1e3,
+                                   'halfdecaytime' : detection['individual_values']['half_decaytimes']*1e3,
                                    'charge' : detection['individual_values']['charges'],
                                    'score' : detection['event_location_parameters']['event_scores'],
-                                   'event' : detection['events'].tolist(),
                                    'baseline' : detection['event_location_parameters']['event_baselines'],
                                    'bsl_start' : detection['event_location_parameters']['event_baseline_starts'], 
                                    'bsl_end' : detection['event_location_parameters']['event_baseline_ends'], 
@@ -46,6 +45,9 @@ def map_detection_to_df(detection, df, cell_ID):
                                    'rise_min_value' : detection['event_location_parameters']['min_values_rise'], 
                                    'rise_max_idx' : detection['event_location_parameters']['max_positions_rise'], 
                                    'rise_max_value' : detection['event_location_parameters']['max_values_rise']})
+    
+    if include_events:
+        temp_df['events'] = detection['events'].tolist()
     
     # append to full dataframe
     df = concat([df, temp_df], ignore_index=True)

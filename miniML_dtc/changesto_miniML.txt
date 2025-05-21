@@ -1,0 +1,104 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed May 21 13:09:24 2025
+
+@author: nesseler
+"""
+
+# changes to miniML.py
+
+## exporting to pickle
+# in save_to_pickle()
+    # include baseline start and end indices for all events
+    # include interpolation factor for prediction filtering
+
+def save_to_pickle(self, filename: str='', include_prediction: bool=True, include_data: bool=True) -> None:
+    ''' Save detection results to a .pickle file.         
+
+    Parameters
+    ------
+    filename: str
+        Name and if desired directory in which to save the file
+    include_prediction: bool
+        Include the prediction trace.
+    include_data: bool
+        Save the mini trace together with the analysis results
+    '''
+    if not hasattr(self, 'event_stats'):
+        self._eval_events()
+        if not hasattr(self, 'event_stats'):
+            print('Save error: No events found')
+            return
+
+    if not filename.endswith('pickle'):
+        filename += '.pickle'
+
+    results = {
+        'event_location_parameters':{
+            'event_locations':np.array(self.event_locations),
+            'event_scores':np.array(self.event_scores),
+            'event_peak_locations':self.event_peak_locations,
+            'event_baselines':self.event_bsls,
+            'event_baseline_starts':self.bsl_starts,
+            'event_baseline_ends':self.bsl_ends,
+            'event_onset_locations':self.event_start,
+            'min_positions_rise':self.min_positions_rise,
+            'max_positions_rise':self.max_positions_rise,
+            'min_values_rise':self.min_values_rise,
+            'max_values_rise':self.max_values_rise,
+            'half_decay_positions':self.half_decay,
+            'singular_event_indices':self.singular_event_indices},
+         
+        'individual_values':{
+            'amplitudes':self.event_stats.amplitudes,
+            'charges':self.event_stats.charges,
+            'risetimes':self.event_stats.risetimes,
+            'half_decaytimes':self.event_stats.halfdecays},            
+        
+        'average_values':{
+            'amplitude mean':self.event_stats.mean(self.event_stats.amplitudes),
+            'amplitude std':self.event_stats.std(self.event_stats.amplitudes),
+            'amplitude median':self.event_stats.median(self.event_stats.amplitudes),
+            'charge mean':self.event_stats.mean(self.event_stats.charges),
+            'risetime mean':self.event_stats.mean(self.event_stats.risetimes),
+            'half_decaytime mean':self.event_stats.mean(self.event_stats.halfdecays),
+            'decay_tau':self.event_stats.avg_tau_decay*1000,
+            'frequency':self.event_stats.frequency()},
+        
+        'average_event_properties':self.average_event_properties,
+        'metadata':{
+            ### trace information:
+            'source_filename':self.trace.filename,
+            'y_unit':self.trace.y_unit,
+            'recording_time':self.trace.data.shape[0] * self.trace.sampling,
+            'sampling':self.trace.sampling,
+            'sampling_rate':self.trace.sampling_rate,
+
+            ### miniML information
+            'miniml_model':self.model_path,
+            'miniml_model_threshold':self.model_threshold,
+            
+            ### event detection params:
+            'window_size':self.window_size,
+            'stride':self.stride_length,
+            'add_points':self.add_points,
+            'resampling_factor':self.resampling_factor,
+
+            ### event analysis params:
+            'convolve_win':self.convolve_win,
+            'gradient_convolve_win':self.gradient_convolve_win,
+            'min_peak_w':self.peak_w,
+            'rel_prom_cutoff':self.rel_prom_cutoff,
+            'event_direction':self.event_direction,
+            'interpolation_factor' : self.interpol_factor},
+        'events':self.events}
+
+    if include_prediction:
+        results['prediction']=self.prediction # Save prediction as numpy array
+
+    if include_data:
+        results['mini_trace']=self.trace.data
+
+    with open(filename, 'wb') as handle:
+        pkl.dump(results, handle)
+    print(f'events saved to {filename}')

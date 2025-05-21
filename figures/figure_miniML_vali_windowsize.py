@@ -62,38 +62,38 @@ for df in [n_events, avg_score]:
  
 # %% get data
 
-for th in [0.9]:
+# for th in [0.9]:
 
-    for cell_ID in tqdm(cell_IDs):
+#     for cell_ID in tqdm(cell_IDs):
         
-        for winsize in winsizes:
+#         for winsize in winsizes:
             
-            # set filename
-            filename = f'miniMLdetect_{cell_ID}_Erest_ctrl_{str(winsize)}_{str(th).replace(".", "p")}' 
+#             # set filename
+#             filename = f'miniMLdetect_{cell_ID}_Erest_ctrl_{str(winsize)}_{str(th).replace(".", "p")}' 
             
-            # open a file, where you stored the pickled data
-            file = open((miniML_path + '/' +filename + '.pickle'), 'rb')
+#             # open a file, where you stored the pickled data
+#             file = open((miniML_path + '/' +filename + '.pickle'), 'rb')
             
-            # dump information to that file
-            detection = pickle.load(file)
+#             # dump information to that file
+#             detection = pickle.load(file)
             
-            # close and remove (from memory) the file
-            file.close()
-            del(file)
-            gc.collect()
+#             # close and remove (from memory) the file
+#             file.close()
+#             del(file)
+#             gc.collect()
     
-            # get data
-            n_events.at[winsize, cell_ID] = detection['event_location_parameters']['event_peak_locations'].shape[0]
-            avg_score.at[winsize, cell_ID] = np.mean(detection['event_location_parameters']['event_scores'])
+#             # get data
+#             n_events.at[winsize, cell_ID] = detection['event_location_parameters']['event_peak_locations'].shape[0]
+#             avg_score.at[winsize, cell_ID] = np.mean(detection['event_location_parameters']['event_scores'])
     
-    n_events.to_excel(synaptic_dir + '/miniML_validation' + f'/n_events_{str(th).replace(".", "p")}.xlsx', index_label = 'winsize')
-    avg_score.to_excel(synaptic_dir + '/miniML_validation' + f'/avg_score_{str(th).replace(".", "p")}.xlsx', index_label = 'winsize')
+#     n_events.to_excel(synaptic_dir + '/miniML_validation' + f'/n_events_{str(th).replace(".", "p")}.xlsx', index_label = 'winsize')
+#     avg_score.to_excel(synaptic_dir + '/miniML_validation' + f'/avg_score_{str(th).replace(".", "p")}.xlsx', index_label = 'winsize')
 
 
 # %% figure - normed n_events
 
 # set th
-th = 0.9
+th = 0.5
 
 # re-load data
 n_events = pd.read_excel(synaptic_dir + '/miniML_validation' + f'/n_events_{str(th).replace(".", "p")}.xlsx', index_col = 'winsize')
@@ -463,3 +463,8 @@ fig.align_labels()
 # display figure
 plt.show()
     
+# save figure
+save_figures(fig, 
+             figure_name = 'miniML_validation-window_size-all_thresholds', 
+             save_dir = figure_dir + '/miniML_validation',
+             figure_format = 'both')

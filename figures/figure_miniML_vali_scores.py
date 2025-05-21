@@ -43,7 +43,7 @@ for cell_ID in tqdm(cell_IDs):
     gc.collect()
 
     # write to dataframe
-    allevents = map_detection_to_df(detection, df = allevents, cell_ID = cell_ID)
+    allevents = map_detection_to_df(detection, df = allevents, cell_ID = cell_ID, include_events=True)
 
 # drop nan valued rows
 allevents.dropna(axis = 'index', how = 'any', inplace = True)
@@ -51,7 +51,7 @@ allevents.dropna(axis = 'index', how = 'any', inplace = True)
 
 # %% calc histogram
 
-score_bins = PSC_bins['scores']
+score_bins = PSC_bins['score']
 scores_hist, _ = np.histogram(allevents['score'], bins = score_bins)
 
 

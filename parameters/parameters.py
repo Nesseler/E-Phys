@@ -8,7 +8,7 @@ Parameters files
     contains hard coded variables for analysis
 """
 
-from numpy import arange
+from numpy import arange, linspace
 
 # %% list of spike parameters
 
@@ -96,9 +96,9 @@ bin_size_ISI_poisson = 25e-3
 
 # %% vc_PSCs
 
-PSC_bins = {'amplitudes' : arange(-70, 0+1, 1),
-            'risetimes' : arange(0, 20+0.2, 0.2),
-            'halfdecay_times': arange(0, 20+0.5, 0.5),
-            'IEIs' : arange(0, 30+0.05, 0.05),
-            'scores' : arange(0.0, 1+0.001, 0.01)}
+PSC_bins = {'amplitude' : linspace(-70, 0, int((70)/1)+1, endpoint=True),
+            'risetime' : linspace(0, 20, int(20/0.2)+1, endpoint=True),
+            'halfdecaytime': linspace(0, 20, int(20/0.5)+1, endpoint=True),
+            'IEI' : linspace(0, 30, int(30/0.05)+1, endpoint=True),
+            'score' : linspace(0.0, 1., 101, endpoint=True)}
 

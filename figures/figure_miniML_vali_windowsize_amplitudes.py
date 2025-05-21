@@ -15,9 +15,6 @@ from parameters.directories_win import synaptic_dir, figure_dir
 # set cell_ID
 cell_IDs = ['E-298', 'E-301', 'E-302', 'E-303', 'E-309', 'E-310', 'E-314']
 
-# cell_IDs = ['E-303']
-# cell_ID = cell_IDs[0]
-
 # set parameters
 winsizes = [36, 96, 114, 276]
 
@@ -36,7 +33,7 @@ traces = dict.fromkeys(cell_IDs)
 # %% load
 
 for cell_ID in tqdm(cell_IDs):
-    for winsize in winsizes:
+    for winsize in tqdm(winsizes, leave=False):
         
         # set filename
         filename = f'miniMLdetect_{cell_ID}_Erest_ctrl_{winsize}_0p5' 
@@ -350,19 +347,13 @@ plot_trace(ax = axs[13], trace=trace, all_peak_idc=event_peak_idc, t=140.85, tra
 # align labels
 fig.align_labels()
 
-# remove spines
-[axs[axi].spines[spine].set_visible(False) for axi in axs for spine in ['top', 'right']]
-
 # display figure
 plt.show()
 
-
-# import directories 
-from parameters.directories_win import figure_dir
-figure_path = figure_dir + '/miniML_validation'
+# save figure
 save_figures(fig, 
              figure_name = f'miniML_validation-window_size_amplitudes-{cell_ID}', 
-             save_dir = figure_path,
+             save_dir = figure_dir + '/miniML_validation',
              figure_format = 'both')
 
 
@@ -381,12 +372,12 @@ for winsize in winsizes:
 # # plot histogram
 
 fig, ax = plt.subplots(nrows = 1, ncols = 1,
-                       figsize = get_figure_size(width = 100, height = 80),
+                       figsize = get_figure_size(width = 159.2, height = 80),
                        dpi = 300,
                        layout = 'constrained')
 
 
-for winsize in [96, 114]:
+for winsize in [36, 96, 114, 276]:
 
     # get data
     keys = list()
@@ -431,8 +422,11 @@ ax.spines['bottom'].set_bounds([xmin, 0])
 # align labels
 fig.align_labels()
 
-# remove spiness
-[ax.spines[spine].set_visible(False) for spine in ['top', 'right']]
-
 # display figure
 plt.show()
+
+# save figure
+save_figures(fig, 
+             figure_name = f'miniML_validation-window_size_amplitudes-histogram_std', 
+             save_dir = figure_dir + '/miniML_validation',
+             figure_format = 'both')

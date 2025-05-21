@@ -88,16 +88,18 @@ lookup = pd.read_excel(ePhys_parent + '/ePhys-database.xlsx',
                        index_col = 'cell_ID')
 
 # get cell_IDs
-cell_IDs = lookup.index.to_list()
+# cell_IDs = lookup.index.to_list()
 # cell_IDs = cell_IDs[2:]
 # cell_IDs.remove('E-303')
+cell_IDs = ['E-298']
 
 # define multiple factors
 # factors = np.arange(2, 50+.1, 2, dtype = int)
 # factors = np.append(factors, 19)
-factors = [int(f/6) for f in [36, 96, 114, 276]]
+# factors = [int(f/6) for f in [36, 96, 114, 276]]
+factors = [int(f/6) for f in [12, 24]]
 
-ths = [0.5, 0.75, 0.9]
+ths = [0.5] #[0.5, 0.75, 0.9]
 
 # newly analyzed
 newly_analyzed = str()
